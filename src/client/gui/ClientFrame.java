@@ -1,5 +1,6 @@
 package client.gui;
 
+import client.gui.DurakToolBar;
 import utilities.gui.FensterPositionen;
 
 import javax.swing.*;
