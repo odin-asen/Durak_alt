@@ -1,6 +1,6 @@
 package client;
 
-import client.gui.MainFrame;
+import client.gui.ClientFrame;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,16 +12,14 @@ import java.awt.*;
  */
 public class StartClient {
   public static final String LOOK_AND_FEEL = "com.jtattoo.plaf.noire.NoireLookAndFeel";
-  public static final String VERSION = "Version 0.0";
 
   public static void main(String[] args) {
-    loadLaF(new MainFrame());
+    loadLaF(new ClientFrame());
   }
 
   public static void loadLaF(Component comp)
   {
-    try
-    {
+    try {
       UIManager.setLookAndFeel(LOOK_AND_FEEL);
       SwingUtilities.updateComponentTreeUI(comp);
     }
