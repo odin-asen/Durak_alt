@@ -1,6 +1,9 @@
 package server.business;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
@@ -79,13 +82,15 @@ public class GameServer extends Thread {
     if (running)
       running = false;
   }
-
-
 }
 
 class ServerThread extends Thread {
   private boolean running;
   private Socket socket;
+  private InputStream socketIn;
+  private OutputStream socketOut;
+
+  private static final int SERVER_PING = 0;
 
   ServerThread(Socket socket) {
     running = true;
@@ -93,11 +98,37 @@ class ServerThread extends Thread {
   }
 
   public void run() {
+    getSocketStreams();
+
     while (running) {
+      try{
+        if(SERVER_PING == socketIn.read()) {
+          ObjectOutputStream oos = new ObjectOutputStream(socketOut);
+          oos.writeChars("Hello! Is it me you're looking for?");
+          oos.close();
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
 
     }
 
-    try {
+    closeSocket();
+  }
+
+  private void getSocketStreams() {
+    try{
+      socketIn = socket.getInputStream();
+      socketOut = socket.getOutputStream();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void closeSocket() {
+    try{
+      socketIn.close();
+      socketOut.close();
       socket.close();
     } catch (IOException e) {
       e.printStackTrace();

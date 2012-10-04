@@ -1,21 +1,19 @@
 package server.gui;
 
+import server.business.GameServer;
 import resources.ResourceGetter;
 import resources.ResourceGetterException;
-import server.business.GameServer;
 import utilities.gui.FensterPositionen;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.UnknownHostException;
+import java.text.NumberFormat;
 import java.util.Vector;
 
 /**
@@ -24,10 +22,18 @@ import java.util.Vector;
  * Time: 19:33
  */
 public class ServerFrame extends JFrame {
+  public static final float SCREEN_SIZE_FENSTER = 0.3f;
   public static final String ACTION_COMMAND_START = "start";
   public static final String ACTION_COMMAND_STOP = "stop";
   public static final String ACTION_COMMAND_CLOSE = "close";
-  public static final float SCREEN_SIZE_FENSTER = 0.3f;
+  public static final String LABEL_SERVERADRESSE = "Serveradresse:";
+  public static final String LABEL_PORT = "Port:";
+  public static final String TOOLTIP_START = "Starten den Server f\u00fcr ein Spiel";
+  public static final String TOOLTIP_STOP = "Stopt den Server";
+  public static final String TOOLTIP_SCHLIESSEN = "Schlie\u00dft die Anwendung";
+  public static final String ALTERNATIVE_SCLHIESSEN = "Schlie\u00dfen";
+  public static final String ALTERNATIVE_STOP = "Stop";
+  public static final String ALTERNATIVE_START = "Start";
 
   private JToolBar toolBar;
   private JButton startButton;
@@ -35,7 +41,7 @@ public class ServerFrame extends JFrame {
   private JButton closeButton;
   private JPanel settingsPanel;
   private JComboBox<String> addressField;
-  private JTextField portField;
+  private JFormattedTextField portField;
   private JPanel statusPanel;
   private JLabel statusBar;
 
@@ -75,12 +81,12 @@ public class ServerFrame extends JFrame {
 
   private void initToolBar() {
     toolBar = new JToolBar();
-    startButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_PLAY, "Starten den Server f\u00fcr ein Spiel",
-        ACTION_COMMAND_START, "Start", KeyEvent.VK_G);
-    stopButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_STOPPLAYER, "Stopt den Server",
-        ACTION_COMMAND_STOP, "Stop", KeyEvent.VK_A);
-    closeButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_CLOSE,"Schlie\u00dft die Anwendung",
-        ACTION_COMMAND_CLOSE,"Schlie\u00dfen", KeyEvent.VK_Q);
+    startButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_PLAY, TOOLTIP_START,
+        ACTION_COMMAND_START, ALTERNATIVE_START, KeyEvent.VK_G);
+    stopButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_STOPPLAYER, TOOLTIP_STOP,
+        ACTION_COMMAND_STOP, ALTERNATIVE_STOP, KeyEvent.VK_A);
+    closeButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_CLOSE, TOOLTIP_SCHLIESSEN,
+        ACTION_COMMAND_CLOSE, ALTERNATIVE_SCLHIESSEN, KeyEvent.VK_Q);
 
     toolBar.setMargin(new Insets(5,5,5,5));
     toolBar.setRollover(true);
@@ -96,8 +102,8 @@ public class ServerFrame extends JFrame {
 
   private void initSettingsPanel() {
     settingsPanel = new JPanel(new BorderLayout());
-    JLabel addressLabel = new JLabel("Serveradresse:");
-    JLabel portLabel = new JLabel("Port:");
+    JLabel addressLabel = new JLabel(LABEL_SERVERADRESSE);
+    JLabel portLabel = new JLabel(LABEL_PORT);
     JPanel gridPanel = new JPanel(new GridLayout(0,2,0,25));
 
     initConnectionFields();
@@ -117,7 +123,11 @@ public class ServerFrame extends JFrame {
   private void initConnectionFields() {
     final Vector<String> comboBoxContent = new Vector<String>();
     addressField = new JComboBox<String>(comboBoxContent);
-    portField = new JTextField("1025");
+    NumberFormat format = NumberFormat.getNumberInstance();
+    format.setMaximumFractionDigits(0);
+    format.setGroupingUsed(false);
+    portField = new JFormattedTextField(format);
+
     addressField.setEditable(true);
     try {
       addressField.addItem(InetAddress.getLocalHost().getHostName());
