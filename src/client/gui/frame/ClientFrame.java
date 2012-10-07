@@ -1,10 +1,11 @@
-package client.gui;
+package client.gui.frame;
 
-import client.gui.DurakToolBar;
 import utilities.gui.FensterPositionen;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 
 /**
  * User: Timm Herrmann
@@ -18,12 +19,13 @@ public class ClientFrame extends JFrame {
   public static final String TITLE_SEPARATOR = " - ";
   public static final String VERSION = "Version 0.0";
   public static final int OPPONENT_PANEL_HEIGHT = 70;
-  public static final int CARDSTACK_PANEL_WIDTH = 70;
+  public static final int CARDSTACK_PANEL_WIDTH = 250;
+  public static final int CARDSTACK_PANEL_VERTICAL_INSET = 80;
 
   private JPanel secondPane;
-  private JPanel opponentsPanel;
-  private JPanel cardStackPanel;
-  private JPanel playerPanel;
+  private OpponentsPanel opponentsPanel;
+  private CardStackPanel cardStackPanel;
+  private GamePanel playerPanel;
   private JPanel statusPanel;
   private JLabel statusBar;
   private DurakToolBar toolBar;
@@ -36,24 +38,25 @@ public class ClientFrame extends JFrame {
     this.setBounds(positionen.getRectangle());
     this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     initComponents();
-
+    initCards();
+    this.addComponentListener(new CardResizer());
     this.setVisible(true);
   }
 
   private void initSecondPane() {
     secondPane = new JPanel();
-    opponentsPanel = new JPanel();
-    cardStackPanel = new JPanel();
-    playerPanel = new JPanel();
+    opponentsPanel = new OpponentsPanel();
+    cardStackPanel = new CardStackPanel();
+    playerPanel = new GamePanel();
 
     initStatusPanel();
 
     secondPane.setBackground(Color.WHITE);
-    opponentsPanel.setBackground(Color.WHITE);
     opponentsPanel.setPreferredSize(new Dimension(0, OPPONENT_PANEL_HEIGHT));
-    cardStackPanel.setBackground(Color.WHITE);
     cardStackPanel.setPreferredSize(new Dimension(CARDSTACK_PANEL_WIDTH, 0));
-    playerPanel.setBackground(Color.WHITE);
+    cardStackPanel.setLayout(new BorderLayout());
+    cardStackPanel.add(Box.createGlue(), BorderLayout.PAGE_START);
+    cardStackPanel.add(Box.createGlue(), BorderLayout.PAGE_END);
 
     secondPane.setLayout(new BorderLayout());
     secondPane.add(opponentsPanel, BorderLayout.PAGE_START);
@@ -80,6 +83,35 @@ public class ClientFrame extends JFrame {
     getContentPane().setLayout(new BorderLayout());
     getContentPane().add(toolBar, BorderLayout.PAGE_START);
     getContentPane().add(secondPane, BorderLayout.CENTER);
+  }
+
+  public void initCards() {
+    playerPanel.placeCards();
+    cardStackPanel.addStack(36, BorderLayout.CENTER);
+    opponentsPanel.addOpponent("Peter", 6);
+    opponentsPanel.addOpponent("Klaus", 6);
+  }
+
+  private class CardResizer implements ComponentListener {
+    public void componentResized(ComponentEvent e) {
+      if(playerPanel != null)
+        playerPanel.repaintCards();
+    }
+
+    @Override
+    public void componentMoved(ComponentEvent e) {
+      //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void componentShown(ComponentEvent e) {
+      //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent e) {
+      //To change body of implemented methods use File | Settings | File Templates.
+    }
   }
 }
 

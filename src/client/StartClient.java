@@ -1,15 +1,15 @@
 package client;
 
-import client.gui.ClientFrame;
+import client.gui.frame.ClientFrame;
 
 import javax.swing.*;
 import java.awt.*;
 
 /**
- * User: Timm Herrmann
- * Date: 29.09.12
- * Time: 22:36
- */
+* User: Timm Herrmann
+* Date: 29.09.12
+* Time: 22:36
+*/
 public class StartClient {
   public static final String LOOK_AND_FEEL = "com.jtattoo.plaf.noire.NoireLookAndFeel";
 

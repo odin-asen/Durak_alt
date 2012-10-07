@@ -1,9 +1,8 @@
-package client.gui;
+package client.gui.frame;
 
 import utilities.gui.FensterPositionen;
 
 import javax.swing.*;
-import java.awt.*;
 
 /**
  * User: Timm Herrmann

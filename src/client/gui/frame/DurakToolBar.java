@@ -1,4 +1,4 @@
-package client.gui;
+package client.gui.frame;
 
 import resources.ResourceGetter;
 import resources.ResourceGetterException;
