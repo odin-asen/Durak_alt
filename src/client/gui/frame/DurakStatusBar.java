@@ -4,12 +4,10 @@ import resources.ResourceGetter;
 import resources.ResourceGetterException;
 
 import javax.swing.*;
-import javax.swing.text.DateFormatter;
 import java.awt.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -58,16 +56,12 @@ public class DurakStatusBar extends JPanel implements Runnable {
    * @param serverAddress Will be set to the tooltip as information
    */
   public void setConnected(boolean connected, String serverAddress) {
-    try {
-      if(connected) {
-        statusLabel.setIcon(ResourceGetter.loadImage(ResourceGetter.STRING_IMAGE_CONNECTED,"Verbunden"));
-        statusLabel.setToolTipText("Verbunden mit "+serverAddress);
-      } else {
-        statusLabel.setIcon(ResourceGetter.loadImage(ResourceGetter.STRING_IMAGE_DISCONNECTED,"Verbunden"));
-        statusLabel.setToolTipText("Momentan besteht keine Verbindung zu einem Server");
-      }
-    } catch (ResourceGetterException ex) {
-      LOGGER.log(Level.INFO, ex.getMessage());
+    if(connected) {
+      statusLabel.setIcon(ResourceGetter.getImage(ResourceGetter.STRING_IMAGE_CONNECTED, "Verbunden"));
+      statusLabel.setToolTipText("Verbunden mit "+serverAddress);
+    } else {
+      statusLabel.setIcon(ResourceGetter.getImage(ResourceGetter.STRING_IMAGE_DISCONNECTED, "Verbunden"));
+      statusLabel.setToolTipText("Momentan besteht keine Verbindung zu einem Server");
     }
     this.connected = connected;
   }

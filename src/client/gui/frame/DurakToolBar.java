@@ -1,8 +1,6 @@
 package client.gui.frame;
 
 import client.business.GameClient;
-import dto.message.MessageObject;
-import dto.message.MessageType;
 import resources.ResourceGetter;
 import resources.ResourceGetterException;
 
@@ -55,11 +53,8 @@ public class DurakToolBar extends JToolBar {
     button.setActionCommand(actionCommand);
     button.setMnemonic(virtualKey);
     button.addActionListener(new ToolBarComponentAL());
-    try {
-      button.setIcon(ResourceGetter.loadImage(pictureName, alternativeText));
-    } catch (ResourceGetterException e) {
-      e.printStackTrace();
-    }
+    button.setIcon(ResourceGetter.getImage(pictureName, alternativeText));
+
     if(button.getIcon() == null)
       button.setText(alternativeText);
 

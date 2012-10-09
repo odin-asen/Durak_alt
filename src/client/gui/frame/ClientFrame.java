@@ -4,6 +4,7 @@ import client.StartClient;
 import client.business.GameClient;
 import dto.observer.GUIObserverConstants;
 import dto.observer.ObserverUpdateObject;
+import resources.ResourceGetter;
 import utilities.gui.FensterPositionen;
 
 import javax.swing.*;
@@ -96,7 +97,10 @@ public class ClientFrame extends JFrame implements Observer {
 
   public void initCards() {
     playerPanel.placeCards();
-    cardStackPanel.addStack(36, BorderLayout.CENTER);
+    cardStackPanel.setStack(36, BorderLayout.CENTER);
+    cardStackPanel.setCardBack(CardStackPanel.CARD_BACK);
+    cardStackPanel.setTrumpCard(ResourceGetter.getCardImage(
+        ResourceGetter.STRING_CARD_ACE,"Trump"));
     opponentsPanel.addOpponent("Mark", 6);
     opponentsPanel.addOpponent("J\u00fcrgen", 6);
   }

@@ -1,6 +1,7 @@
 package client.gui.frame;
 
 import client.gui.widget.card.CardStackWidget;
+import resources.ResourceGetter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,21 +14,33 @@ import java.awt.*;
 public class CardStackPanel extends JPanel {
   private CardStackWidget cardStack;
 
+  public static final ImageIcon CARD_BACK = ResourceGetter.getCardImage(
+      ResourceGetter.STRING_CARD_BACK, "Back");
+
+  /* Constructors */
   public CardStackPanel() {
     this.setBackground(Color.BLACK);
   }
 
-  public void addStack(int cards) {
-    this.addStack(cards, null);
+  /* Methods */
+  /**
+   * This method is equivalent to {@code setStack(card,null)}.
+   * @param cards Number of cards that will be shown on the stack. One of the stack is
+   *              the trump card.
+   */
+  public void setStack(int cards) {
+    this.setStack(cards, null);
   }
 
-  public void addStack(int cards, Object constraints) {
-    ImageIcon cardBack = new ImageIcon("/home/chewbacca/Development/Java/Durak/src/resources/icons/cards/back.png");
-    ImageIcon trumpCard = new ImageIcon("/home/chewbacca/Development/Java/Durak/src/resources/icons/cards/ace.png");
-
-    final float widthLimit = 1.0f-2.0f*Math.abs(1.0f-CardStackWidget.RATIO_RIGHT_MARGIN);
-    this.cardStack = new CardStackWidget(cardBack, trumpCard, CardStackWidget.ORIENTATION_VERTICAL,
-        (int) (ClientFrame.CARDSTACK_PANEL_WIDTH*widthLimit));
+  /**
+   * Sets a stack on the panel.
+   * @param cards Number of cards that will be shown on the stack. One of the stack is
+   *              the trump card.
+   * @param constraints Constraints that can be passed, if the currently set
+   *                    LayoutManager provides one.
+   */
+  public void setStack(int cards, Object constraints) {
+    this.cardStack = CardStackWidget.getInstance();
     for(int i = 0; i < cards; i++) {
       cardStack.pushCard();
     }
@@ -36,4 +49,16 @@ public class CardStackPanel extends JPanel {
     else
       this.add(cardStack, constraints);
   }
+
+  public void setTrumpCard(ImageIcon trump) {
+    if(cardStack == null)
+      cardStack = CardStackWidget.getInstance();
+    this.cardStack.setTrumpCard(trump);
+  }
+
+  public void setCardBack(ImageIcon cardBack) {
+    this.cardStack.setCardBack(cardBack);
+  }
+
+  /* Getter and Setter */
 }

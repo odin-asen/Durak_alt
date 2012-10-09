@@ -164,11 +164,7 @@ public class ServerFrame extends JFrame implements Observer {
     button.setActionCommand(actionCommand);
     button.setMnemonic(virtualKey);
     button.addActionListener(new ToolBarComponentAL());
-    try {
-      button.setIcon(ResourceGetter.loadImage(pictureName, alternativeText));
-    } catch (ResourceGetterException e) {
-      e.printStackTrace();
-    }
+    button.setIcon(ResourceGetter.getImage(pictureName, alternativeText));
 
     if(button.getIcon() == null)
       button.setText(alternativeText);

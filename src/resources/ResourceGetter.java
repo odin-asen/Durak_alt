@@ -2,9 +2,10 @@ package resources;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * User: Timm Herrmann
@@ -12,8 +13,11 @@ import java.net.URL;
  * Time: 19:59
  */
 public class ResourceGetter {
+  private static Logger LOGGER = Logger.getLogger(ResourceGetter.class.getName());
+
   public static final String RESOURCES_ROOT = "";
   public static final String PICTURES_ROOT = RESOURCES_ROOT + "icons/";
+  public static final String CARDS_ROOT = PICTURES_ROOT + "cards/";
   public static final String SOUNDS_ROOT = RESOURCES_ROOT + "sounds/";
 
   public static final String STRING_IMAGE_CLOSE = "Close.png";
@@ -23,23 +27,45 @@ public class ResourceGetter {
   public static final String STRING_IMAGE_STOPPLAYER = "Stop Player.png";
   public static final String STRING_IMAGE_CONNECTED = "Connected.png";
   public static final String STRING_IMAGE_DISCONNECTED = "Disconnected.png";
+
   public static final String STRING_CARD_ACE = "ace.png";
   public static final String STRING_CARD_BACK = "back.png";
 
-  public static ImageIcon loadImage(String imageName, String alternativeText)
-    throws ResourceGetterException {
+  public static ImageIcon getCardImage(String cardImageName, String alternativeText) {
+    ImageIcon image = null;
+
+    try {
+      final String path = ResourceGetter.CARDS_ROOT + cardImageName;
+      image = loadImage(path, alternativeText);
+    } catch (ResourceGetterException e) {
+      LOGGER.log(Level.WARNING, e.getMessage());
+    }
+
+    return image;
+  }
+
+  public static ImageIcon getImage(String imageName, String alternativeText) {
     ImageIcon image = null;
 
     try {
       final String path = ResourceGetter.PICTURES_ROOT + imageName;
-      final URL url = ResourceGetter.class.getResource(path);
-      if(url != null)
-        image = new ImageIcon(url, alternativeText);
-      else
-        throw new ResourceGetterException("Could not find an URL for the path "+path);
-    } catch (Exception e) {
-      e.printStackTrace();
+      image = loadImage(path, alternativeText);
+    } catch (ResourceGetterException e) {
+      LOGGER.log(Level.WARNING, e.getMessage());
     }
+
+    return image;
+  }
+
+  private static ImageIcon loadImage(String imageURL, String alternativeText)
+    throws ResourceGetterException {
+    final ImageIcon image;
+
+    final URL url = ResourceGetter.class.getResource(imageURL);
+    if(url != null)
+      image = new ImageIcon(url, alternativeText);
+    else
+      throw new ResourceGetterException("Could not find an URL for the path "+imageURL);
 
     return image;
   }

@@ -1,6 +1,7 @@
 package client.gui.frame;
 
 import client.gui.widget.card.OpponentHandWidget;
+import resources.ResourceGetter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,6 +12,9 @@ import java.awt.*;
  * Time: 16:12
  */
 public class OpponentsPanel extends JPanel {
+  private static final ImageIcon backCard = ResourceGetter.getCardImage(
+      ResourceGetter.STRING_CARD_BACK, "Back");
+
   public OpponentsPanel() {
     this.setBackground(Color.BLACK);
   }
@@ -20,8 +24,7 @@ public class OpponentsPanel extends JPanel {
   }
 
   public void addOpponent(String name, int cardCount, Object constraints) {
-    ImageIcon image = new ImageIcon("/home/chewbacca/Development/Java/Durak/src/resources/icons/cards/back.png");
-    OpponentHandWidget oHWidget = new OpponentHandWidget(image, name);
+    OpponentHandWidget oHWidget = new OpponentHandWidget(backCard, name);
     oHWidget.setCardCount(cardCount);
 
     if(constraints == null)
