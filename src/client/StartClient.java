@@ -13,11 +13,12 @@ import java.awt.*;
 public class StartClient {
   public static final String LOOK_AND_FEEL = "com.jtattoo.plaf.noire.NoireLookAndFeel";
 
+  private static JFrame frame = new JFrame();
+
   public static void main(String[] args) throws Exception{
+    loadLaF(frame);
+    frame.dispose();
     loadLaF(new ClientFrame());
-//    GameClient client = new GameClient("localhost", 1025);
-//    System.out.println(client.getIsRunningMessage());
-//    client.closeSession();
   }
 
   public static void loadLaF(Component comp)

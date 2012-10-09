@@ -1,18 +1,27 @@
 package client.gui.frame;
 
+import client.StartClient;
+import client.business.GameClient;
+import dto.observer.GUIObserverConstants;
+import dto.observer.ObserverUpdateObject;
 import utilities.gui.FensterPositionen;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.logging.Logger;
 
 /**
  * User: Timm Herrmann
  * Date: 29.09.12
  * Time: 22:37
  */
-public class ClientFrame extends JFrame {
+public class ClientFrame extends JFrame implements Observer {
+  private static final Logger LOGGER = Logger.getLogger(ClientFrame.class.getName());
+
   private static final float SCREEN_SIZE_FENSTER = 0.8f;
 
   public static final String APPLICATION_NAME = "Durak, das PC Spiel";
@@ -26,13 +35,18 @@ public class ClientFrame extends JFrame {
   private OpponentsPanel opponentsPanel;
   private CardStackPanel cardStackPanel;
   private GamePanel playerPanel;
-  private JPanel statusPanel;
-  private JLabel statusBar;
+  private DurakStatusBar statusBar;
   private DurakToolBar toolBar;
 
+  /* Constructors */
   public ClientFrame() {
     final FensterPositionen positionen = FensterPositionen.createFensterPositionen(
         SCREEN_SIZE_FENSTER, SCREEN_SIZE_FENSTER);
+    JFrame frame = new JFrame();
+    StartClient.loadLaF(frame);
+    frame.dispose();
+
+    GameClient.getClient().addObserver(this);
 
     this.setTitle(APPLICATION_NAME + TITLE_SEPARATOR + VERSION);
     this.setBounds(positionen.getRectangle());
@@ -43,6 +57,7 @@ public class ClientFrame extends JFrame {
     this.setVisible(true);
   }
 
+  /* Methods */
   private void initSecondPane() {
     secondPane = new JPanel();
     opponentsPanel = new OpponentsPanel();
@@ -62,18 +77,12 @@ public class ClientFrame extends JFrame {
     secondPane.add(opponentsPanel, BorderLayout.PAGE_START);
     secondPane.add(cardStackPanel, BorderLayout.LINE_START);
     secondPane.add(playerPanel, BorderLayout.CENTER);
-    secondPane.add(statusPanel, BorderLayout.PAGE_END);
+    secondPane.add(statusBar, BorderLayout.PAGE_END);
   }
 
   private void initStatusPanel() {
-    statusPanel = new JPanel();
-    statusBar = new JLabel("Test für die Statusleiste");
-
-    statusPanel.setPreferredSize(new Dimension(0, 16));
-
-    statusPanel.setLayout(new BorderLayout());
-    statusPanel.add(Box.createRigidArea(new Dimension(5,0)), BorderLayout.LINE_START);
-    statusPanel.add(statusBar, BorderLayout.CENTER);
+    statusBar = new DurakStatusBar();
+    statusBar.setPreferredSize(new Dimension(0, 16));
   }
 
   private void initComponents() {
@@ -88,9 +97,32 @@ public class ClientFrame extends JFrame {
   public void initCards() {
     playerPanel.placeCards();
     cardStackPanel.addStack(36, BorderLayout.CENTER);
-    opponentsPanel.addOpponent("Peter", 6);
-    opponentsPanel.addOpponent("Klaus", 6);
+    opponentsPanel.addOpponent("Mark", 6);
+    opponentsPanel.addOpponent("J\u00fcrgen", 6);
   }
+
+  public void setStatusBarText(String text) {
+    statusBar.setText(text);
+  }
+
+  public void update(Observable o, Object arg) {
+    final ObserverUpdateObject object = (ObserverUpdateObject) arg;
+    handleUpdate(object);
+  }
+
+  private void handleUpdate(ObserverUpdateObject object) {
+    if(GUIObserverConstants.CONNECTED.equals(object.getObserverConstant())) {
+      statusBar.setConnected(true, (String) object.getInformation());
+      statusBar.setText("Verbindung zu "+object.getInformation()+" wurde erfolgreich aufgebaut");
+    } else if(GUIObserverConstants.DISCONNECTED.equals(object.getObserverConstant())) {
+      statusBar.setConnected(false, null);
+      statusBar.setText("");
+    } else if(GUIObserverConstants.CONNECTION_FAIL.equals(object.getObserverConstant())) {
+      statusBar.setText("Verbindungsfehler: "+object.getInformation());
+    }
+  }
+
+  /* Getter and Setter */
 
   private class CardResizer implements ComponentListener {
     public void componentResized(ComponentEvent e) {

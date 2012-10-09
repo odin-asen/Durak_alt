@@ -17,7 +17,7 @@ public class GameCard extends Observable{
 
   public GameCard() {
     this.movable = false;
-    this.cardType = GameCardConstants.DEFAULT_CARD_TYPE;
+    this.cardType = GameCardConstants.CARD_TYPE_DEFAULT;
   }
 
   public Boolean isMovable() {
@@ -40,7 +40,7 @@ public class GameCard extends Observable{
 
   public void setCardType(Short type) {
     this.cardType = (Short) setValue(Arrays.asList(GameCardConstants.VALID_CARD_TYPES),
-        type, GameCardConstants.DEFAULT_CARD_TYPE);
+        type, GameCardConstants.CARD_TYPE_DEFAULT);
   }
 
   public Short getCardType() {
@@ -62,7 +62,7 @@ public class GameCard extends Observable{
 
   public void setCardColour(Short cardColour) {
     this.cardColour = (Short) setValue(Arrays.asList(GameCardConstants.VALID_CARD_COLOURS),
-        cardColour, GameCardConstants.DEFAULT_CARD_TYPE);
+        cardColour, GameCardConstants.CARD_TYPE_DEFAULT);
   }
 
   private Object setValue(List<Short> valueSet, Object valueToSet, Object defaultValue) {

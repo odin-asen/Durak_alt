@@ -1,5 +1,8 @@
 package client.gui.frame;
 
+import client.business.GameClient;
+import dto.message.MessageObject;
+import dto.message.MessageType;
 import resources.ResourceGetter;
 import resources.ResourceGetterException;
 
@@ -15,16 +18,16 @@ import java.awt.event.KeyEvent;
  * Time: 20:44
  */
 public class DurakToolBar extends JToolBar {
-  public static final String ACTION_COMMAND_CONNECTION = "connection";
-  public static final String ACTION_COMMAND_SETUP = "setup";
-  public static final String ACTION_COMMAND_CLOSE = "close";
+  private static final String ACTION_COMMAND_CONNECTION = "connection";
+  private static final String ACTION_COMMAND_SETUP = "setup";
+  private static final String ACTION_COMMAND_CLOSE = "close";
 
-  private JFrame parent;
+  private ClientFrame parent;
   private JButton connectionButton;
   private JButton setUpButton;
   private JButton closeButton;
 
-  public DurakToolBar(JFrame parent) {
+  public DurakToolBar(ClientFrame parent) {
     this.parent = parent;
     connectionButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_NETWORK, "Verbindung zu Server aufbauen",
         ACTION_COMMAND_CONNECTION, "Verbindung", KeyEvent.VK_V);
@@ -70,7 +73,12 @@ public class DurakToolBar extends JToolBar {
         parent.dispose();
         System.exit(0);
       } else if(ACTION_COMMAND_CONNECTION.equals(e.getActionCommand())) {
-
+        GameClient client = GameClient.getClient();
+        if(!client.isConnected()) {
+          client.connect();
+        } else {
+          client.disconnect();
+        }
       } else if(ACTION_COMMAND_SETUP.equals(e.getActionCommand())) {
         SetUpFrame frame = SetUpFrame.getInstance();
         if(!frame.isVisible())

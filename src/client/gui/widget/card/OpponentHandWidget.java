@@ -8,7 +8,7 @@ import java.awt.*;
  * Date: 05.10.12
  * Time: 22:36
  */
-public class OpponentHandWidget extends Canvas {
+public class OpponentHandWidget extends JComponent {
   public static final int CARDWIDTH = 34;
   public static final int CARDHEIGHT = 50;
   private ImageIcon cardBack;

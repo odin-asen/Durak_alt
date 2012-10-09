@@ -9,7 +9,7 @@ import java.awt.geom.AffineTransform;
  * Date: 06.10.12
  * Time: 03:57
  */
-public class CardStackWidget extends Canvas {
+public class CardStackWidget extends JComponent {
   public static final int ORIENTATION_HORIZONTAL = 0;
   public static final int ORIENTATION_VERTICAL = 1;
   public static final float ALIGNMENT_CARDHEIGHT = 0.5f;

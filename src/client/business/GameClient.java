@@ -1,57 +1,120 @@
 package client.business;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import dto.message.MessageObject;
+import dto.observer.GUIObserverConstants;
+import dto.observer.ObserverUpdateObject;
 
+import java.io.*;
+import java.net.Socket;
+import java.util.Observable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static dto.observer.GUIObserverConstants.*;
 /**
  * User: Timm Herrmann
  * Date: 04.10.12
  * Time: 01:37
  */
-public class GameClient {
+public class GameClient extends Observable {
+  private static Logger LOGGER = Logger.getLogger(GameClient.class.getName());
+
+  private static GameClient client;
+
+  public static final String DEFAULT_SERVER_ADDRESS = "localhost";
+  public static final int DEFAULT_SERVER_PORT = 1025;
+
   private String serverAddress;
   private int port;
   private Socket socket;
-  private static final int SERVER_PING = 0;
+  private ObjectInputStream socketIn;
+  private ObjectOutputStream socketOut;
 
-  public GameClient(String serverAddress, int port) throws IOException {
+  /* Constructors */
+  public static GameClient getClient() {
+    if (client == null) {
+      client = new GameClient(DEFAULT_SERVER_ADDRESS, DEFAULT_SERVER_PORT);
+    }
+    return client;
+  }
+
+  private GameClient(String serverAddress, int port) {
     this.serverAddress = serverAddress;
     this.port = port;
-    this.socket = new Socket(serverAddress, port);
   }
 
-  public void closeSession() throws IOException {
-    socket.close();
-  }
+  /* Methods */
+  public void connect() {
+    if(!isConnected()) {
+      try {
+        this.socket = new Socket(serverAddress, port);
+        getSocketStreams();
 
-  public String getIsRunningMessage() {
-    if(socket == null)
-      return "Es wurde keine Verbindung hergestellt!";
-    final InputStream in;
-    final OutputStream out;
-    String message = "";
-    try {
-      in = socket.getInputStream();
-      out = socket.getOutputStream();
-
-      out.write(SERVER_PING);
-
-      int read = in.read();
-      while(read != -1) {
-        message = message + (char) read;
-        read = in.read();
+        this.setChanged();
+        this.notifyObservers(new ObserverUpdateObject(CONNECTED, this.getSocketAddress()));
+      } catch (IOException ex) {
+        LOGGER.log(Level.INFO, ex.getMessage());
+        this.setChanged();
+        this.notifyObservers(new ObserverUpdateObject(CONNECTION_FAIL,
+            "Es konnte kein Server für die Adresse "+this.getSocketAddress()+" gefunden werden"));
       }
+    }
+  }
 
-      in.close();
-      out.close();
+  public void disconnect() {
+    if (socket != null) {
+      closeSocket();
+      this.setChanged();
+      this.notifyObservers(new ObserverUpdateObject(DISCONNECTED));
+    }
+  }
+
+  public boolean isConnected() {
+    if (socket != null) {
+      return !socket.isClosed();
+    } else return false;
+  }
+
+  private void getSocketStreams() {
+    try{
+      socketIn = new ObjectInputStream(socket.getInputStream());
+      socketOut = new ObjectOutputStream(socket.getOutputStream());
     } catch (IOException e) {
-      e.printStackTrace();
+      LOGGER.log(Level.SEVERE, "Could not get the streams!");
+    }
+  }
+
+  private void closeSocket() {
+    try{
+      socketIn.close();
+      socketOut.close();
+      socket.close();
+    } catch (IOException e) {
+      LOGGER.log(Level.WARNING, "Error closing socket!");
+    }
+  }
+
+  /**
+   * Sends a message to the server and returns the answer of it.
+   * @param message Message to send.
+   * @return A MessageObject as answer of the server.
+   */
+  public MessageObject send(MessageObject message) {
+    MessageObject answer = null;
+
+    try {
+      socketOut.writeObject(message);
+      answer = ((MessageObject) socketIn.readObject());
+    } catch (IOException e) {
+      LOGGER.log(Level.SEVERE, e.getMessage());
+    } catch (ClassNotFoundException e) {
+      LOGGER.log(Level.SEVERE, e.getMessage());
     }
 
-    return message;
+    return answer;
+  }
+
+  private String getSocketAddress() {
+    return serverAddress + ":" + port;
   }
 }
