@@ -21,6 +21,10 @@ public class ResourceGetter {
   public static final String STRING_IMAGE_PINION = "Pinion.png";
   public static final String STRING_IMAGE_PLAY = "Play.png";
   public static final String STRING_IMAGE_STOPPLAYER = "Stop Player.png";
+  public static final String STRING_IMAGE_CONNECTED = "Connected.png";
+  public static final String STRING_IMAGE_DISCONNECTED = "Disconnected.png";
+  public static final String STRING_CARD_ACE = "ace.png";
+  public static final String STRING_CARD_BACK = "back.png";
 
   public static ImageIcon loadImage(String imageName, String alternativeText)
     throws ResourceGetterException {
