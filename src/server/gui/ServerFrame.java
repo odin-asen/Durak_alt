@@ -1,5 +1,7 @@
 package server.gui;
 
+import dto.observer.GUIObserverConstants;
+import dto.observer.ObserverUpdateObject;
 import server.business.GameServer;
 import resources.ResourceGetter;
 import resources.ResourceGetterException;
@@ -14,6 +16,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.NumberFormat;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Vector;
 
 /**
@@ -21,7 +25,7 @@ import java.util.Vector;
  * Date: 03.10.12
  * Time: 19:33
  */
-public class ServerFrame extends JFrame {
+public class ServerFrame extends JFrame implements Observer {
   public static final float SCREEN_SIZE_FENSTER = 0.3f;
   public static final String ACTION_COMMAND_START = "start";
   public static final String ACTION_COMMAND_STOP = "stop";
@@ -34,6 +38,7 @@ public class ServerFrame extends JFrame {
   public static final String ALTERNATIVE_SCLHIESSEN = "Schlie\u00dfen";
   public static final String ALTERNATIVE_STOP = "Stop";
   public static final String ALTERNATIVE_START = "Start";
+  public static final String SERVER_INAKTIV = "Server ist inaktiv";
 
   private JToolBar toolBar;
   private JButton startButton;
@@ -72,6 +77,7 @@ public class ServerFrame extends JFrame {
     statusPanel = new JPanel();
     statusBar = new JLabel();
 
+    statusBar.setText(SERVER_INAKTIV);
     statusPanel.setPreferredSize(new Dimension(0, 16));
 
     statusPanel.setLayout(new BorderLayout());
@@ -170,12 +176,29 @@ public class ServerFrame extends JFrame {
     return button;
   }
 
+  public void update(Observable o, Object arg) {
+    final ObserverUpdateObject object = (ObserverUpdateObject) arg;
+    handleUpdate(o, object);
+  }
+
+  private void handleUpdate(Observable o, ObserverUpdateObject object) {
+    if(GUIObserverConstants.CLIENT_CONNECTED.equals(object.getObserverConstant())) {
+
+    } else if(GUIObserverConstants.CLIENT_DISCONNECTED.equals(object.getObserverConstant())) {
+
+    } else if(GUIObserverConstants.SERVER_START.equals(object.getObserverConstant())) {
+      statusBar.setText("Server l\u00e4uft");
+    } else if(GUIObserverConstants.SERVER_STOP.equals(object.getObserverConstant())) {
+      statusBar.setText(SERVER_INAKTIV);
+    }
+  }
+
   private class ToolBarComponentAL implements ActionListener {
     public void actionPerformed(ActionEvent e) {
       if(ACTION_COMMAND_CLOSE.equals(e.getActionCommand())) {
         closeFrame(e);
       } else if(ACTION_COMMAND_START.equals(e.getActionCommand())) {
-        startGameServer();
+        startGameServer((Observer) SwingUtilities.getRoot((Component) e.getSource()));
       } else if(ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
         stopGameServer();
       }
@@ -192,11 +215,13 @@ public class ServerFrame extends JFrame {
       System.exit(0);
     }
 
-    private void startGameServer() {
+    private void startGameServer(Observer observer) {
       try {
-        gameServer = new GameServer(addressField.getSelectedItem().toString(),
+        gameServer = GameServer.getServerInstance();
+        gameServer.addObserver(observer);
+        gameServer.setConnection(addressField.getSelectedItem().toString(),
             Integer.parseInt(portField.getText()));
-        gameServer.start();
+        new Thread(gameServer).start();
       } catch (IOException e) {
         statusBar.setText("Keine Berechtigung f\u00dcr Port "+portField.getText()+" oder schon belegt.");
       }

@@ -1,26 +1,43 @@
 package server.business;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
+import dto.message.MessageObject;
+import dto.message.MessageType;
+import dto.observer.ObserverUpdateObject;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Observable;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import static dto.observer.GUIObserverConstants.*;
 /**
  * User: Timm Herrmann
  * Date: 03.10.12
  * Time: 21:57
  */
-public class GameServer extends Thread {
+public class GameServer extends Observable implements Runnable {
+  private static Logger LOGGER = Logger.getLogger(GameServer.class.getName());
+
+  private static GameServer gameServer;
+
   private boolean running;
   private String serverAddress;
   private int port;
   private Vector<ServerThread> serverThreads;
   private ServerSocket serverSocket;
 
-  public GameServer(String serverAddress, int port) throws IOException {
+  /* Constructors */
+  public static GameServer getServerInstance() throws IOException {
+    if(gameServer == null) {
+      gameServer = new GameServer("localhost", 1025);
+    }
+    return gameServer;
+  }
+
+  private GameServer(String serverAddress, int port) throws IOException {
     running = true;
     this.serverAddress = serverAddress;
     this.port = port;
@@ -32,23 +49,23 @@ public class GameServer extends Thread {
     if (serverSocket == null)
       running = false;
 
-    while (running) {
-      try {
-        final ServerThread thread = new ServerThread(serverSocket.accept());
-        thread.start();
-        serverThreads.add(thread);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+    if(running) {
+      this.setChanged();
+      this.notifyObservers(new ObserverUpdateObject(SERVER_START));
     }
 
-    try {
-      closeServerThreads();
-      if (serverSocket != null) {
-        serverSocket.close();
+    while (running) {
+      try {
+        final Socket socket = serverSocket.accept();
+        final ServerThread thread = new ServerThread(socket);
+        new Thread(thread).start();
+        serverThreads.add(thread);
+
+        this.setChanged();
+        this.notifyObservers(new ObserverUpdateObject(CLIENT_CONNECTED));
+      } catch (IOException e) {
+        LOGGER.log(Level.SEVERE, "Could not establish server connection!", serverSocket);
       }
-    } catch (IOException e) {
-      e.printStackTrace();
     }
   }
 
@@ -67,11 +84,17 @@ public class GameServer extends Thread {
     return port;
   }
 
-  private void closeServerThreads() {
+  private void closeServer() throws IOException {
     for (ServerThread serverThread : serverThreads) {
       serverThread.stopRunning();
     }
     serverThreads.removeAllElements();
+    if (serverSocket != null) {
+      serverSocket.close();
+
+      this.setChanged();
+      this.notifyObservers(new ObserverUpdateObject(SERVER_STOP));
+    }
   }
 
   private ServerSocket establishServer() throws IOException {
@@ -79,49 +102,68 @@ public class GameServer extends Thread {
   }
 
   public void stopRunning() {
-    if (running)
-      running = false;
+    if(!running)
+      return;
+
+    running = false;
+
+    try {
+      closeServer();
+    } catch (IOException e) {
+      LOGGER.log(Level.WARNING, "Error while closing the connection!", serverSocket);
+    }
+
+  }
+
+  public void removeThread(ServerThread thread) {
+    this.serverThreads.remove(thread);
   }
 }
 
-class ServerThread extends Thread {
+class ServerThread extends Observable implements Runnable {
+  private static Logger LOGGER = Logger.getLogger(ServerThread.class.getName());
+
   private boolean running;
   private Socket socket;
-  private InputStream socketIn;
-  private OutputStream socketOut;
+  private ObjectInputStream socketIn;
+  private ObjectOutputStream socketOut;
 
-  private static final int SERVER_PING = 0;
-
-  ServerThread(Socket socket) {
+  /* Constructors */
+  public ServerThread(Socket socket) {
     running = true;
     this.socket = socket;
   }
 
+  /* Methods */
   public void run() {
     getSocketStreams();
 
     while (running) {
       try{
-        if(SERVER_PING == socketIn.read()) {
-          ObjectOutputStream oos = new ObjectOutputStream(socketOut);
-          oos.writeChars("Hello! Is it me you're looking for?");
-          oos.close();
-        }
+        final MessageObject mo = (MessageObject) socketIn.readObject();
+        socketOut.writeObject(MessageHandler.getAnswer(mo));
       } catch (IOException e) {
-        e.printStackTrace();
+        LOGGER.log(Level.SEVERE, "Propably lost connection with " + getSocketAddress());
+        running = false;
+      } catch (ClassNotFoundException e) {
+        LOGGER.log(Level.SEVERE, e.getMessage());
+        running = false;
       }
-
     }
 
     closeSocket();
   }
 
+  private String getSocketAddress() {
+    return socket.getInetAddress().getHostAddress() + ":" + socket.getPort();
+  }
+
   private void getSocketStreams() {
     try{
-      socketIn = socket.getInputStream();
-      socketOut = socket.getOutputStream();
+      socketOut = new ObjectOutputStream(socket.getOutputStream());
+      socketIn = new ObjectInputStream(socket.getInputStream());
     } catch (IOException e) {
-      e.printStackTrace();
+      LOGGER.log(Level.SEVERE, "Could not get the streams!");
     }
   }
 
@@ -130,12 +172,33 @@ class ServerThread extends Thread {
       socketIn.close();
       socketOut.close();
       socket.close();
+
+      this.setChanged();
+      this.notifyObservers(new ObserverUpdateObject(CLIENT_DISCONNECTED));
     } catch (IOException e) {
-      e.printStackTrace();
+      LOGGER.log(Level.WARNING, "Error closing socket!");
     }
   }
 
   public void stopRunning() {
     running = false;
+  }
+
+  /* Getter and Setter */
+}
+
+class MessageHandler {
+  @SuppressWarnings("UnusedDeclaration")
+  private Logger LOGGER = Logger.getLogger(MessageHandler.class.getName());
+
+  static MessageObject getAnswer(MessageObject messageObject) {
+    final MessageType type = messageObject.getType();
+    final MessageObject answer = new MessageObject(type);
+
+    if(MessageType.SERVER_PING.equals(type)) {
+      answer.setSendingObject("Hello! Is it me you're looking for?");
+    }
+
+    return answer;
   }
 }
