@@ -1,7 +1,5 @@
 package utilities;
 
-import java.util.Collection;
-
 /**
  * User: Timm Herrmann
  * Date: 07.10.12
@@ -9,11 +7,11 @@ import java.util.Collection;
  */
 public interface GameCardConstants {
   /* Card Type */
-  public static final Short DEFAULT_CARD_TYPE = 0;
-  public static final Short ATTACK_CARD_TYPE = 1;
-  public static final Short DEFENSE_CARD_TYPE = 2;
+  public static final Short CARD_TYPE_DEFAULT = 0;
+  public static final Short CARD_TYPE_ATTACK = 1;
+  public static final Short CARD_TYPE_DEFENSE = 2;
   public static final Short[] VALID_CARD_TYPES = {
-    DEFAULT_CARD_TYPE, ATTACK_CARD_TYPE, DEFENSE_CARD_TYPE
+      CARD_TYPE_DEFAULT, CARD_TYPE_ATTACK, CARD_TYPE_DEFENSE
   };
 
   /* Card Color */
