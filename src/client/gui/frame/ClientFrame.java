@@ -15,6 +15,8 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Logger;
 
+import static utilities.constants.gui.ClientGUIConstants.*;
+
 /**
  * User: Timm Herrmann
  * Date: 29.09.12
@@ -22,15 +24,6 @@ import java.util.logging.Logger;
  */
 public class ClientFrame extends JFrame implements Observer {
   private static final Logger LOGGER = Logger.getLogger(ClientFrame.class.getName());
-
-  private static final float SCREEN_SIZE_FENSTER = 0.8f;
-
-  public static final String APPLICATION_NAME = "Durak, das PC Spiel";
-  public static final String TITLE_SEPARATOR = " - ";
-  public static final String VERSION = "Version 0.0";
-  public static final int OPPONENT_PANEL_HEIGHT = 70;
-  public static final int CARDSTACK_PANEL_WIDTH = 250;
-  public static final int CARDSTACK_PANEL_VERTICAL_INSET = 80;
 
   private JPanel secondPane;
   private OpponentsPanel opponentsPanel;
@@ -42,7 +35,7 @@ public class ClientFrame extends JFrame implements Observer {
   /* Constructors */
   public ClientFrame() {
     final FensterPositionen positionen = FensterPositionen.createFensterPositionen(
-        SCREEN_SIZE_FENSTER, SCREEN_SIZE_FENSTER);
+        MAIN_FRAME_SCREEN_SIZE, MAIN_FRAME_SCREEN_SIZE);
     JFrame frame = new JFrame();
     StartClient.loadLaF(frame);
     frame.dispose();
@@ -98,7 +91,7 @@ public class ClientFrame extends JFrame implements Observer {
   public void initCards() {
     playerPanel.placeCards();
     cardStackPanel.setStack(36, BorderLayout.CENTER);
-    cardStackPanel.setCardBack(CardStackPanel.CARD_BACK);
+    cardStackPanel.setCardBack(CARD_BACK);
     cardStackPanel.setTrumpCard(ResourceGetter.getCardImage(
         ResourceGetter.STRING_CARD_ACE,"Trump"));
     opponentsPanel.addOpponent("Mark", 6);
@@ -136,17 +129,17 @@ public class ClientFrame extends JFrame implements Observer {
 
     @Override
     public void componentMoved(ComponentEvent e) {
-      //To change body of implemented methods use File | Settings | File Templates.
+
     }
 
     @Override
     public void componentShown(ComponentEvent e) {
-      //To change body of implemented methods use File | Settings | File Templates.
+
     }
 
     @Override
     public void componentHidden(ComponentEvent e) {
-      //To change body of implemented methods use File | Settings | File Templates.
+
     }
   }
 }

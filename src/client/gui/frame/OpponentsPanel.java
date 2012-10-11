@@ -1,7 +1,7 @@
 package client.gui.frame;
 
 import client.gui.widget.card.OpponentHandWidget;
-import resources.ResourceGetter;
+import utilities.constants.gui.ClientGUIConstants;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,9 +12,6 @@ import java.awt.*;
  * Time: 16:12
  */
 public class OpponentsPanel extends JPanel {
-  private static final ImageIcon backCard = ResourceGetter.getCardImage(
-      ResourceGetter.STRING_CARD_BACK, "Back");
-
   public OpponentsPanel() {
     this.setBackground(Color.BLACK);
   }
@@ -24,7 +21,7 @@ public class OpponentsPanel extends JPanel {
   }
 
   public void addOpponent(String name, int cardCount, Object constraints) {
-    OpponentHandWidget oHWidget = new OpponentHandWidget(backCard, name);
+    OpponentHandWidget oHWidget = new OpponentHandWidget(ClientGUIConstants.CARD_BACK, name);
     oHWidget.setCardCount(cardCount);
 
     if(constraints == null)

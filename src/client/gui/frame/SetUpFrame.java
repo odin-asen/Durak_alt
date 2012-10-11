@@ -1,5 +1,6 @@
 package client.gui.frame;
 
+import utilities.constants.gui.ClientGUIConstants;
 import utilities.gui.FensterPositionen;
 
 import javax.swing.*;
@@ -10,18 +11,16 @@ import javax.swing.*;
  * Time: 21:13
  */
 public class SetUpFrame extends JFrame {
-  public static final float SCREEN_SIZE_FENSTER_HOEHE = 0.7f;
-  public static final float SCREEN_SIZE_FENSTER_BREITE = 0.3f;
 
   private static SetUpFrame setUpFrame;
 
   private SetUpFrame() {
     final FensterPositionen positionen = FensterPositionen.createFensterPositionen(
-        SCREEN_SIZE_FENSTER_BREITE, SCREEN_SIZE_FENSTER_HOEHE);
+        ClientGUIConstants.SET_UP_FRAME_SCREEN_SIZE_WIDTH, ClientGUIConstants.SET_UP_FRAME_SCREEN_SIZE_HEIGHT);
     this.setBounds(positionen.getRectangle());
   }
 
-  public static synchronized SetUpFrame getInstance() {
+  public static SetUpFrame getInstance() {
     if(setUpFrame == null) {
       setUpFrame = new SetUpFrame();
     }

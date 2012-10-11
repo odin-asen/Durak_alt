@@ -2,7 +2,6 @@ package client.gui.frame;
 
 import client.business.GameClient;
 import resources.ResourceGetter;
-import resources.ResourceGetterException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,16 +9,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
+import utilities.constants.gui.ClientGUIConstants;
+
 /**
  * User: Timm Herrmann
  * Date: 02.10.12
  * Time: 20:44
  */
 public class DurakToolBar extends JToolBar {
-  private static final String ACTION_COMMAND_CONNECTION = "connection";
-  private static final String ACTION_COMMAND_SETUP = "setup";
-  private static final String ACTION_COMMAND_CLOSE = "close";
-
   private ClientFrame parent;
   private JButton connectionButton;
   private JButton setUpButton;
@@ -28,11 +25,11 @@ public class DurakToolBar extends JToolBar {
   public DurakToolBar(ClientFrame parent) {
     this.parent = parent;
     connectionButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_NETWORK, "Verbindung zu Server aufbauen",
-        ACTION_COMMAND_CONNECTION, "Verbindung", KeyEvent.VK_V);
+        ClientGUIConstants.ACTION_COMMAND_CONNECTION, "Verbindung", KeyEvent.VK_V);
     setUpButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_PINION, "\u00d6ffnet Fenster f\u00fcr Einstellungen",
-        ACTION_COMMAND_SETUP, "Einstellungen", KeyEvent.VK_E);
+        ClientGUIConstants.ACTION_COMMAND_SETUP, "Einstellungen", KeyEvent.VK_E);
     closeButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_CLOSE,"Schlie\u00dft die Anwendung",
-        ACTION_COMMAND_CLOSE,"Schlie\u00dfen", KeyEvent.VK_Q);
+        ClientGUIConstants.ACTION_COMMAND_CLOSE,"Schlie\u00dfen", KeyEvent.VK_Q);
 
     this.setMargin(new Insets(5,5,5,5));
     this.setRollover(true);
@@ -63,18 +60,18 @@ public class DurakToolBar extends JToolBar {
 
   private class ToolBarComponentAL implements ActionListener {
     public void actionPerformed(ActionEvent e) {
-      if(ACTION_COMMAND_CLOSE.equals(e.getActionCommand())) {
+      if(ClientGUIConstants.ACTION_COMMAND_CLOSE.equals(e.getActionCommand())) {
         parent.setVisible(false);
         parent.dispose();
         System.exit(0);
-      } else if(ACTION_COMMAND_CONNECTION.equals(e.getActionCommand())) {
+      } else if(ClientGUIConstants.ACTION_COMMAND_CONNECTION.equals(e.getActionCommand())) {
         GameClient client = GameClient.getClient();
         if(!client.isConnected()) {
           client.connect();
         } else {
           client.disconnect();
         }
-      } else if(ACTION_COMMAND_SETUP.equals(e.getActionCommand())) {
+      } else if(ClientGUIConstants.ACTION_COMMAND_SETUP.equals(e.getActionCommand())) {
         SetUpFrame frame = SetUpFrame.getInstance();
         if(!frame.isVisible())
           frame.setVisible(true);

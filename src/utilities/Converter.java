@@ -2,6 +2,7 @@ package utilities;
 
 import client.business.GameCard;
 import dto.DTOCard;
+import utilities.constants.GameCardConstants;
 
 /**
  * User: Timm Herrmann

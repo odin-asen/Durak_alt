@@ -1,7 +1,6 @@
 package client.gui.frame;
 
 import client.gui.widget.card.CardStackWidget;
-import resources.ResourceGetter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,9 +12,6 @@ import java.awt.*;
  */
 public class CardStackPanel extends JPanel {
   private CardStackWidget cardStack;
-
-  public static final ImageIcon CARD_BACK = ResourceGetter.getCardImage(
-      ResourceGetter.STRING_CARD_BACK, "Back");
 
   /* Constructors */
   public CardStackPanel() {

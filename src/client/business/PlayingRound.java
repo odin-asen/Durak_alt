@@ -1,4 +1,4 @@
-package server.business;
+package client.business;
 
 import java.util.ArrayList;
 import java.util.List;

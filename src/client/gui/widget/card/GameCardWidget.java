@@ -2,7 +2,7 @@ package client.gui.widget.card;
 
 import client.business.GameCard;
 import utilities.Converter;
-import utilities.GameCardConstants;
+import utilities.constants.GameCardConstants;
 
 import javax.swing.*;
 import java.awt.*;

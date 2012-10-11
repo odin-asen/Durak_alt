@@ -4,7 +4,6 @@ import dto.observer.GUIObserverConstants;
 import dto.observer.ObserverUpdateObject;
 import server.business.GameServer;
 import resources.ResourceGetter;
-import resources.ResourceGetterException;
 import utilities.gui.FensterPositionen;
 
 import javax.swing.*;
@@ -20,26 +19,13 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
 
+import static utilities.constants.gui.ServerGUIConstants.*;
 /**
  * User: Timm Herrmann
  * Date: 03.10.12
  * Time: 19:33
  */
 public class ServerFrame extends JFrame implements Observer {
-  public static final float SCREEN_SIZE_FENSTER = 0.3f;
-  public static final String ACTION_COMMAND_START = "start";
-  public static final String ACTION_COMMAND_STOP = "stop";
-  public static final String ACTION_COMMAND_CLOSE = "close";
-  public static final String LABEL_SERVERADRESSE = "Serveradresse:";
-  public static final String LABEL_PORT = "Port:";
-  public static final String TOOLTIP_START = "Starten den Server f\u00fcr ein Spiel";
-  public static final String TOOLTIP_STOP = "Stopt den Server";
-  public static final String TOOLTIP_SCHLIESSEN = "Schlie\u00dft die Anwendung";
-  public static final String ALTERNATIVE_SCLHIESSEN = "Schlie\u00dfen";
-  public static final String ALTERNATIVE_STOP = "Stop";
-  public static final String ALTERNATIVE_START = "Start";
-  public static final String SERVER_INAKTIV = "Server ist inaktiv";
-
   private JToolBar toolBar;
   private JButton startButton;
   private JButton stopButton;
@@ -54,7 +40,7 @@ public class ServerFrame extends JFrame implements Observer {
 
   public ServerFrame() {
     FensterPositionen position = FensterPositionen.createFensterPositionen(
-        SCREEN_SIZE_FENSTER, SCREEN_SIZE_FENSTER);
+        MAIN_FRAME_SCREEN_SIZE, MAIN_FRAME_SCREEN_SIZE);
     initComponents();
 
     this.setBounds(position.getRectangle());
@@ -77,7 +63,7 @@ public class ServerFrame extends JFrame implements Observer {
     statusPanel = new JPanel();
     statusBar = new JLabel();
 
-    statusBar.setText(SERVER_INAKTIV);
+    statusBar.setText(SERVER_INACTIVE);
     statusPanel.setPreferredSize(new Dimension(0, 16));
 
     statusPanel.setLayout(new BorderLayout());
@@ -91,8 +77,8 @@ public class ServerFrame extends JFrame implements Observer {
         ACTION_COMMAND_START, ALTERNATIVE_START, KeyEvent.VK_G);
     stopButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_STOPPLAYER, TOOLTIP_STOP,
         ACTION_COMMAND_STOP, ALTERNATIVE_STOP, KeyEvent.VK_A);
-    closeButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_CLOSE, TOOLTIP_SCHLIESSEN,
-        ACTION_COMMAND_CLOSE, ALTERNATIVE_SCLHIESSEN, KeyEvent.VK_Q);
+    closeButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_CLOSE, TOOLTIP_CLOSE,
+        ACTION_COMMAND_CLOSE, ALTERNATIVE_CLOSE, KeyEvent.VK_Q);
 
     toolBar.setMargin(new Insets(5,5,5,5));
     toolBar.setRollover(true);
@@ -108,7 +94,7 @@ public class ServerFrame extends JFrame implements Observer {
 
   private void initSettingsPanel() {
     settingsPanel = new JPanel(new BorderLayout());
-    JLabel addressLabel = new JLabel(LABEL_SERVERADRESSE);
+    JLabel addressLabel = new JLabel(LABEL_SERVER_ADDRESS);
     JLabel portLabel = new JLabel(LABEL_PORT);
     JPanel gridPanel = new JPanel(new GridLayout(0,2,0,25));
 
@@ -185,7 +171,7 @@ public class ServerFrame extends JFrame implements Observer {
     } else if(GUIObserverConstants.SERVER_START.equals(object.getObserverConstant())) {
       statusBar.setText("Server l\u00e4uft");
     } else if(GUIObserverConstants.SERVER_STOP.equals(object.getObserverConstant())) {
-      statusBar.setText(SERVER_INAKTIV);
+      statusBar.setText(SERVER_INACTIVE);
     }
   }
 

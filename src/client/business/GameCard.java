@@ -1,6 +1,6 @@
 package client.business;
 
-import utilities.GameCardConstants;
+import utilities.constants.GameCardConstants;
 
 import java.util.*;
 

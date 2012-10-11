@@ -1,11 +1,10 @@
-package server.business;
+package client.business;
 
 import dto.DTOCard;
-import utilities.GameCardConstants;
+import utilities.constants.GameCardConstants;
+import utilities.constants.GameConfigurationConstants;
 
 import java.util.*;
-
-import static server.ServerConfigurationConstants.*;
 
 /**
  * User: Timm Herrmann
@@ -49,11 +48,11 @@ public class GameCardStack {
   }
 
   private Integer checkCardNumber(Integer cardNumber) {
-    final int compareResult = cardNumber.compareTo(MAXIMUM_COLOUR_CARD_COUNT);
+    final int compareResult = cardNumber.compareTo(GameConfigurationConstants.MAXIMUM_COLOUR_CARD_COUNT);
     if(compareResult > 0)
-      cardNumber = new Integer(MAXIMUM_COLOUR_CARD_COUNT);
+      cardNumber = GameConfigurationConstants.MAXIMUM_COLOUR_CARD_COUNT;
     else if (compareResult < 0)
-      cardNumber = new Integer(0);
+      cardNumber = 0;
     return cardNumber;
   }
 

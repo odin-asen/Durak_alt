@@ -198,7 +198,11 @@ class MessageHandler {
     if(MessageType.SERVER_PING.equals(type)) {
       answer.setSendingObject("Hello! Is it me you're looking for?");
     }
-
+    //TODO Spielfelddaten im Server einstellen, und zugehörige KLassen initialisieren (z.B. GameCardStack)
+    //TODO Spieler Spielfelddaten senden, wenn dieser sich im Spielraum anmeldet
+    //TODO Spieler initialisieren, wenn dieser dem Spiel beitreten will
+    //TODO zu diesen Nachrichten enums hinzufügen
+    //TODO Spielaktion (z.B. Angriffskarte legen) auswerten und antwort schicken, ob es möglich ist
     return answer;
   }
 }

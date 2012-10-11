@@ -1,4 +1,4 @@
-package server.business;
+package client.business;
 
 import dto.DTOCard;
 

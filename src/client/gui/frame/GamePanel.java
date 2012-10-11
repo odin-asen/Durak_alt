@@ -3,13 +3,10 @@ package client.gui.frame;
 import client.gui.widget.card.CardMoveListener;
 import client.gui.widget.card.GameCardListener;
 import client.gui.widget.card.GameCardWidget;
+import utilities.constants.gui.ClientGUIConstants;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,7 +23,7 @@ public class GamePanel extends JPanel {
   private GameCardWidget testWidget;
 
   public GamePanel() {
-    this.setBackground(new Color(13, 153,0));
+    this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
     this.setLayout(null);
   }
 

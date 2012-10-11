@@ -1,4 +1,4 @@
-package utilities;
+package utilities.constants;
 
 /**
  * User: Timm Herrmann
