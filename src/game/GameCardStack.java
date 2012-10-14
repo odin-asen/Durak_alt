@@ -1,6 +1,5 @@
-package client.business;
+package game;
 
-import dto.DTOCard;
 import utilities.constants.GameCardConstants;
 import utilities.constants.GameConfigurationConstants;
 
@@ -17,33 +16,33 @@ import java.util.*;
 public class GameCardStack {
   private static GameCardStack ourInstance = new GameCardStack();
 
-  private Deque<DTOCard> cardStack;
+  private Deque<GameCard> cardStack;
 
   public static GameCardStack getInstance() {
     return ourInstance;
   }
 
   private GameCardStack() {
-    cardStack = new ArrayDeque<DTOCard>();
+    cardStack = new ArrayDeque<GameCard>();
   }
 
   /**
-   * Initializes a shuffled stack with the number of {@code cardNumber} cards
+   * Initialises a shuffled stack with the number of {@code cardNumber} cards
    * for each of the 4 card colours.
    * <p>If {@code cardNumber} is higher than</p>
-   * {@link server.ServerConfigurationConstants#MAXIMUM_COLOUR_CARD_COUNT}
+   * {@link utilities.constants.GameConfigurationConstants#MAXIMUM_COLOUR_CARD_COUNT}
    * <p>it will be limited to this value.</p>
    * @param cardNumber Number of cards for each colour.
    */
-  public void initializeStack(Integer cardNumber) {
-    final List<DTOCard> cardList;
+  public void initialiseStack(Integer cardNumber) {
+    final List<GameCard> cardList;
 
     cardNumber = checkCardNumber(cardNumber);
 
     cardList = getSortedStack(cardNumber);
     Collections.shuffle(cardList);
-    for (DTOCard dtoCard : cardList) {
-      cardStack.add(dtoCard);
+    for (GameCard gameCard : cardList) {
+      cardStack.add(gameCard);
     }
   }
 
@@ -56,23 +55,23 @@ public class GameCardStack {
     return cardNumber;
   }
 
-  private List<DTOCard> getSortedStack(Integer cardNumber) {
-    final List<DTOCard> list = new ArrayList<DTOCard>(cardNumber);
+  private List<GameCard> getSortedStack(Integer cardNumber) {
+    final List<GameCard> list = new ArrayList<GameCard>(cardNumber);
     for (Short validCardColour : GameCardConstants.VALID_CARD_COLOURS) {
       for (int index = GameCardConstants.VALID_CARD_VALUES.length-1; index >=0; index++) {
         final Short validCardValue = GameCardConstants.VALID_CARD_VALUES[index];
-        final DTOCard card = new DTOCard();
-        card.cardColor = validCardColour;
-        card.cardValue = validCardValue;
-        card.cardType = GameCardConstants.CARD_TYPE_DEFAULT;
-        card.movable = false;
+        final GameCard card = new GameCard();
+        card.setCardColour(validCardColour);
+        card.setCardValue(validCardValue);
+        card.setCardType(GameCardConstants.CARD_TYPE_DEFAULT);
+        card.setMovable(false);
         list.add(card);
       }
     }
     return list;
   }
 
-  public DTOCard drawCard() {
+  public GameCard drawCard() {
     if(cardStack.isEmpty())
       return null;
 
@@ -83,7 +82,26 @@ public class GameCardStack {
     return cardStack.size();
   }
 
-  public DTOCard getTrumpCard() {
+  public GameCard getTrumpCard() {
     return cardStack.getLast();
+  }
+
+  public String toString() {
+    String cards = "GameCardStack{\n"+
+        "cardStack= ";
+    for (GameCard gameCard : cardStack) {
+      cards = cards + gameCard.toString() +'\n';
+    }
+    cards = cards + "\n}";
+    return cards;
+  }
+
+  /* Getter and Setter */
+  public Deque<GameCard> getCardStack() {
+    return cardStack;
+  }
+
+  public void setCardStack(Deque<GameCard> cardStack) {
+    this.cardStack = cardStack;
   }
 }

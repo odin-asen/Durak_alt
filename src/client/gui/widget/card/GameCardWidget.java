@@ -1,6 +1,6 @@
 package client.gui.widget.card;
 
-import client.business.GameCard;
+import game.GameCard;
 import utilities.Converter;
 import utilities.constants.GameCardConstants;
 
@@ -30,7 +30,6 @@ public class GameCardWidget extends JComponent implements Observer{
     this.cardInfo = new GameCard();
     this.cardInfo.setCardColour(GameCardConstants.CARD_COLOUR_CLUBS);
     this.cardInfo.setCardValue(GameCardConstants.CARD_VALUE_ACE);
-    this.cardInfo.addObserver(this);
     this.paintCurtain = false;
     this.gameCardListener = new GameCardListener();
     cardInfo.setMovable(false);

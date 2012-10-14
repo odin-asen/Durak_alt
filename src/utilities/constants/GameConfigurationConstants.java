@@ -7,4 +7,6 @@ package utilities.constants;
  */
 public interface GameConfigurationConstants {
   public static int MAXIMUM_COLOUR_CARD_COUNT = 13;
+  public static int DEFAULT_COLOUR_CARD_COUNT = 9;
+  int INITIAL_CARD_COUNT = 6;
 }

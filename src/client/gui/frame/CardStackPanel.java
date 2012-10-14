@@ -1,6 +1,7 @@
 package client.gui.frame;
 
 import client.gui.widget.card.CardStackWidget;
+import game.GameCardStack;
 
 import javax.swing.*;
 import java.awt.*;
@@ -56,5 +57,8 @@ public class CardStackPanel extends JPanel {
     this.cardStack.setCardBack(cardBack);
   }
 
+  public void updateStack(GameCardStack gameCardStack) {
+    //TODO stack daten ändern
+  }
   /* Getter and Setter */
 }

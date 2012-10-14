@@ -1,4 +1,4 @@
-package client.business;
+package game;
 
 import dto.DTOCard;
 

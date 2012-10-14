@@ -1,4 +1,4 @@
-package utilities.constants.gui;
+package client.gui.frame;
 
 import resources.ResourceGetter;
 

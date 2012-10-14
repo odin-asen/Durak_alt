@@ -1,7 +1,6 @@
 package client.gui.frame;
 
 import client.gui.widget.card.OpponentHandWidget;
-import utilities.constants.gui.ClientGUIConstants;
 
 import javax.swing.*;
 import java.awt.*;

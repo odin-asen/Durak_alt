@@ -1,4 +1,4 @@
-package utilities.constants.gui;
+package server.gui;
 
 /**
  * User: Timm Herrmann

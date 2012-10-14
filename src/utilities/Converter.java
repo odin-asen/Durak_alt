@@ -1,19 +1,31 @@
 package utilities;
 
-import client.business.GameCard;
+
 import dto.DTOCard;
+import dto.DTOCardStack;
+import game.GameCard;
+import game.GameCardStack;
+import game.Player;
 import utilities.constants.GameCardConstants;
+
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * User: Timm Herrmann
  * Date: 07.10.12
  * Time: 15:04
  */
+@SuppressWarnings("unchecked")
 public class Converter {
+  private static final Logger LOGGER = Logger.getLogger(Converter.class.getName());
 
   public static DTOCard toDTO(GameCard card) {
     DTOCard dto = new DTOCard();
-    dto.cardColor = card.getCardColour();
+    dto.cardColour = card.getCardColour();
     dto.cardType = card.getCardType();
     dto.cardValue = card.getCardValue();
     return dto;
@@ -21,10 +33,48 @@ public class Converter {
 
   public static GameCard fromDTO(DTOCard dto) {
     GameCard card = new GameCard();
-    card.setCardColour(dto.cardColor);
+    card.setCardColour(dto.cardColour);
     card.setCardType(dto.cardType);
     card.setCardValue(dto.cardValue);
     return card;
+  }
+
+  public static DTOCardStack toDTO(GameCardStack stack) {
+    DTOCardStack dto = new DTOCardStack();
+    try {
+      final Deque<GameCard> cardDeque = stack.getCardStack();
+      dto.cardStack = (Deque<DTOCard>) Class.forName(cardDeque.getClass().getName()).newInstance();
+      for (GameCard card  : cardDeque) {
+        dto.cardStack.add(Converter.toDTO(card));
+      }
+    } catch (InstantiationException e) {
+      LOGGER.log(Level.SEVERE, "Error converting object to dto!");
+    } catch (IllegalAccessException e) {
+      LOGGER.log(Level.SEVERE, "Error converting object to dto!");
+    } catch (ClassNotFoundException e) {
+      LOGGER.log(Level.SEVERE, "Error converting object to dto!");
+    }
+
+    return dto;
+  }
+
+  public static GameCardStack fromDTO(DTOCardStack dto) {
+    GameCardStack stack = GameCardStack.getInstance();
+    try {
+      final Deque<GameCard> cardDeque = (Deque<GameCard>) Class.forName(dto.cardStack.getClass().getName()).newInstance();
+      for (DTOCard card  : dto.cardStack) {
+        cardDeque.add(Converter.fromDTO(card));
+      }
+      stack.setCardStack(cardDeque);
+    } catch (InstantiationException e) {
+      LOGGER.log(Level.SEVERE, "Error converting object to dto!");
+    } catch (IllegalAccessException e) {
+      LOGGER.log(Level.SEVERE, "Error converting object to dto!");
+    } catch (ClassNotFoundException e) {
+      LOGGER.log(Level.SEVERE, "Error converting object to dto!");
+    }
+
+    return stack;
   }
 
   public static String getCardColourName(Short value) {
@@ -69,12 +119,21 @@ public class Converter {
   }
 
   public static boolean isPictureCard(Short value) {
-    if(GameCardConstants.CARD_VALUE_ACE.equals(value) ||
-       GameCardConstants.CARD_VALUE_KING.equals(value) ||
-       GameCardConstants.CARD_VALUE_QUEEN.equals(value) ||
-       GameCardConstants.CARD_VALUE_JACK.equals(value))
-      return true;
-    else
-      return false;
+    return GameCardConstants.CARD_VALUE_ACE.equals(value) ||
+        GameCardConstants.CARD_VALUE_KING.equals(value) ||
+        GameCardConstants.CARD_VALUE_QUEEN.equals(value) ||
+        GameCardConstants.CARD_VALUE_JACK.equals(value);
+  }
+
+  public static List<List<DTOCard>> playerCardsToDTO(List<Player> playerList) {
+    final List<List<DTOCard>> playersHands = new ArrayList<List<DTOCard>>(playerList.size());
+    for (Player player : playerList) {
+      final List<DTOCard> cards = new ArrayList<DTOCard>();
+      for (GameCard gameCard : player.getCards()) {
+        cards.add(Converter.toDTO(gameCard));
+      }
+      playersHands.add(cards);
+    }
+    return playersHands;
   }
 }

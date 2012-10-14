@@ -1,6 +1,5 @@
 package client.gui.frame;
 
-import utilities.constants.gui.ClientGUIConstants;
 import utilities.gui.FensterPositionen;
 
 import javax.swing.*;

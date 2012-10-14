@@ -8,23 +8,27 @@ import java.io.Serializable;
  * Time: 23:12
  */
 public class MessageObject implements Serializable {
-  private MessageType type;
+  private Enum<?> type;
   private Object sendingObject;
 
   /* Constructors */
-  public MessageObject(MessageType type) {
+  public MessageObject(Enum<?> type) {
+    this(type, null);
+  }
+
+  public MessageObject(Enum<?> type, Object sendingObject) {
     this.type = type;
-    this.sendingObject = null;
+    this.sendingObject = sendingObject;
   }
 
   /* Methods */
 
   /* Getter and Setter */
-  public MessageType getType() {
+  public Enum<?> getType() {
     return type;
   }
 
-  public void setType(MessageType type) {
+  public void setType(Enum<?> type) {
     this.type = type;
   }
 

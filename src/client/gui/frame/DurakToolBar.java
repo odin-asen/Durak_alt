@@ -1,6 +1,9 @@
 package client.gui.frame;
 
 import client.business.GameClient;
+import dto.message.ClientInfo;
+import dto.message.MessageObject;
+import dto.message.MessageType;
 import resources.ResourceGetter;
 
 import javax.swing.*;
@@ -8,8 +11,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-
-import utilities.constants.gui.ClientGUIConstants;
 
 /**
  * User: Timm Herrmann
@@ -68,6 +69,14 @@ public class DurakToolBar extends JToolBar {
         GameClient client = GameClient.getClient();
         if(!client.isConnected()) {
           client.connect();
+          final MessageObject answer;
+          //TODO Das ClientInfo Objekt sollte in den Setups festgelegt und abrufbereit sein
+          //TODO den Aufruf des Objekts durch SetUpFrame austauschen
+          final ClientInfo info = new ClientInfo("Test","");
+          final MessageObject mo = new MessageObject(MessageType.LOGIN, info);
+
+          answer = client.send(mo);
+//          client.sendAndNotify()
         } else {
           client.disconnect();
         }

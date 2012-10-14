@@ -1,9 +1,9 @@
 package server.gui;
 
-import dto.observer.GUIObserverConstants;
-import dto.observer.ObserverUpdateObject;
-import server.business.GameServer;
+import dto.message.GUIObserverType;
+import dto.message.MessageObject;
 import resources.ResourceGetter;
+import server.business.GameServer;
 import utilities.gui.FensterPositionen;
 
 import javax.swing.*;
@@ -11,7 +11,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.NumberFormat;
@@ -19,7 +18,8 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
 
-import static utilities.constants.gui.ServerGUIConstants.*;
+import static server.gui.ServerGUIConstants.*;
+
 /**
  * User: Timm Herrmann
  * Date: 03.10.12
@@ -67,7 +67,7 @@ public class ServerFrame extends JFrame implements Observer {
     statusPanel.setPreferredSize(new Dimension(0, 16));
 
     statusPanel.setLayout(new BorderLayout());
-    statusPanel.add(Box.createRigidArea(new Dimension(5,0)), BorderLayout.LINE_START);
+    statusPanel.add(Box.createRigidArea(new Dimension(5, 0)), BorderLayout.LINE_START);
     statusPanel.add(statusBar, BorderLayout.CENTER);
   }
 
@@ -80,7 +80,7 @@ public class ServerFrame extends JFrame implements Observer {
     closeButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_CLOSE, TOOLTIP_CLOSE,
         ACTION_COMMAND_CLOSE, ALTERNATIVE_CLOSE, KeyEvent.VK_Q);
 
-    toolBar.setMargin(new Insets(5,5,5,5));
+    toolBar.setMargin(new Insets(5, 5, 5, 5));
     toolBar.setRollover(true);
     toolBar.setFloatable(false);
 
@@ -96,7 +96,7 @@ public class ServerFrame extends JFrame implements Observer {
     settingsPanel = new JPanel(new BorderLayout());
     JLabel addressLabel = new JLabel(LABEL_SERVER_ADDRESS);
     JLabel portLabel = new JLabel(LABEL_PORT);
-    JPanel gridPanel = new JPanel(new GridLayout(0,2,0,25));
+    JPanel gridPanel = new JPanel(new GridLayout(0, 2, 0, 25));
 
     initConnectionFields();
 
@@ -131,7 +131,7 @@ public class ServerFrame extends JFrame implements Observer {
         try {
           InetAddress address = InetAddress.getByName(addressField.getSelectedItem().toString());
           final String selected = address.getHostName();
-          if(!comboBoxContent.contains(selected)) {
+          if (!comboBoxContent.contains(selected)) {
             addressField.addItem(selected);
             addressField.setSelectedItem(selected);
           }
@@ -152,36 +152,38 @@ public class ServerFrame extends JFrame implements Observer {
     button.addActionListener(new ToolBarComponentAL());
     button.setIcon(ResourceGetter.getImage(pictureName, alternativeText));
 
-    if(button.getIcon() == null)
+    if (button.getIcon() == null)
       button.setText(alternativeText);
 
     return button;
   }
 
   public void update(Observable o, Object arg) {
-    final ObserverUpdateObject object = (ObserverUpdateObject) arg;
+    final MessageObject object = (MessageObject) arg;
     handleUpdate(o, object);
   }
 
-  private void handleUpdate(Observable o, ObserverUpdateObject object) {
-    if(GUIObserverConstants.CLIENT_CONNECTED.equals(object.getObserverConstant())) {
+  private void handleUpdate(Observable o, MessageObject object) {
+    if (GUIObserverType.CLIENT_CONNECTED.equals(object.getType())) {
 
-    } else if(GUIObserverConstants.CLIENT_DISCONNECTED.equals(object.getObserverConstant())) {
+    } else if (GUIObserverType.CLIENT_DISCONNECTED.equals(object.getType())) {
 
-    } else if(GUIObserverConstants.SERVER_START.equals(object.getObserverConstant())) {
+    } else if (GUIObserverType.SERVER_START.equals(object.getType())) {
       statusBar.setText("Server l\u00e4uft");
-    } else if(GUIObserverConstants.SERVER_STOP.equals(object.getObserverConstant())) {
+    } else if (GUIObserverType.SERVER_STOP.equals(object.getType())) {
       statusBar.setText(SERVER_INACTIVE);
+    } else if (GUIObserverType.SERVER_FAIL.equals(object.getType())) {
+      statusBar.setText("Keine Berechtigung f\u00dcr Port "+portField.getText()+" oder schon belegt.");
     }
   }
 
   private class ToolBarComponentAL implements ActionListener {
     public void actionPerformed(ActionEvent e) {
-      if(ACTION_COMMAND_CLOSE.equals(e.getActionCommand())) {
+      if (ACTION_COMMAND_CLOSE.equals(e.getActionCommand())) {
         closeFrame(e);
-      } else if(ACTION_COMMAND_START.equals(e.getActionCommand())) {
+      } else if (ACTION_COMMAND_START.equals(e.getActionCommand())) {
         startGameServer((Observer) SwingUtilities.getRoot((Component) e.getSource()));
-      } else if(ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
+      } else if (ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
         stopGameServer();
       }
     }
@@ -198,15 +200,11 @@ public class ServerFrame extends JFrame implements Observer {
     }
 
     private void startGameServer(Observer observer) {
-      try {
-        gameServer = GameServer.getServerInstance();
-        gameServer.addObserver(observer);
-        gameServer.setConnection(addressField.getSelectedItem().toString(),
-            Integer.parseInt(portField.getText()));
-        new Thread(gameServer).start();
-      } catch (IOException e) {
-        statusBar.setText("Keine Berechtigung f\u00dcr Port "+portField.getText()+" oder schon belegt.");
-      }
+      gameServer = GameServer.getServerInstance();
+      gameServer.addObserver(observer);
+      gameServer.setConnection(addressField.getSelectedItem().toString(),
+          Integer.parseInt(portField.getText()));
+      new Thread(gameServer).start();
     }
   }
 }

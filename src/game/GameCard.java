@@ -1,4 +1,4 @@
-package client.business;
+package game;
 
 import utilities.constants.GameCardConstants;
 
@@ -9,7 +9,7 @@ import java.util.*;
  * Date: 04.10.12
  * Time: 16:26
  */
-public class GameCard extends Observable{
+public class GameCard {
   private Short cardType;
   private Boolean movable;
   private Short cardValue;
@@ -27,14 +27,8 @@ public class GameCard extends Observable{
   public void setMovable(Boolean movable) {
     if(movable && !this.movable) {
       this.movable = movable;
-      this.setChanged();
-      this.notifyObservers(GameCardConstants.BECAME_MOVABLE);
-      this.clearChanged();
     } else if(!movable && this.movable) {
       this.movable = movable;
-      this.setChanged();
-      this.notifyObservers(GameCardConstants.BECAME_NOT_MOVABLE);
-      this.clearChanged();
     }
   }
 
@@ -72,5 +66,48 @@ public class GameCard extends Observable{
       }
     }
     return defaultValue;
+  }
+
+  public String toString() {
+    return "GameCard{" +
+        "cardType=" + cardType +
+        ", movable=" + movable +
+        ", cardValue=" + cardValue +
+        ", cardColour=" + cardColour +
+        '}';
+  }
+
+  /**
+   * Determines if the value of this card is higher than
+   * the arguments.
+   * @param card The argument.
+   * @return Returns only true, if the argument is null or the
+   * this cards value is higher than the arguments.
+   */
+  public boolean hasHigherValue(GameCard card) {
+    if(card != null) {
+      if(this.getCardValue().compareTo(card.getCardValue())<=0)
+        return false;
+      else return true;
+    }
+
+    return true;
+  }
+
+  /**
+   * Determines if the value of this card is lower than
+   * the arguments.
+   * @param card The argument.
+   * @return Returns only true, if the argument is not null
+   * and the this cards value is lower than the arguments.
+   */
+  public boolean hasLowerValue(GameCard card) {
+    if(card != null) {
+      if(this.getCardValue().compareTo(card.getCardValue())>=0)
+        return false;
+      else return true;
+    }
+
+    return false;
   }
 }

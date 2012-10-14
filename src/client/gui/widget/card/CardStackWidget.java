@@ -1,6 +1,6 @@
 package client.gui.widget.card;
 
-import client.gui.frame.ClientFrame;
+import client.gui.frame.ClientGUIConstants;
 
 import javax.swing.*;
 import java.awt.*;
@@ -53,7 +53,7 @@ public class CardStackWidget extends JComponent {
   public static CardStackWidget getInstance() {
     final float heightLimit = 1.0f-2.0f*Math.abs(1.0f- CardStackWidget.RATIO_RIGHT_MARGIN);
     return new CardStackWidget(CardStackWidget.ORIENTATION_VERTICAL,
-        (int) (ClientFrame.CARDSTACK_PANEL_WIDTH*heightLimit));
+        (int) (ClientGUIConstants.CARDSTACK_PANEL_WIDTH*heightLimit));
   }
 
   /* Methods */

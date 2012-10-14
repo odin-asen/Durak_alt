@@ -1,5 +1,7 @@
 package dto;
 
+import java.io.Serializable;
+
 /**
  * User: Timm Herrmann
  * Date: 07.10.12
@@ -8,6 +10,6 @@ package dto;
  * This interface implies an action that can be made within a game.
  * An action can be something like attack with a card or defense or etc.
  */
-public interface GameAction {
+public interface GameAction extends Serializable {
   public void doAction();
 }

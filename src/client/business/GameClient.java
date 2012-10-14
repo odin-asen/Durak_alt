@@ -1,22 +1,23 @@
 package client.business;
 
 import dto.message.MessageObject;
-import dto.observer.GUIObserverConstants;
-import dto.observer.ObserverUpdateObject;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Observable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static dto.observer.GUIObserverConstants.*;
+import static dto.message.GUIObserverType.*;
+
 /**
  * User: Timm Herrmann
  * Date: 04.10.12
  * Time: 01:37
  */
-public class GameClient extends Observable {
+public class GameClient extends Observable implements Runnable {
   private static Logger LOGGER = Logger.getLogger(GameClient.class.getName());
 
   private static GameClient client;
@@ -44,19 +45,49 @@ public class GameClient extends Observable {
   }
 
   /* Methods */
+  /**
+   * The thread is running to receive update messages and error notifications
+   * from the server.
+   */
+  public void run() {
+    while (isConnected()) {
+      handleServerMessage();
+    }
+
+    closeSocket();
+  }
+
+  private void setChangeAndNotify(MessageObject object) {
+    this.setChanged();
+    this.notifyObservers(object);
+  }
+
+  private void handleServerMessage() {
+    try {
+      final MessageObject serverMessage = (MessageObject) socketIn.readObject();
+      setChangeAndNotify(serverMessage);
+    } catch (IOException e) {
+      LOGGER.log(Level.SEVERE, "Propably lost connection with " + getSocketAddress());
+      disconnect();
+    } catch (ClassNotFoundException e) {
+      LOGGER.log(Level.SEVERE, e.getMessage());
+      disconnect();
+    }
+  }
+
   public void connect() {
-    if(!isConnected()) {
+    if (!isConnected()) {
       try {
         this.socket = new Socket(serverAddress, port);
         getSocketStreams();
 
         this.setChanged();
-        this.notifyObservers(new ObserverUpdateObject(CONNECTED, this.getSocketAddress()));
+        this.notifyObservers(new MessageObject(CONNECTED, this.getSocketAddress()));
       } catch (IOException ex) {
         LOGGER.log(Level.INFO, ex.getMessage());
         this.setChanged();
-        this.notifyObservers(new ObserverUpdateObject(CONNECTION_FAIL,
-            "Es konnte kein Server für die Adresse "+this.getSocketAddress()+" gefunden werden"));
+        this.notifyObservers(new MessageObject(CONNECTION_FAIL,
+            "Es konnte kein Server für die Adresse " + this.getSocketAddress() + " gefunden werden"));
       }
     }
   }
@@ -65,7 +96,7 @@ public class GameClient extends Observable {
     if (socket != null) {
       closeSocket();
       this.setChanged();
-      this.notifyObservers(new ObserverUpdateObject(DISCONNECTED));
+      this.notifyObservers(new MessageObject(DISCONNECTED));
     }
   }
 
@@ -76,7 +107,7 @@ public class GameClient extends Observable {
   }
 
   private void getSocketStreams() {
-    try{
+    try {
       socketIn = new ObjectInputStream(socket.getInputStream());
       socketOut = new ObjectOutputStream(socket.getOutputStream());
     } catch (IOException e) {
@@ -85,7 +116,7 @@ public class GameClient extends Observable {
   }
 
   private void closeSocket() {
-    try{
+    try {
       socketIn.close();
       socketOut.close();
       socket.close();
@@ -96,6 +127,7 @@ public class GameClient extends Observable {
 
   /**
    * Sends a message to the server and returns the answer of it.
+   *
    * @param message Message to send.
    * @return A MessageObject as answer of the server.
    */

@@ -1,4 +1,4 @@
-package dto.observer;
+package dto.message;
 
 /**
  * User: Timm Herrmann
@@ -9,7 +9,7 @@ package dto.observer;
  * the {@link java.util.Observer} interface.
  * </p>
  */
-public enum GUIObserverConstants {
+public enum GUIObserverType {
   CONNECTED, DISCONNECTED, CONNECTION_FAIL, SERVER_START, SERVER_STOP, SERVER_FAIL,
-  CLIENT_CONNECTED, CLIENT_DISCONNECTED
+  CLIENT_CONNECTED, CLIENT_DISCONNECTED, INITALISE_GAME, LOGGED_IN
 }

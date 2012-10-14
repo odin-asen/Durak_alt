@@ -1,6 +1,4 @@
-package client.business;
-
-import dto.DTOCard;
+package game;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +16,11 @@ public class Player {
   private Boolean isDefending;
   private Boolean isAttacking;
 
-  private List<DTOCard> cards;
+  private List<GameCard> cards;
 
   /* Constructors */
   public Player() {
-    cards = new ArrayList<DTOCard>(6);
+    cards = new ArrayList<GameCard>(6);
     leftPlayer = null;
     rightPlayer = null;
     isDefending = false;
@@ -31,18 +29,37 @@ public class Player {
 
 
   /* Methods */
-  public void pickUpCard(DTOCard newCard) {
+  public void pickUpCard(GameCard newCard) {
     cards.add(newCard);
   }
 
-  public void useCard(DTOCard card) {
+  public void useCard(GameCard card) {
     if(cards.contains(card))
       cards.remove(card);
   }
 
+  /**
+   * Idle means not attacking and not defending.
+   * @return True, if in idle, false, if either attacking or defending.
+   */
+  public boolean isIdle() {
+    return !isDefending() && !isAttacking();
+  }
+
+  /**
+   * Returns the card with the smallest value of a specified colour.
+   * @param colour Colour of the card.
+   * @return Returns the smallest card of the specified colour or
+   * null if no card of this colour could be found.
+   */
+  public GameCard getSmallestValue(Short colour) {
+    GameCard card = null;
+
+    return card;
+  }
 
   /* Getter and Setter */
-  public Boolean getDefending() {
+  public Boolean isDefending() {
     return isDefending;
   }
 
@@ -52,7 +69,7 @@ public class Player {
       setAttacking(false);
   }
 
-  public Boolean getAttacking() {
+  public Boolean isAttacking() {
     return isAttacking;
   }
 
@@ -76,5 +93,9 @@ public class Player {
 
   public void setRightPlayer(Player rightPlayer) {
     this.rightPlayer = rightPlayer;
+  }
+
+  public List<GameCard> getCards() {
+    return cards;
   }
 }

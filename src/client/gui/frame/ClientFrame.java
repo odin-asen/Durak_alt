@@ -2,9 +2,11 @@ package client.gui.frame;
 
 import client.StartClient;
 import client.business.GameClient;
-import dto.observer.GUIObserverConstants;
-import dto.observer.ObserverUpdateObject;
+import dto.DTOCardStack;
+import dto.message.GUIObserverType;
+import dto.message.MessageObject;
 import resources.ResourceGetter;
+import utilities.Converter;
 import utilities.gui.FensterPositionen;
 
 import javax.swing.*;
@@ -15,7 +17,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Logger;
 
-import static utilities.constants.gui.ClientGUIConstants.*;
+import static client.gui.frame.ClientGUIConstants.*;
 
 /**
  * User: Timm Herrmann
@@ -103,19 +105,23 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   public void update(Observable o, Object arg) {
-    final ObserverUpdateObject object = (ObserverUpdateObject) arg;
+    final MessageObject object = (MessageObject) arg;
     handleUpdate(object);
   }
 
-  private void handleUpdate(ObserverUpdateObject object) {
-    if(GUIObserverConstants.CONNECTED.equals(object.getObserverConstant())) {
-      statusBar.setConnected(true, (String) object.getInformation());
-      statusBar.setText("Verbindung zu "+object.getInformation()+" wurde erfolgreich aufgebaut");
-    } else if(GUIObserverConstants.DISCONNECTED.equals(object.getObserverConstant())) {
+  private void handleUpdate(MessageObject object) {
+    if(GUIObserverType.CONNECTED.equals(object.getType())) {
+      statusBar.setConnected(true, (String) object.getSendingObject());
+      statusBar.setText("Verbindung zu "+object.getSendingObject()+" wurde erfolgreich aufgebaut");
+    } else if(GUIObserverType.DISCONNECTED.equals(object.getType())) {
       statusBar.setConnected(false, null);
       statusBar.setText("");
-    } else if(GUIObserverConstants.CONNECTION_FAIL.equals(object.getObserverConstant())) {
-      statusBar.setText("Verbindungsfehler: "+object.getInformation());
+    } else if(GUIObserverType.CONNECTION_FAIL.equals(object.getType())) {
+      statusBar.setText("Verbindungsfehler: " + object.getSendingObject());
+    } else if(GUIObserverType.INITALISE_GAME.equals(object.getType())) {
+      cardStackPanel.updateStack(Converter.fromDTO((DTOCardStack) object.getSendingObject()));
+    } else if(GUIObserverType.LOGGED_IN.equals(object.getType())) {
+      //TODO Spieler anzeigen, die eingeloggt sind
     }
   }
 

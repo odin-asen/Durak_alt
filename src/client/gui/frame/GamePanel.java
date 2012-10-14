@@ -3,7 +3,6 @@ package client.gui.frame;
 import client.gui.widget.card.CardMoveListener;
 import client.gui.widget.card.GameCardListener;
 import client.gui.widget.card.GameCardWidget;
-import utilities.constants.gui.ClientGUIConstants;
 
 import javax.swing.*;
 import java.awt.*;
