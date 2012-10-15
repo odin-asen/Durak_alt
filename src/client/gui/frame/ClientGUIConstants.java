@@ -13,8 +13,7 @@ import java.awt.*;
 public interface ClientGUIConstants {
   /* General constants */
   public static final Color GAME_TABLE_COLOUR = new Color(13, 153, 0);
-  public static final ImageIcon CARD_BACK = ResourceGetter.getCardImage(
-      ResourceGetter.STRING_CARD_BACK, "Back");
+  public static final ImageIcon CARD_BACK = ResourceGetter.getBackCard();
 
   /* ClientFrame constants */
   public static final float MAIN_FRAME_SCREEN_SIZE = 0.8f;

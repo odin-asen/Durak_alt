@@ -1,7 +1,11 @@
 package resources;
 
+import utilities.constants.GameCardConstants;
+import utilities.constants.GameConfigurationConstants;
+
 import javax.sound.sampled.*;
 import javax.swing.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Level;
@@ -15,6 +19,8 @@ import java.util.logging.Logger;
 public class ResourceGetter {
   private static Logger LOGGER = Logger.getLogger(ResourceGetter.class.getName());
 
+  private static final int CARD_STRIPE_X_AXIS_GAP = 1;
+
   public static final String RESOURCES_ROOT = "";
   public static final String PICTURES_ROOT = RESOURCES_ROOT + "icons/";
   public static final String CARDS_ROOT = PICTURES_ROOT + "cards/";
@@ -24,24 +30,37 @@ public class ResourceGetter {
   public static final String STRING_IMAGE_NETWORK = "Network.png";
   public static final String STRING_IMAGE_PINION = "Pinion.png";
   public static final String STRING_IMAGE_PLAY = "Play.png";
-  public static final String STRING_IMAGE_STOPPLAYER = "Stop Player.png";
+  public static final String STRING_IMAGE_STOP_PLAYER = "Stop Player.png";
   public static final String STRING_IMAGE_CONNECTED = "Connected.png";
   public static final String STRING_IMAGE_DISCONNECTED = "Disconnected.png";
 
-  public static final String STRING_CARD_ACE = "ace.png";
   public static final String STRING_CARD_BACK = "back.png";
+  public static final String STRING_CARD_COLOUR_CLUBS = "clubs.png";
+  public static final String STRING_CARD_COLOUR_DIAMONDS = "diamonds.png";
+  public static final String STRING_CARD_COLOUR_HEARTS = "hearts.png";
+  public static final String STRING_CARD_COLOUR_SPADES = "spades.png";
 
-  public static ImageIcon getCardImage(String cardImageName, String alternativeText) {
+  public static ImageIcon getCardImage(String cardColourImageName, GameCardConstants.CardValue cardValue, String alternativeText) {
     ImageIcon image = null;
 
     try {
-      final String path = ResourceGetter.CARDS_ROOT + cardImageName;
-      image = loadImage(path, alternativeText);
+      final String path = ResourceGetter.CARDS_ROOT + cardColourImageName;
+      image = getCardFromStripe(loadImage(path, alternativeText), cardValue.getValue());
     } catch (ResourceGetterException e) {
       LOGGER.log(Level.WARNING, e.getMessage());
     }
 
     return image;
+  }
+
+  private static ImageIcon getCardFromStripe(ImageIcon imageIcon, Integer cardNumber) {
+    final Integer cardWidth = imageIcon.getIconWidth()/GameConfigurationConstants.MAXIMUM_COLOUR_CARD_COUNT;
+    final BufferedImage imagePart;
+    final BufferedImage bufferedImage = new BufferedImage(imageIcon.getIconWidth(),imageIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+    bufferedImage.getGraphics().drawImage(imageIcon.getImage(), 0,0, imageIcon.getImageObserver());
+    imagePart = bufferedImage.getSubimage(cardWidth*cardNumber,0,cardWidth,bufferedImage.getHeight());
+
+    return new ImageIcon(imagePart);
   }
 
   public static ImageIcon getImage(String imageName, String alternativeText) {
@@ -85,6 +104,10 @@ public class ResourceGetter {
     } catch (Exception e) {
       System.err.println("Fehler beim Starten des Soundthreads: " + e.getMessage());
     }
+  }
+
+  public static ImageIcon getBackCard() {
+    return getImage("cards/"+STRING_CARD_BACK, "Back");
   }
 }
 

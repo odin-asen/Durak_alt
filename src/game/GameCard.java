@@ -1,8 +1,6 @@
 package game;
 
-import utilities.constants.GameCardConstants;
-
-import java.util.*;
+import static utilities.constants.GameCardConstants.*;
 
 /**
  * User: Timm Herrmann
@@ -10,14 +8,14 @@ import java.util.*;
  * Time: 16:26
  */
 public class GameCard {
-  private Short cardType;
-  private Boolean movable;
-  private Short cardValue;
-  private Short cardColour;
+  private CardType cardType;
+  private Boolean movable;      //TODO löschen und getter und setter in GameCardWidget übertragen
+  private CardValue cardValue;
+  private CardColour cardColour;
 
   public GameCard() {
     this.movable = false;
-    this.cardType = GameCardConstants.CARD_TYPE_DEFAULT;
+    this.cardType = CardType.DEFAULT;
   }
 
   public Boolean isMovable() {
@@ -32,40 +30,28 @@ public class GameCard {
     }
   }
 
-  public void setCardType(Short type) {
-    this.cardType = (Short) setValue(Arrays.asList(GameCardConstants.VALID_CARD_TYPES),
-        type, GameCardConstants.CARD_TYPE_DEFAULT);
+  public void setCardType(CardType type) {
+    this.cardType = type;
   }
 
-  public Short getCardType() {
+  public CardType getCardType() {
     return cardType;
   }
 
-  public Short getCardValue() {
+  public CardValue getCardValue() {
     return cardValue;
   }
 
-  public void setCardValue(Short cardValue) {
-    this.cardValue = (Short) setValue(Arrays.asList(GameCardConstants.VALID_CARD_VALUES),
-        cardValue, GameCardConstants.CARD_VALUE_TWO);
+  public void setCardValue(CardValue cardValue) {
+    this.cardValue = cardValue;
   }
 
-  public Short getCardColour() {
+  public CardColour getCardColour() {
     return cardColour;
   }
 
-  public void setCardColour(Short cardColour) {
-    this.cardColour = (Short) setValue(Arrays.asList(GameCardConstants.VALID_CARD_COLOURS),
-        cardColour, GameCardConstants.CARD_TYPE_DEFAULT);
-  }
-
-  private Object setValue(List<Short> valueSet, Object valueToSet, Object defaultValue) {
-    for (Object value : valueSet) {
-      if(value.equals(valueToSet)) {
-        return valueToSet;
-      }
-    }
-    return defaultValue;
+  public void setCardColour(CardColour cardColour) {
+    this.cardColour = cardColour;
   }
 
   public String toString() {
@@ -90,7 +76,7 @@ public class GameCard {
         return false;
       else return true;
     }
-
+    //TODO compareTo methode muss getestet werden, da jetzt Enums verglichen werden
     return true;
   }
 
@@ -107,7 +93,7 @@ public class GameCard {
         return false;
       else return true;
     }
-
+    //TODO compareTo methode muss getestet werden, da jetzt Enums verglichen werden
     return false;
   }
 }

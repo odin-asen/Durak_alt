@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static utilities.constants.GameCardConstants.CardColour;
+
 /**
  * User: Timm Herrmann
  * Date: 07.10.12
@@ -61,8 +63,9 @@ public class GameProcess {
    * Determines the first and second attackers and the defender.
    */
   private void determineInitialPlayers() {
-    final Short trumpColour = this.stack.getTrumpCard().getCardColour();
+    final CardColour trumpColour = this.stack.getTrumpCard().getCardColour();
     Player smallestColourPlayer = whoHasSmallestColour(trumpColour);
+    //TODO whoHasSmallestColour überprüfen
     if(smallestColourPlayer == null)
       LOGGER.log(Level.INFO, "No player has a trump!");
     else {
@@ -86,7 +89,7 @@ public class GameProcess {
     this.setDefender(firstAttacker.getLeftPlayer());
   }
 
-  private Player whoHasSmallestColour(Short cardColour) {
+  private Player whoHasSmallestColour(CardColour cardColour) {
     GameCard currentSmallestCard = null;
     Player smallestColourPlayer = null;
 
@@ -109,7 +112,6 @@ public class GameProcess {
   public void distributeCards(Integer cardsPerColour) {
     this.stack = GameCardStack.getInstance();
     this.stack.initialiseStack(cardsPerColour);
-    System.out.println(this.stack);
     for(int i = 0; i< GameConfigurationConstants.INITIAL_CARD_COUNT; i++)
       for (Player player : playerList)
         player.pickUpCard(this.stack.drawCard());

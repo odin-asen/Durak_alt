@@ -75,7 +75,7 @@ public class ServerFrame extends JFrame implements Observer {
     toolBar = new JToolBar();
     startButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_PLAY, TOOLTIP_START,
         ACTION_COMMAND_START, ALTERNATIVE_START, KeyEvent.VK_G);
-    stopButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_STOPPLAYER, TOOLTIP_STOP,
+    stopButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_STOP_PLAYER, TOOLTIP_STOP,
         ACTION_COMMAND_STOP, ALTERNATIVE_STOP, KeyEvent.VK_A);
     closeButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_CLOSE, TOOLTIP_CLOSE,
         ACTION_COMMAND_CLOSE, ALTERNATIVE_CLOSE, KeyEvent.VK_Q);

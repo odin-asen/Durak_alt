@@ -7,6 +7,7 @@ import dto.message.GUIObserverType;
 import dto.message.MessageObject;
 import resources.ResourceGetter;
 import utilities.Converter;
+import utilities.constants.GameCardConstants;
 import utilities.gui.FensterPositionen;
 
 import javax.swing.*;
@@ -95,7 +96,7 @@ public class ClientFrame extends JFrame implements Observer {
     cardStackPanel.setStack(36, BorderLayout.CENTER);
     cardStackPanel.setCardBack(CARD_BACK);
     cardStackPanel.setTrumpCard(ResourceGetter.getCardImage(
-        ResourceGetter.STRING_CARD_ACE,"Trump"));
+        ResourceGetter.STRING_CARD_COLOUR_CLUBS, GameCardConstants.CardValue.ACE, "Trump"));
     opponentsPanel.addOpponent("Mark", 6);
     opponentsPanel.addOpponent("J\u00fcrgen", 6);
   }

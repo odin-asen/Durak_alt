@@ -1,9 +1,10 @@
 package game;
 
-import utilities.constants.GameCardConstants;
 import utilities.constants.GameConfigurationConstants;
 
 import java.util.*;
+
+import static utilities.constants.GameCardConstants.*;
 
 /**
  * User: Timm Herrmann
@@ -57,13 +58,12 @@ public class GameCardStack {
 
   private List<GameCard> getSortedStack(Integer cardNumber) {
     final List<GameCard> list = new ArrayList<GameCard>(cardNumber);
-    for (Short validCardColour : GameCardConstants.VALID_CARD_COLOURS) {
-      for (int index = GameCardConstants.VALID_CARD_VALUES.length-1; index >=0; index++) {
-        final Short validCardValue = GameCardConstants.VALID_CARD_VALUES[index];
+    for (CardColour cardColour : CardColour.values()) {
+      for (CardValue cardValue : CardValue.values()) {
         final GameCard card = new GameCard();
-        card.setCardColour(validCardColour);
-        card.setCardValue(validCardValue);
-        card.setCardType(GameCardConstants.CARD_TYPE_DEFAULT);
+        card.setCardColour(cardColour);
+        card.setCardValue(cardValue);
+        card.setCardType(CardType.DEFAULT);
         card.setMovable(false);
         list.add(card);
       }

@@ -1,11 +1,9 @@
 package client.gui.widget.card;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.peer.ComponentPeer;
 
 /**
  * User: Timm Herrmann
@@ -22,18 +20,18 @@ public class GameCardListener implements MouseListener, MouseMotionListener {
   }
 
   public void mouseDragged(MouseEvent e) {
-    Component comp = (Component) e.getSource();
-    comp.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-    comp.getParent().setComponentZOrder(comp,0);
+    final GameCardWidget cardWidget = (GameCardWidget) e.getSource();
+    cardWidget.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+    cardWidget.getParent().setComponentZOrder(cardWidget,0);
     Point point = e.getLocationOnScreen();
-    grabingPoint = getCentredGrabingPoint(comp);
+    grabingPoint = getCentredGrabingPoint(cardWidget);
 
-    if(componentContainsPoint(point, comp.getParent())) {
-      comp.setLocation(((point.x - oldPoint.x)+comp.getLocation().x),
-          (point.y - oldPoint.y)+comp.getLocation().y);
-      oldPoint.setLocation(comp.getLocationOnScreen().getX()+grabingPoint.getX(),
-          comp.getLocationOnScreen().getY()+grabingPoint.getY());
-      comp.repaint();
+    if(componentContainsPoint(point, cardWidget.getParent())) {
+      cardWidget.setLocation(((point.x - oldPoint.x)+cardWidget.getLocation().x),
+          (point.y - oldPoint.y)+cardWidget.getLocation().y);
+      oldPoint.setLocation(cardWidget.getLocationOnScreen().getX()+grabingPoint.getX(),
+          cardWidget.getLocationOnScreen().getY()+grabingPoint.getY());
+      cardWidget.repaint();
     }
   }
 

@@ -1,13 +1,13 @@
 package client.gui.widget.card;
 
 import game.GameCard;
-import utilities.Converter;
-import utilities.constants.GameCardConstants;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.Observable;
 import java.util.Observer;
+
+import static utilities.constants.GameCardConstants.*;
 
 /**
  * User: Timm Herrmann
@@ -28,16 +28,16 @@ public class GameCardWidget extends JComponent implements Observer{
   public GameCardWidget(Image cardImage) {
     this.cardImage = cardImage;
     this.cardInfo = new GameCard();
-    this.cardInfo.setCardColour(GameCardConstants.CARD_COLOUR_CLUBS);
-    this.cardInfo.setCardValue(GameCardConstants.CARD_VALUE_ACE);
+    this.cardInfo.setCardColour(CardColour.CLUBS);
+    this.cardInfo.setCardValue(CardValue.ACE);
     this.paintCurtain = false;
     this.gameCardListener = new GameCardListener();
     cardInfo.setMovable(false);
 
-    String text = Converter.getCardColourName(cardInfo.getCardColour());
+    String text = cardInfo.getCardColour().getName();
     if(!text.isEmpty())
-      text = text + " " + Converter.getCardValueName(cardInfo.getCardValue());
-    else text = Converter.getCardValueName(cardInfo.getCardValue());
+      text = text + " " + cardInfo.getCardValue().getValueName();
+    else text = cardInfo.getCardValue().getValueName();
     this.setToolTipText(text);
   }
 
@@ -72,6 +72,10 @@ public class GameCardWidget extends JComponent implements Observer{
 
   public void setMovable(boolean movable) {
     cardInfo.setMovable(movable);
+    if(isMovable())
+      this.addMouseMotionListener(gameCardListener);
+    else
+      this.removeMouseMotionListener(gameCardListener);
   }
 
   public boolean isMovable() {
@@ -81,9 +85,9 @@ public class GameCardWidget extends JComponent implements Observer{
   public void update(Observable o, Object arg) {
     String parameter = arg.toString();
 
-    if(parameter.equals(GameCardConstants.BECAME_MOVABLE)) {
+    if(parameter.equals(BECAME_MOVABLE)) {
       this.addMouseMotionListener(gameCardListener);
-    } else if(parameter.equals(GameCardConstants.BECAME_NOT_MOVABLE)) {
+    } else if(parameter.equals(BECAME_NOT_MOVABLE)) {
       this.removeMouseMotionListener(gameCardListener);
     }
   }

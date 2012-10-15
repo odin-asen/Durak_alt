@@ -1,8 +1,8 @@
 package dto;
 
-import utilities.constants.GameCardConstants;
-
 import java.io.Serializable;
+
+import static utilities.constants.GameCardConstants.*;
 
 /**
  * User: Timm Herrmann
@@ -10,16 +10,16 @@ import java.io.Serializable;
  * Time: 14:34
  */
 public class DTOCard implements Serializable {
-  public short cardType;
+  public CardType cardType;
   public boolean movable;
-  public short cardValue;
-  public short cardColour;
+  public CardValue cardValue;
+  public CardColour cardColour;
 
   /* Constructors */
   public DTOCard() {
-    cardType = GameCardConstants.CARD_TYPE_DEFAULT;
-    cardValue = GameCardConstants.CARD_VALUE_ACE;
-    cardColour = GameCardConstants.CARD_COLOUR_CLUBS;
+    cardType = CardType.DEFAULT;
+    cardValue = CardValue.ACE;
+    cardColour = CardColour.CLUBS;
     movable = false;
   }
 
