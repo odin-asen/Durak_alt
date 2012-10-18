@@ -40,6 +40,8 @@ public class ResourceGetter {
   public static final String STRING_CARD_COLOUR_HEARTS = "hearts.png";
   public static final String STRING_CARD_COLOUR_SPADES = "spades.png";
 
+  private static final int MAGIC_X_AXIS_GAP_CONSTANT = 2;
+
   public static ImageIcon getCardImage(String cardColourImageName, GameCardConstants.CardValue cardValue, String alternativeText) {
     ImageIcon image = null;
 
@@ -54,11 +56,12 @@ public class ResourceGetter {
   }
 
   private static ImageIcon getCardFromStripe(ImageIcon imageIcon, Integer cardNumber) {
-    final Integer cardWidth = imageIcon.getIconWidth()/GameConfigurationConstants.MAXIMUM_COLOUR_CARD_COUNT;
+    final Integer cardWidth = imageIcon.getIconWidth()/GameConfigurationConstants.MAXIMUM_COLOUR_CARD_COUNT - CARD_STRIPE_X_AXIS_GAP;
+    final Integer xPos = cardWidth*cardNumber + CARD_STRIPE_X_AXIS_GAP*cardNumber + MAGIC_X_AXIS_GAP_CONSTANT;
     final BufferedImage imagePart;
     final BufferedImage bufferedImage = new BufferedImage(imageIcon.getIconWidth(),imageIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
-    bufferedImage.getGraphics().drawImage(imageIcon.getImage(), 0,0, imageIcon.getImageObserver());
-    imagePart = bufferedImage.getSubimage(cardWidth*cardNumber,0,cardWidth,bufferedImage.getHeight());
+    bufferedImage.getGraphics().drawImage(imageIcon.getImage(), 0, 0, imageIcon.getImageObserver());
+    imagePart = bufferedImage.getSubimage(xPos,0,cardWidth,bufferedImage.getHeight());
 
     return new ImageIcon(imagePart);
   }

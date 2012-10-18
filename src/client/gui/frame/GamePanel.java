@@ -35,7 +35,7 @@ public class GamePanel extends JPanel {
     GameCardWidget widget;
     widgetSet = new HashSet<GameCardWidget>();
 
-    for(int i = 0; i < 3; i++) {
+    for(int i = 0; i < 13; i++) {
       final int number = random.nextInt(13);
       final ImageIcon image = ResourceGetter.getCardImage(
           ResourceGetter.STRING_CARD_COLOUR_HEARTS, GameCardConstants.CardValue.values()[number],

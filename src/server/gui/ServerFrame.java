@@ -119,7 +119,7 @@ public class ServerFrame extends JFrame implements Observer {
     format.setMaximumFractionDigits(0);
     format.setGroupingUsed(false);
     portField = new JFormattedTextField(format);
-
+    portField.setText("1025");
     addressField.setEditable(true);
     try {
       addressField.addItem(InetAddress.getLocalHost().getHostName());
@@ -202,8 +202,7 @@ public class ServerFrame extends JFrame implements Observer {
     private void startGameServer(Observer observer) {
       gameServer = GameServer.getServerInstance();
       gameServer.addObserver(observer);
-      gameServer.setConnection(addressField.getSelectedItem().toString(),
-          Integer.parseInt(portField.getText()));
+      gameServer.setConnection(Integer.parseInt(portField.getText()));
       new Thread(gameServer).start();
     }
   }

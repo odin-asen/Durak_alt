@@ -12,6 +12,10 @@ public class MessageObject implements Serializable {
   private Object sendingObject;
 
   /* Constructors */
+  public MessageObject() {
+    /* Dummy constructor */
+  }
+
   public MessageObject(Enum<?> type) {
     this(type, null);
   }

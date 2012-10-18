@@ -51,7 +51,7 @@ public class GameClient extends Observable implements Runnable {
    */
   public void run() {
     while (isConnected()) {
-      handleServerMessage();
+      receiveServerMessages();
     }
 
     closeSocket();
@@ -62,7 +62,7 @@ public class GameClient extends Observable implements Runnable {
     this.notifyObservers(object);
   }
 
-  private void handleServerMessage() {
+  private void receiveServerMessages() {
     try {
       final MessageObject serverMessage = (MessageObject) socketIn.readObject();
       setChangeAndNotify(serverMessage);
@@ -136,10 +136,7 @@ public class GameClient extends Observable implements Runnable {
 
     try {
       socketOut.writeObject(message);
-      answer = ((MessageObject) socketIn.readObject());
     } catch (IOException e) {
-      LOGGER.log(Level.SEVERE, e.getMessage());
-    } catch (ClassNotFoundException e) {
       LOGGER.log(Level.SEVERE, e.getMessage());
     }
 

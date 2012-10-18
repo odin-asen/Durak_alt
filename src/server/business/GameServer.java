@@ -1,9 +1,6 @@
 package server.business;
 
-import dto.message.ClientInfo;
-import dto.message.GUIObserverType;
-import dto.message.MessageObject;
-import dto.message.MessageType;
+import dto.message.*;
 import game.GameCardStack;
 import game.GameProcess;
 import game.Player;
@@ -16,12 +13,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Observable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static dto.message.BroadcastType.LOGIN_LIST;
 import static dto.message.GUIObserverType.*;
 import static dto.message.MessageType.*;
 
@@ -94,9 +92,8 @@ public class GameServer extends Observable implements Runnable {
     return serverAddress;
   }
 
-  public void setConnection(String serverAddress, int port) {
+  public void setConnection(int port) {
     if (!running) {
-      this.serverAddress = serverAddress;
       this.port = port;
     }
   }
@@ -160,9 +157,15 @@ public class GameServer extends Observable implements Runnable {
     return true;
   }
 
-  public void broadcastMessage(MessageObject messageObject) {
+  public void broadcastMessage(BroadcastType type, Object sendingObject) {
     for (ServerThread serverThread : serverThreads) {
-      serverThread.sendMessage(messageObject);
+      serverThread.sendMessage(new MessageObject(type, sendingObject));
+    }
+  }
+
+  public void broadcastMessage(MessageType type) {
+    for (ServerThread serverThread : serverThreads) {
+      serverThread.sendMessage(new MessageObject(type, null));
     }
   }
 
@@ -201,6 +204,7 @@ class ServerThread extends Observable implements Runnable {
       socketOut.writeObject(message);
     } catch (IOException e) {
       LOGGER.log(Level.SEVERE, e.getMessage());
+      //TODO server sagen, dass das objekt gekillt wird
     }
   }
 
@@ -273,6 +277,9 @@ class ServerThread extends Observable implements Runnable {
 class MessageHandler {
   private static final Logger LOGGER = Logger.getLogger(MessageHandler.class.getName());
 
+  private static final DateFormat format = new SimpleDateFormat("[EEE d-MMM HH:mm:ss]");
+  private static final Calendar calendar = GregorianCalendar.getInstance(Locale.GERMANY);
+
   static MessageObject getAnswer(MessageObject messageObject, ServerThread serverThread) throws GameServerException {
     final Enum<?> type = messageObject.getType();
     final MessageObject answer = new MessageObject(type);
@@ -285,12 +292,15 @@ class MessageHandler {
       /* Provide the user information of the server and its logged clients */
       /* and add it to the list, update all other user */
       sendingObject = loginUserToServer(messageObject, serverThread);
-      gameServer.broadcastMessage(new MessageObject(SERVER_UPDATE, gameServer.getClients()));
+      gameServer.broadcastMessage(LOGIN_LIST, gameServer.getClients());
     } else if(MessageType.START_GAME_SIGNAL.equals(type)) {
       /* Add player in playing list and initialise game after last player */
       startGame(serverThread, gameServer);
     } else if(MessageType.QUIT_GAME_SIGNAL.equals(type)) {
       serverThread.getClientInfo().startPlayingFlag = false;
+    } else if(MessageType.CHAT_MESSAGE.equals(type)) {
+      sendingObject = getChatMessageTimeStamp((String) messageObject.getSendingObject());
+      gameServer.broadcastMessage(BroadcastType.CHAT_MESSAGE, sendingObject);
     } else if(MessageType.GAME_ACTION.equals(type)) {
       //TODO Kartenaktion prüfen und antwort senden, z.B. angriff nicht zulässig
     } else {
@@ -298,6 +308,11 @@ class MessageHandler {
     }
     answer.setSendingObject(sendingObject);
     return answer;
+  }
+
+  private static String getChatMessageTimeStamp(String message) {
+    calendar.setTimeInMillis(System.currentTimeMillis());
+    return format.format(calendar.getTime()) + ": "+message+'\n';
   }
 
   private static void startGame(ServerThread serverThread, GameServer gameServer) {
@@ -312,7 +327,7 @@ class MessageHandler {
         LOGGER.log(Level.SEVERE, e.getMessage());
       }
     } else {
-      gameServer.broadcastMessage(new MessageObject(WAIT_FOR_PLAYER));
+      gameServer.broadcastMessage(WAIT_FOR_PLAYER);
     }
   }
 
