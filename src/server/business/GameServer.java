@@ -35,7 +35,6 @@ public class GameServer extends Observable implements Runnable {
   public static final String SERVER_PING_ANSWER = "Hello! Is it me you're looking for?";
 
   private boolean running;
-  private String serverAddress;
   private int port;
   private List<ServerThread> serverThreads;
   private ServerSocket serverSocket;
@@ -43,22 +42,14 @@ public class GameServer extends Observable implements Runnable {
   /* Constructors */
   public static GameServer getServerInstance() {
     if(gameServer == null) {
-      gameServer = new GameServer("localhost", 1025);
+      gameServer = new GameServer(1025);
     }
     return gameServer;
   }
 
-  private GameServer(String serverAddress, int port) {
-    running = true;
-    this.serverAddress = serverAddress;
+  private GameServer(int port) {
     this.port = port;
     this.serverThreads = new ArrayList<ServerThread>();
-    try {
-      this.serverSocket = establishServer();
-    } catch (IOException ex) {
-      LOGGER.log(Level.SEVERE, ex.getMessage());
-      setChangeAndNotify(SERVER_FAIL);
-    }
   }
 
   private void setChangeAndNotify(GUIObserverType type) {
@@ -88,11 +79,7 @@ public class GameServer extends Observable implements Runnable {
     }
   }
 
-  public String getServerAddress() {
-    return serverAddress;
-  }
-
-  public void setConnection(int port) {
+  public void setPort(int port) {
     if (!running) {
       this.port = port;
     }
@@ -100,6 +87,17 @@ public class GameServer extends Observable implements Runnable {
 
   public int getPort() {
     return port;
+  }
+
+  public void startServer() {
+    try {
+      serverSocket = new ServerSocket(port);
+      running = true;
+      new Thread(gameServer).start();
+    } catch (IOException ex) {
+      LOGGER.log(Level.SEVERE, ex.getMessage());
+      setChangeAndNotify(SERVER_FAIL);
+    }
   }
 
   private void closeServer() throws IOException {
@@ -113,10 +111,6 @@ public class GameServer extends Observable implements Runnable {
       this.setChanged();
       this.notifyObservers(new MessageObject(SERVER_STOP));
     }
-  }
-
-  private ServerSocket establishServer() throws IOException {
-    return new ServerSocket(port);
   }
 
   public void stopRunning() {
@@ -204,7 +198,7 @@ class ServerThread extends Observable implements Runnable {
       socketOut.writeObject(message);
     } catch (IOException e) {
       LOGGER.log(Level.SEVERE, e.getMessage());
-      //TODO server sagen, dass das objekt gekillt wird
+      GameServer.getServerInstance().removeThread(this);
     }
   }
 
@@ -248,7 +242,7 @@ class ServerThread extends Observable implements Runnable {
       socketIn.close();
       socketOut.close();
       socket.close();
-
+      GameServer.getServerInstance().removeThread(this);
       setChangeAndNotify(CLIENT_DISCONNECTED);
     } catch (IOException e) {
       LOGGER.log(Level.WARNING, "Error closing socket!");
@@ -277,7 +271,7 @@ class ServerThread extends Observable implements Runnable {
 class MessageHandler {
   private static final Logger LOGGER = Logger.getLogger(MessageHandler.class.getName());
 
-  private static final DateFormat format = new SimpleDateFormat("[EEE d-MMM HH:mm:ss]");
+  private static final DateFormat format = new SimpleDateFormat("[EEE d-MMM HH:mm]");
   private static final Calendar calendar = GregorianCalendar.getInstance(Locale.GERMANY);
 
   static MessageObject getAnswer(MessageObject messageObject, ServerThread serverThread) throws GameServerException {

@@ -11,12 +11,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.text.NumberFormat;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Vector;
 
 import static server.gui.ServerGUIConstants.*;
 
@@ -31,7 +28,6 @@ public class ServerFrame extends JFrame implements Observer {
   private JButton stopButton;
   private JButton closeButton;
   private JPanel settingsPanel;
-  private JComboBox<String> addressField;
   private JFormattedTextField portField;
   private JPanel statusPanel;
   private JLabel statusBar;
@@ -41,9 +37,10 @@ public class ServerFrame extends JFrame implements Observer {
   public ServerFrame() {
     FensterPositionen position = FensterPositionen.createFensterPositionen(
         MAIN_FRAME_SCREEN_SIZE, MAIN_FRAME_SCREEN_SIZE);
-    initComponents();
 
     this.setBounds(position.getRectangle());
+    initComponents();
+
     this.setVisible(true);
     this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
   }
@@ -93,53 +90,42 @@ public class ServerFrame extends JFrame implements Observer {
   }
 
   private void initSettingsPanel() {
-    settingsPanel = new JPanel(new BorderLayout());
-    JLabel addressLabel = new JLabel(LABEL_SERVER_ADDRESS);
-    JLabel portLabel = new JLabel(LABEL_PORT);
-    JPanel gridPanel = new JPanel(new GridLayout(0, 2, 0, 25));
+    final int row = 3;
+    final int column = 3;
+    settingsPanel = new JPanel(new GridLayout(row,column));
+    final int limit = (row*column)/2;
 
-    initConnectionFields();
+    for (int i = 0; i < limit; i++) {
+      settingsPanel.add(Box.createGlue());
+    }
 
-    gridPanel.add(addressLabel);
-    gridPanel.add(addressField);
-    gridPanel.add(portLabel);
-    gridPanel.add(portField);
+    settingsPanel.add(getPortPanel());
 
-    settingsPanel.add(Box.createVerticalStrut(30), BorderLayout.PAGE_START);
-    settingsPanel.add(Box.createHorizontalStrut(25), BorderLayout.LINE_START);
-    settingsPanel.add(Box.createHorizontalStrut(80), BorderLayout.LINE_END);
-    settingsPanel.add(Box.createVerticalStrut(60), BorderLayout.PAGE_END);
-    settingsPanel.add(gridPanel, BorderLayout.CENTER);
+    for (int i = 0; i < limit; i++) {
+      settingsPanel.add(Box.createGlue());
+    }
   }
 
-  private void initConnectionFields() {
-    final Vector<String> comboBoxContent = new Vector<String>();
-    addressField = new JComboBox<String>(comboBoxContent);
+  private JPanel getPortPanel() {
+    final int row = 1;
+    final int column = 1;
+    final int limit = (row*column)/2;
+    JPanel panel = new JPanel(new GridLayout(row, column));
     NumberFormat format = NumberFormat.getNumberInstance();
     format.setMaximumFractionDigits(0);
     format.setGroupingUsed(false);
     portField = new JFormattedTextField(format);
     portField.setText("1025");
-    addressField.setEditable(true);
-    try {
-      addressField.addItem(InetAddress.getLocalHost().getHostName());
-    } catch (UnknownHostException e) {
-      e.printStackTrace();
+
+    panel.setBorder(BorderFactory.createTitledBorder(LABEL_PORT));
+    for (int i = 0; i < limit; i++) {
+      panel.add(Box.createGlue());
     }
-    addressField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        try {
-          InetAddress address = InetAddress.getByName(addressField.getSelectedItem().toString());
-          final String selected = address.getHostName();
-          if (!comboBoxContent.contains(selected)) {
-            addressField.addItem(selected);
-            addressField.setSelectedItem(selected);
-          }
-        } catch (UnknownHostException e1) {
-          e1.printStackTrace();
-        }
-      }
-    });
+    panel.add(portField);
+    for (int i = 0; i < limit; i++) {
+      panel.add(Box.createGlue());
+    }
+    return panel;
   }
 
   private JButton makeToolBarButton(String pictureName, String toolTipText,
@@ -202,8 +188,8 @@ public class ServerFrame extends JFrame implements Observer {
     private void startGameServer(Observer observer) {
       gameServer = GameServer.getServerInstance();
       gameServer.addObserver(observer);
-      gameServer.setConnection(Integer.parseInt(portField.getText()));
-      new Thread(gameServer).start();
+      gameServer.setPort(Integer.parseInt(portField.getText()));
+      gameServer.startServer();
     }
   }
 }

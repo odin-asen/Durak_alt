@@ -16,7 +16,7 @@ public interface ServerGUIConstants {
 
   /* Label texts */
   public static final String LABEL_SERVER_ADDRESS = "Serveradresse:";
-  public static final String LABEL_PORT = "Port:";
+  public static final String LABEL_PORT = "Port";
 
   /* Tooltip texts */
   public static final String TOOLTIP_START = "Starten den Server f\u00fcr ein Spiel";
