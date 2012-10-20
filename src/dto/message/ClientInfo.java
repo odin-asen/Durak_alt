@@ -9,14 +9,12 @@ import java.io.Serializable;
  */
 public class ClientInfo implements Serializable {
   public String clientName;
-  public String password;
-
   public Boolean startPlayingFlag;
 
   /* Constructors */
-  public ClientInfo(String name, String password) {
+  public ClientInfo(String name) {
     this.clientName = name;
-    this.password = password;
+    this.startPlayingFlag = false;
   }
 
   /* Methods */

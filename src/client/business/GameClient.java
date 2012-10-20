@@ -81,6 +81,8 @@ public class GameClient extends Observable implements Runnable {
         this.socket = new Socket(serverAddress, port);
         getSocketStreams();
 
+        new Thread(client).start();
+
         this.setChanged();
         this.notifyObservers(new MessageObject(CONNECTED, this.getSocketAddress()));
       } catch (IOException ex) {
@@ -143,7 +145,16 @@ public class GameClient extends Observable implements Runnable {
     return answer;
   }
 
+  /* Getter and Setter */
   private String getSocketAddress() {
     return serverAddress + ":" + port;
+  }
+
+  public void setServerAddress(String serverAddress) {
+    this.serverAddress = serverAddress;
+  }
+
+  public void setPort(int port) {
+    this.port = port;
   }
 }

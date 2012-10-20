@@ -1,7 +1,7 @@
 package client.gui.frame;
 
 import client.business.GameClient;
-import dto.message.ClientInfo;
+import client.gui.frame.setup.SetUpFrame;
 import dto.message.MessageObject;
 import dto.message.MessageType;
 import resources.ResourceGetter;
@@ -68,23 +68,17 @@ public class DurakToolBar extends JToolBar {
       } else if(ClientGUIConstants.ACTION_COMMAND_CONNECTION.equals(e.getActionCommand())) {
         GameClient client = GameClient.getClient();
         if(!client.isConnected()) {
+          client.setPort(SetUpFrame.getInstance().getConnectionInfo().getPort());
+          client.setServerAddress(SetUpFrame.getInstance().getConnectionInfo().getIpAddress());
           client.connect();
 
-          final MessageObject answer;
-          //TODO Das ClientInfo Objekt sollte in den Setups festgelegt und abrufbereit sein
-          //TODO den Aufruf des Objekts durch SetUpFrame austauschen
-          final ClientInfo info = new ClientInfo("Test","");
-          final MessageObject mo = new MessageObject(MessageType.LOGIN, info);
-
-          client.send(mo);
-          new Thread(client).start();
-//          client.sendAndNotify()
+          client.send(new MessageObject(MessageType.LOGIN, SetUpFrame.getInstance().getClientInfo()));
         } else {
           client.disconnect();
         }
       } else if(ClientGUIConstants.ACTION_COMMAND_SETUP.equals(e.getActionCommand())) {
         SetUpFrame frame = SetUpFrame.getInstance();
-        if(!frame.isVisible())
+        if(!frame.isVisible() || !frame.isActive())
           frame.setVisible(true);
       }
     }

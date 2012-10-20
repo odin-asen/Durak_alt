@@ -2,6 +2,7 @@ package client.gui.frame;
 
 import client.StartClient;
 import client.business.GameClient;
+import client.gui.frame.setup.SetUpFrame;
 import dto.DTOCardStack;
 import dto.message.BroadcastType;
 import dto.message.GUIObserverType;
@@ -68,7 +69,7 @@ public class ClientFrame extends JFrame implements Observer {
 
     secondPane.setBackground(Color.WHITE);
     opponentsPanel.setPreferredSize(new Dimension(0, OPPONENT_PANEL_HEIGHT));
-    cardStackPanel.setPreferredSize(new Dimension(CARDSTACK_PANEL_WIDTH, 0));
+    cardStackPanel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, 0));
     cardStackPanel.setLayout(new BorderLayout());
     cardStackPanel.add(Box.createGlue(), BorderLayout.PAGE_START);
     cardStackPanel.add(Box.createGlue(), BorderLayout.PAGE_END);
@@ -135,7 +136,6 @@ public class ClientFrame extends JFrame implements Observer {
       return;
 
     final Class<? extends Enum> enumClass = object.getType().getClass();
-    System.out.println("update");
     if(enumClass.equals(GUIObserverType.class)) {
       handleGUIObserverType(object);
     } else if(enumClass.equals(BroadcastType.class)) {
@@ -153,9 +153,11 @@ public class ClientFrame extends JFrame implements Observer {
 
   private void handleGUIObserverType(MessageObject object) {
     if(GUIObserverType.CONNECTED.equals(object.getType())) {
+      SetUpFrame.getInstance().setConnectionEnabled(false);
       statusBar.setConnected(true, (String) object.getSendingObject());
       statusBar.setText("Verbindung zu "+object.getSendingObject()+" wurde erfolgreich aufgebaut");
     } else if(GUIObserverType.DISCONNECTED.equals(object.getType())) {
+      SetUpFrame.getInstance().setConnectionEnabled(true);
       statusBar.setConnected(false, null);
       statusBar.setText("");
     } else if(GUIObserverType.CONNECTION_FAIL.equals(object.getType())) {

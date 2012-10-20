@@ -53,7 +53,7 @@ public class CardStackWidget extends JComponent {
   public static CardStackWidget getInstance() {
     final float heightLimit = 1.0f-2.0f*Math.abs(1.0f- CardStackWidget.RATIO_RIGHT_MARGIN);
     return new CardStackWidget(CardStackWidget.ORIENTATION_VERTICAL,
-        (int) (ClientGUIConstants.CARDSTACK_PANEL_WIDTH*heightLimit));
+        (int) (ClientGUIConstants.CARD_STACK_PANEL_WIDTH *heightLimit));
   }
 
   /* Methods */
