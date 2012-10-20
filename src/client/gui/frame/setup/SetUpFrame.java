@@ -2,7 +2,7 @@ package client.gui.frame.setup;
 
 import client.business.ConnectionInfo;
 import client.gui.frame.ClientGUIConstants;
-import dto.message.ClientInfo;
+import dto.ClientInfo;
 import utilities.gui.FensterPositionen;
 import utilities.gui.WidgetCreator;
 

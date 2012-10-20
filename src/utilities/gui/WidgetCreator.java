@@ -1,6 +1,7 @@
 package utilities.gui;
 
 import client.gui.frame.ClientGUIConstants;
+import resources.ResourceGetter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -56,6 +57,22 @@ public class WidgetCreator {
     field.setMaximumSize(new Dimension(Integer.MAX_VALUE, field.getPreferredSize().height));
 
     return field;
+  }
+
+  public static JButton makeToolBarButton(String pictureName, String toolTipText,
+                                    String actionCommand, String alternativeText,
+                                    ActionListener listener, int virtualKey) {
+    JButton button = new JButton();
+    button.setToolTipText(toolTipText);
+    button.setActionCommand(actionCommand);
+    button.setMnemonic(virtualKey);
+    button.addActionListener(listener);
+    button.setIcon(ResourceGetter.getImage(pictureName, alternativeText));
+
+    if (button.getIcon() == null)
+      button.setText(alternativeText);
+
+    return button;
   }
 
   public static JButton makeButton(Icon icon, String text, String toolTipText,

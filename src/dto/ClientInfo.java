@@ -1,4 +1,4 @@
-package dto.message;
+package dto;
 
 import java.io.Serializable;
 

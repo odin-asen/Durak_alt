@@ -1,5 +1,6 @@
 package server.business;
 
+import dto.ClientInfo;
 import dto.message.*;
 import game.GameCardStack;
 import game.GameProcess;
@@ -52,7 +53,7 @@ public class GameServer extends Observable implements Runnable {
     this.serverThreads = new ArrayList<ServerThread>();
   }
 
-  private void setChangeAndNotify(GUIObserverType type) {
+  void setChangedAndNotify(GUIObserverType type) {
     this.setChanged();
     this.notifyObservers(new MessageObject(type));
   }
@@ -62,7 +63,7 @@ public class GameServer extends Observable implements Runnable {
       running = false;
 
     if(running) {
-      setChangeAndNotify(SERVER_START);
+      setChangedAndNotify(SERVER_START);
     }
 
     while (running) {
@@ -71,8 +72,6 @@ public class GameServer extends Observable implements Runnable {
         final ServerThread thread = new ServerThread(socket);
         new Thread(thread).start();
         serverThreads.add(thread);
-
-        setChangeAndNotify(CLIENT_CONNECTED);
       } catch (IOException e) {
         LOGGER.log(Level.INFO, e.getMessage(), serverSocket);
       }
@@ -96,7 +95,7 @@ public class GameServer extends Observable implements Runnable {
       new Thread(gameServer).start();
     } catch (IOException ex) {
       LOGGER.log(Level.SEVERE, ex.getMessage());
-      setChangeAndNotify(SERVER_FAIL);
+      setChangedAndNotify(SERVER_FAIL);
     }
   }
 
@@ -108,9 +107,13 @@ public class GameServer extends Observable implements Runnable {
     if (serverSocket != null) {
       serverSocket.close();
 
-      this.setChanged();
-      this.notifyObservers(new MessageObject(SERVER_STOP));
+      setChangedAndNotify(SERVER_STOP);
     }
+  }
+
+  void setChangedAndNotify(GUIObserverType type, Object sendingObject) {
+    this.setChanged();
+    this.notifyObservers(new MessageObject(type, sendingObject));
   }
 
   public void stopRunning() {
@@ -173,7 +176,7 @@ public class GameServer extends Observable implements Runnable {
   }
 }
 
-class ServerThread extends Observable implements Runnable {
+class ServerThread implements Runnable {
   private static Logger LOGGER = Logger.getLogger(ServerThread.class.getName());
 
   private boolean running;
@@ -242,16 +245,12 @@ class ServerThread extends Observable implements Runnable {
       socketIn.close();
       socketOut.close();
       socket.close();
-      GameServer.getServerInstance().removeThread(this);
-      setChangeAndNotify(CLIENT_DISCONNECTED);
+      GameServer server = GameServer.getServerInstance();
+      server.removeThread(this);
+      server.setChangedAndNotify(CLIENT_DISCONNECTED, getClientInfo());
     } catch (IOException e) {
       LOGGER.log(Level.WARNING, "Error closing socket!");
     }
-  }
-
-  private void setChangeAndNotify(GUIObserverType type) {
-    this.setChanged();
-    this.notifyObservers(new MessageObject(type));
   }
 
   public void stopRunning() {
@@ -335,9 +334,10 @@ class MessageHandler {
     final List<Object> list = new ArrayList<Object>();
 
     serverThread.setClientInfo((ClientInfo) messageObject.getSendingObject());
-
+    GameServer.getServerInstance().setChangedAndNotify(GUIObserverType.CLIENT_CONNECTED, messageObject.getSendingObject());
     list.add(Converter.toDTO(GameCardStack.getInstance()));
     list.add(gameServer.getClients());
+
     return list;
   }
 }

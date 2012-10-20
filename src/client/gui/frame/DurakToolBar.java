@@ -2,6 +2,7 @@ package client.gui.frame;
 
 import client.business.GameClient;
 import client.gui.frame.setup.SetUpFrame;
+import dto.ClientInfo;
 import dto.message.MessageObject;
 import dto.message.MessageType;
 import resources.ResourceGetter;
@@ -72,7 +73,9 @@ public class DurakToolBar extends JToolBar {
           client.setServerAddress(SetUpFrame.getInstance().getConnectionInfo().getIpAddress());
           client.connect();
 
-          client.send(new MessageObject(MessageType.LOGIN, SetUpFrame.getInstance().getClientInfo()));
+          ClientInfo info = SetUpFrame.getInstance().getClientInfo();
+          System.out.println(info);
+          client.send(new MessageObject(MessageType.LOGIN, info));
         } else {
           client.disconnect();
         }
