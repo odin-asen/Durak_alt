@@ -7,7 +7,7 @@ package server.gui;
  */
 public interface ServerGUIConstants {
   /* ServerFrame constants */
-  float MAIN_FRAME_SCREEN_SIZE = 0.3f;
+  float MAIN_FRAME_SCREEN_SIZE = 0.35f;
 
   /* Action commands for Buttons and MenuItems */
   String ACTION_COMMAND_START = "start";
@@ -33,4 +33,7 @@ public interface ServerGUIConstants {
 
   int PREFERRED_FIELD_WIDTH = 80;
   int LIST_WIDTH = 200;
+  String TOOLTIP_GAME_START = "Startet das Spiel";
+  String ACTION_COMMAND_GAME_START = "gameStart";
+  String ALTERNATIVE_GAME_START = "gameStart";
 }

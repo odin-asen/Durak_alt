@@ -74,7 +74,6 @@ public class DurakToolBar extends JToolBar {
           client.connect();
 
           ClientInfo info = SetUpFrame.getInstance().getClientInfo();
-          System.out.println(info);
           client.send(new MessageObject(MessageType.LOGIN, info));
         } else {
           client.disconnect();

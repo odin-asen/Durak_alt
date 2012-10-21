@@ -24,6 +24,10 @@ public class DTOCard implements Serializable {
   }
 
   /* Methods */
+  public String getColourAndValue() {
+    return cardColour.getName()+" "+cardValue.getValueName();
+  }
+
   public String toString() {
     return "DTOCard{" +
         "cardType=" + cardType +

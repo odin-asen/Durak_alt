@@ -103,9 +103,7 @@ public class GameClient extends Observable implements Runnable {
   }
 
   public boolean isConnected() {
-    if (socket != null) {
-      return !socket.isClosed();
-    } else return false;
+    return socket != null && !socket.isClosed();
   }
 
   private void getSocketStreams() {

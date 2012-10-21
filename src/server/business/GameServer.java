@@ -1,28 +1,29 @@
 package server.business;
 
 import dto.ClientInfo;
-import dto.message.*;
+import dto.message.BroadcastType;
+import dto.message.GUIObserverType;
+import dto.message.MessageObject;
+import dto.message.MessageType;
 import game.GameCardStack;
 import game.GameProcess;
 import game.Player;
 import server.business.exception.GameServerException;
 import utilities.Converter;
-import utilities.constants.GameConfigurationConstants;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Observable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static dto.message.BroadcastType.LOGIN_LIST;
 import static dto.message.GUIObserverType.*;
-import static dto.message.MessageType.*;
 
 /**
  * User: Timm Herrmann
@@ -145,28 +146,28 @@ public class GameServer extends Observable implements Runnable {
     return clients;
   }
 
-  public boolean readyToPlay() {
-    for (ServerThread serverThread : serverThreads) {
-      if(!serverThread.getClientInfo().startPlayingFlag)
-        return false;
-    }
-
-    return true;
-  }
-
-  public void broadcastMessage(BroadcastType type, Object sendingObject) {
+  public void broadcastMessage(Enum<?> type, Object sendingObject) {
     for (ServerThread serverThread : serverThreads) {
       serverThread.sendMessage(new MessageObject(type, sendingObject));
     }
   }
 
-  public void broadcastMessage(MessageType type) {
+  public void broadcastMessage(Enum<?> type) {
     for (ServerThread serverThread : serverThreads) {
       serverThread.sendMessage(new MessageObject(type, null));
     }
   }
 
-  public void broadcastArray(MessageType type, List<?> sendingObjects)
+  /**
+   * Sends a MessageObject object to all clients. For each client the MessageObject
+   * object contains as sendingObject the corresponding object of the list
+   * {@code sendingObjects}.
+   * @param type Type of the message.
+   * @param sendingObjects Sending objects for the clients.
+   * @throws GameServerException The number of server threads and the size of
+   * {@code sendingObjects} is not equal.
+   */
+  public void broadcastArray(Enum<?> type, List<?> sendingObjects)
       throws GameServerException {
     if(sendingObjects.size() != serverThreads.size())
       throw new GameServerException("The number of server threads and sending objects is not equal!");
@@ -270,9 +271,6 @@ class ServerThread implements Runnable {
 class MessageHandler {
   private static final Logger LOGGER = Logger.getLogger(MessageHandler.class.getName());
 
-  private static final DateFormat format = new SimpleDateFormat("[EEE d-MMM HH:mm]");
-  private static final Calendar calendar = GregorianCalendar.getInstance(Locale.GERMANY);
-
   static MessageObject getAnswer(MessageObject messageObject, ServerThread serverThread) throws GameServerException {
     final Enum<?> type = messageObject.getType();
     final MessageObject answer = new MessageObject(type);
@@ -286,13 +284,9 @@ class MessageHandler {
       /* and add it to the list, update all other user */
       sendingObject = loginUserToServer(messageObject, serverThread);
       gameServer.broadcastMessage(LOGIN_LIST, gameServer.getClients());
-    } else if(MessageType.START_GAME_SIGNAL.equals(type)) {
-      /* Add player in playing list and initialise game after last player */
-      startGame(serverThread, gameServer);
-    } else if(MessageType.QUIT_GAME_SIGNAL.equals(type)) {
-      serverThread.getClientInfo().startPlayingFlag = false;
     } else if(MessageType.CHAT_MESSAGE.equals(type)) {
-      sendingObject = getChatMessageTimeStamp((String) messageObject.getSendingObject());
+      sendingObject = clientChatAnswer(serverThread.getClientInfo(),
+          messageObject.getSendingObject().toString());
       gameServer.broadcastMessage(BroadcastType.CHAT_MESSAGE, sendingObject);
     } else if(MessageType.GAME_ACTION.equals(type)) {
       //TODO Kartenaktion prüfen und antwort senden, z.B. angriff nicht zulässig
@@ -303,30 +297,17 @@ class MessageHandler {
     return answer;
   }
 
-  private static String getChatMessageTimeStamp(String message) {
-    calendar.setTimeInMillis(System.currentTimeMillis());
-    return format.format(calendar.getTime()) + ": "+message+'\n';
-  }
-
-  private static void startGame(ServerThread serverThread, GameServer gameServer) {
-    serverThread.getClientInfo().startPlayingFlag = true;
-    if(GameServer.getServerInstance().readyToPlay()) {
-      final GameProcess gameProcess = GameProcess.getInstance();
-      gameProcess.initialiseNewGame(GameConfigurationConstants.DEFAULT_COLOUR_CARD_COUNT);
-      final List<Player> playerList = gameProcess.getPlayerList();
-      try {
-        gameServer.broadcastArray(INITIAL_CARDS, Converter.playerCardsToDTO(playerList));
-      } catch (GameServerException e) {
-        LOGGER.log(Level.SEVERE, e.getMessage());
-      }
-    } else {
-      gameServer.broadcastMessage(WAIT_FOR_PLAYER);
-    }
+  private static Object clientChatAnswer(ClientInfo client, String message) {
+    List<Object> sendingObject = new ArrayList<Object>();
+    sendingObject.add(new Long(System.currentTimeMillis()));
+    sendingObject.add(client);
+    sendingObject.add(message);
+    return sendingObject;
   }
 
   /**
    * Adds a client to the server.
-   * @return Returns information for the client like the card stack and which clients are
+   * @return Returns information for the client like, e.g. which clients are
    * also logged in.
    */
   private static Object loginUserToServer(MessageObject messageObject, ServerThread serverThread) {
@@ -335,6 +316,8 @@ class MessageHandler {
 
     serverThread.setClientInfo((ClientInfo) messageObject.getSendingObject());
     GameServer.getServerInstance().setChangedAndNotify(GUIObserverType.CLIENT_CONNECTED, messageObject.getSendingObject());
+    GameProcess.getInstance().addPlayer(new Player(
+        ((ClientInfo) messageObject.getSendingObject()).getClientName()));
     list.add(Converter.toDTO(GameCardStack.getInstance()));
     list.add(gameServer.getClients());
 

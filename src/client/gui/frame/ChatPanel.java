@@ -81,7 +81,8 @@ public class ChatPanel extends JPanel {
   }
 
   public void addMessage(String text) {
-    chatReadArea.append(text);
+    chatReadArea.append(text+'\n');
+    scrollPaneRead.getVerticalScrollBar().setValue(scrollPaneRead.getVerticalScrollBar().getMaximum());
   }
 
   /* Getter and Setter */

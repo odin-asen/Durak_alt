@@ -1,6 +1,8 @@
 package client.gui.widget.card;
 
 import client.gui.frame.ClientGUIConstants;
+import dto.DTOCard;
+import resources.ResourceGetter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,7 +16,7 @@ import java.awt.geom.AffineTransform;
 public class CardStackWidget extends JComponent {
   public static final int ORIENTATION_HORIZONTAL = 0;
   public static final int ORIENTATION_VERTICAL = 1;
-  public static final float ALIGNMENT_CARDHEIGHT = 0.5f;
+  public static final float ALIGNMENT_CARD_HEIGHT = 0.5f;
   public static final float RATIO_WIDTH_TO_HEIGHT = 0.69f;
   /* Defines the relative distance to the right border of the component */
   public static final float RATIO_RIGHT_MARGIN = 0.9f;
@@ -51,9 +53,9 @@ public class CardStackWidget extends JComponent {
   }
 
   public static CardStackWidget getInstance() {
-    final float heightLimit = 1.0f-2.0f*Math.abs(1.0f- CardStackWidget.RATIO_RIGHT_MARGIN);
+    final float freeSpaceWidth = 1.0f-2.0f*Math.abs(1.0f- CardStackWidget.RATIO_RIGHT_MARGIN);
     return new CardStackWidget(CardStackWidget.ORIENTATION_VERTICAL,
-        (int) (ClientGUIConstants.CARD_STACK_PANEL_WIDTH *heightLimit));
+        (int) (ClientGUIConstants.CARD_STACK_PANEL_WIDTH *freeSpaceWidth));
   }
 
   /* Methods */
@@ -67,10 +69,10 @@ public class CardStackWidget extends JComponent {
     Graphics2D g2D = (Graphics2D) g;
 
     final int cardHeight;
-    if((int) (getHeight()*ALIGNMENT_CARDHEIGHT)> heightLimit)
+    if((int) (getHeight()* ALIGNMENT_CARD_HEIGHT)> heightLimit)
       cardHeight = heightLimit;
     else
-      cardHeight = (int) (getHeight()*ALIGNMENT_CARDHEIGHT);
+      cardHeight = (int) (getHeight()* ALIGNMENT_CARD_HEIGHT);
     final int cardWidth = (int) (cardHeight*RATIO_WIDTH_TO_HEIGHT);
     final int cardX = (int) (getWidth()*RATIO_RIGHT_MARGIN) - cardHeight;
     final int cardY = getHeight()/2-cardHeight/2;
@@ -81,27 +83,27 @@ public class CardStackWidget extends JComponent {
       g2D.drawImage(cardBack.getImage(), cardX + cardHeight-cardWidth+i*cardWidth/700, cardY, cardWidth, cardHeight,this);
   }
 
-  /**
-   * Raises the amount of cards in the stack by one.
-   */
-  public void pushCard() {
-    cardCount++;
-  }
-
-  /**
-   * Reduces the amount of cards in the stack by one.
-   */
-  public void pickUpCard() {
-    cardCount--;
+  public void updateTooltip() {
+    if(cardCount == 0)
+      this.setToolTipText("");
+    else if(cardCount == 1)
+      this.setToolTipText("Noch 1 Karte auf dem Stapel");
+    else
+      this.setToolTipText("Noch "+cardCount+" Karten auf dem Stapel");
   }
 
   /* Getter and Setter */
+  public void setCardCount(int cardCount) {
+    this.cardCount = cardCount;
+  }
+
   public int getCardCount() {
     return cardCount;
   }
 
-  public void setTrumpCard(ImageIcon trumpCard) {
-    this.trumpCard = trumpCard;
+  public void setTrumpCard(DTOCard trump) {
+    final String text = trump.cardColour + " "+trump.cardValue;
+    this.trumpCard = ResourceGetter.getCardImage(trump.cardColour,trump.cardValue, text);
   }
 
   public void setCardBack(ImageIcon cardBack) {

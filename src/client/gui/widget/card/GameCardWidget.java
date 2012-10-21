@@ -1,6 +1,9 @@
 package client.gui.widget.card;
 
+import dto.DTOCard;
 import game.GameCard;
+import resources.ResourceGetter;
+import utilities.Converter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,43 +21,54 @@ import static utilities.constants.GameCardConstants.*;
  */
 public class GameCardWidget extends JComponent implements Observer{
   public static final float WIDTH_TO_HEIGHT_RATIO = 0.69f;
-  public static final float ALIGNMENT_CARDHEIGHT = 0.3f;
+  public static final float ALIGNMENT_CARD_HEIGHT = 0.3f;
 
   private Image cardImage;
   private GameCard cardInfo;
   private boolean paintCurtain;
   private GameCardListener gameCardListener;
 
-  public GameCardWidget(Image cardImage) {
-    this.cardImage = cardImage;
-    this.cardInfo = new GameCard();
-    this.cardInfo.setCardColour(CardColour.CLUBS);
-    this.cardInfo.setCardValue(CardValue.ACE);
+  /* Constructors */
+  public GameCardWidget(DTOCard dtoCard) {
+    this.cardInfo = Converter.fromDTO(dtoCard);
     this.paintCurtain = false;
     this.gameCardListener = new GameCardListener();
     cardInfo.setMovable(false);
 
-    String text = cardInfo.getCardColour().getName();
-    if(!text.isEmpty())
-      text = text + " " + cardInfo.getCardValue().getValueName();
-    else text = cardInfo.getCardValue().getValueName();
-    this.setToolTipText(text);
+    this.setToolTipText(dtoCard.getColourAndValue());
+    this.cardImage = ResourceGetter.getCardImage(dtoCard.cardColour,
+        dtoCard.cardValue,dtoCard.getColourAndValue()).getImage();
   }
 
   public void paint(Graphics g) {
     Graphics2D g2D = (Graphics2D) g;
 
-    final int height = (int) (this.getParent().getHeight()*ALIGNMENT_CARDHEIGHT);
-    final int width = (int) (height*WIDTH_TO_HEIGHT_RATIO);
-    this.setSize(width, height);
+    final Dimension cardDim = computeCardDimension(getParent().getHeight());
 
-    g2D.drawImage(cardImage, 0, 0, width, height, this);
+    drawCard(g2D, cardDim);
+
     if(paintCurtain) {
-      final Color oldColor = g2D.getColor();
-      g2D.setColor(new Color(0, 0, 255, 109));
-      g2D.fillRect(0, 0, width, height);
-      g2D.setColor(oldColor);
+      paintCurtain(g2D, cardDim);
     }
+  }
+
+  public static Dimension computeCardDimension(Integer parentPanelHeight) {
+    final int height = (int) (parentPanelHeight*ALIGNMENT_CARD_HEIGHT);
+    final int width = (int) (height*WIDTH_TO_HEIGHT_RATIO);
+
+    return new Dimension(width,height);
+  }
+
+  private void drawCard(Graphics2D g2D, Dimension cardDim) {
+    this.setSize(cardDim);
+    g2D.drawImage(cardImage, 0, 0, cardDim.width, cardDim.height, this);
+  }
+
+  private void paintCurtain(Graphics2D g2D, Dimension cardDim) {
+    final Color oldColor = g2D.getColor();
+    g2D.setColor(new Color(0, 0, 255, 109));
+    g2D.fillRect(0, 0, cardDim.width, cardDim.height);
+    g2D.setColor(oldColor);
   }
 
   public void addGameCardListener(GameCardListener listener) {
@@ -116,5 +130,10 @@ public class GameCardWidget extends JComponent implements Observer{
       this.setLocation(card.x,dimension.height-card.height);
     if(!insideTop)
       this.setLocation(card.x,0);
+  }
+
+  /* Getter and Setter */
+  public GameCard getCardInfo() {
+    return cardInfo;
   }
 }

@@ -42,17 +42,33 @@ public class ResourceGetter {
 
   private static final int MAGIC_X_AXIS_GAP_CONSTANT = 2;
 
-  public static ImageIcon getCardImage(String cardColourImageName, GameCardConstants.CardValue cardValue, String alternativeText) {
+  public static ImageIcon getCardImage(GameCardConstants.CardColour colour, GameCardConstants.CardValue cardValue, String alternativeText) {
     ImageIcon image = null;
 
     try {
-      final String path = ResourceGetter.CARDS_ROOT + cardColourImageName;
+      final String path = ResourceGetter.CARDS_ROOT + getStringCardColour(colour);
       image = getCardFromStripe(loadImage(path, alternativeText), cardValue.getValue());
     } catch (ResourceGetterException e) {
       LOGGER.log(Level.WARNING, e.getMessage());
     }
 
     return image;
+  }
+
+  private static String getStringCardColour(GameCardConstants.CardColour colour) {
+    final String string;
+
+    if(GameCardConstants.CardColour.CLUBS.equals(colour)) {
+      string = STRING_CARD_COLOUR_CLUBS;
+    } else if(GameCardConstants.CardColour.DIAMONDS.equals(colour)) {
+      string = STRING_CARD_COLOUR_DIAMONDS;
+    } else if(GameCardConstants.CardColour.HEARTS.equals(colour)) {
+      string = STRING_CARD_COLOUR_HEARTS;
+    } else {
+      string = STRING_CARD_COLOUR_SPADES;
+    }
+
+    return string;
   }
 
   private static ImageIcon getCardFromStripe(ImageIcon imageIcon, Integer cardNumber) {

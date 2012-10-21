@@ -14,8 +14,10 @@ import static utilities.constants.GameCardConstants.*;
  * This represents the card stack of the game. Its implemented as Singleton
  * thus there should be only one card stack in a game session.
  */
-public class GameCardStack {
+public class GameCardStack extends Observable {
   private static GameCardStack ourInstance = new GameCardStack();
+
+  private Integer stackSize;
 
   private Deque<GameCard> cardStack;
 
@@ -38,9 +40,23 @@ public class GameCardStack {
   public void initialiseStack(Integer cardNumber) {
     final List<GameCard> cardList;
 
-    cardNumber = checkCardNumber(cardNumber);
+    stackSize = checkCardNumber(cardNumber);
 
-    cardList = getSortedStack(cardNumber);
+    cardList = getSortedStack(stackSize);
+    Collections.shuffle(cardList);
+    for (GameCard gameCard : cardList) {
+      cardStack.add(gameCard);
+    }
+  }
+
+  /**
+   * Initialises a new shuffled stack with the number that was used for all card colours
+   * at the initialising of the stack.
+   */
+  public void reshuffleStack() {
+    final List<GameCard> cardList;
+
+    cardList = getSortedStack(stackSize);
     Collections.shuffle(cardList);
     for (GameCard gameCard : cardList) {
       cardStack.add(gameCard);

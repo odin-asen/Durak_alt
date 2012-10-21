@@ -1,4 +1,4 @@
-package dto;
+package dto.actions;
 
 import java.io.Serializable;
 

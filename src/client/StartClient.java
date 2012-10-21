@@ -6,19 +6,20 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
-* User: Timm Herrmann
-* Date: 29.09.12
-* Time: 22:36
-*/
+ * User: Timm Herrmann
+ * Date: 29.09.12
+ * Time: 22:36
+ */
 public class StartClient {
   public static final String LOOK_AND_FEEL = "com.jtattoo.plaf.noire.NoireLookAndFeel";
 
   private static JFrame frame = new JFrame();
 
   public static void main(String[] args) throws Exception{
-    loadLaF(frame);
-    frame.dispose();
-    loadLaF(new ClientFrame());
+//    loadLaF(frame);
+//    frame.dispose();
+//    loadLaF(new ClientFrame());
+    new ClientFrame();
   }
 
   public static void loadLaF(Component comp)

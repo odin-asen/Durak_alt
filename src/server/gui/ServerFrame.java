@@ -3,8 +3,14 @@ package server.gui;
 import dto.ClientInfo;
 import dto.message.GUIObserverType;
 import dto.message.MessageObject;
+import game.GameCardStack;
+import game.GameProcess;
 import resources.ResourceGetter;
 import server.business.GameServer;
+import server.business.exception.GameServerException;
+import utilities.Converter;
+import utilities.constants.GameConfigurationConstants;
+import utilities.gui.Constraints;
 import utilities.gui.FensterPositionen;
 import utilities.gui.WidgetCreator;
 
@@ -14,8 +20,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static server.gui.ServerGUIConstants.*;
 
@@ -26,11 +36,14 @@ import static server.gui.ServerGUIConstants.*;
  */
 @SuppressWarnings("FieldCanBeLocal")
 public class ServerFrame extends JFrame implements Observer {
+  private static final Logger LOGGER = Logger.getLogger(ServerFrame.class.getName());
+
   private JToolBar toolBar;
   private JButton startButton;
   private JButton stopButton;
+  private JButton gameStartButton;
   private JButton closeButton;
-  private JPanel settingsPanel;
+  private JScrollPane settingsPanel;
   private JFormattedTextField portField;
   private JScrollPane clientListPanel;
   private JPanel statusPanel;
@@ -39,6 +52,8 @@ public class ServerFrame extends JFrame implements Observer {
   private GameServer gameServer;
   private JList<ClientInfo> clientList;
   private DefaultListModel<ClientInfo> listModel;
+  private JComboBox<Integer> stackSizeCombo;
+  private JPanel gameSettingsPanel;
 
   /* Constructors */
   public ServerFrame() {
@@ -108,6 +123,8 @@ public class ServerFrame extends JFrame implements Observer {
         ACTION_COMMAND_START, ALTERNATIVE_START, listener, KeyEvent.VK_G);
     stopButton = WidgetCreator.makeToolBarButton(ResourceGetter.STRING_IMAGE_STOP_PLAYER, TOOLTIP_STOP,
         ACTION_COMMAND_STOP, ALTERNATIVE_STOP, listener, KeyEvent.VK_A);
+    gameStartButton = WidgetCreator.makeToolBarButton(ResourceGetter.STRING_IMAGE_PLAY, TOOLTIP_GAME_START,
+        ACTION_COMMAND_GAME_START, ALTERNATIVE_GAME_START, listener, KeyEvent.VK_S);
     closeButton = WidgetCreator.makeToolBarButton(ResourceGetter.STRING_IMAGE_CLOSE, TOOLTIP_CLOSE,
         ACTION_COMMAND_CLOSE, ALTERNATIVE_CLOSE, listener, KeyEvent.VK_Q);
 
@@ -118,6 +135,8 @@ public class ServerFrame extends JFrame implements Observer {
     toolBar.add(startButton);
     toolBar.addSeparator();
     toolBar.add(stopButton);
+    toolBar.addSeparator();
+    toolBar.add(gameStartButton);
     toolBar.add(Box.createHorizontalGlue());
     toolBar.addSeparator();
     toolBar.add(closeButton);
@@ -125,19 +144,21 @@ public class ServerFrame extends JFrame implements Observer {
     return toolBar;
   }
 
-  private JPanel getSettingsPanel() {
+  private JScrollPane getSettingsPanel() {
     if(settingsPanel != null)
       return settingsPanel;
 
-    settingsPanel = new JPanel(new GridBagLayout());
+    settingsPanel = new JScrollPane();
+    JPanel panel = new JPanel(new GridBagLayout());
+    GridBagConstraints constraints;
 
-    GridBagConstraints constraints = new GridBagConstraints();
-    constraints.gridx = 0;
-    constraints.gridy = 0;
-    constraints.ipadx = 5;
+    constraints = Constraints.getDefaultFieldConstraintLeft(0,0,1,1);
     constraints.ipady = 5;
-    settingsPanel.add(getPortPanel(), constraints);
+    panel.add(getPortPanel(), constraints);
+    constraints.gridy = 1;
+    panel.add(getGameSettingsPanel(), constraints);
 
+    settingsPanel.setViewportView(panel);
     return settingsPanel;
   }
 
@@ -167,11 +188,31 @@ public class ServerFrame extends JFrame implements Observer {
     clientListPanel = new JScrollPane();
     listModel = new DefaultListModel<ClientInfo>();
     clientList = new JList<ClientInfo>(listModel);
+    clientList.setCellRenderer(new DefaultListCellRenderer());
     clientList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     clientListPanel.setPreferredSize(new Dimension(LIST_WIDTH, clientListPanel.getPreferredSize().height));
     clientListPanel.setViewportView(clientList);
 
     return clientListPanel;
+  }
+
+  public JPanel getGameSettingsPanel() {
+    if(gameSettingsPanel != null)
+      return gameSettingsPanel;
+
+    gameSettingsPanel = new JPanel();
+    stackSizeCombo = new JComboBox<Integer>(new Integer[]{36,40,44,48,52});
+    JLabel stackSizeLabel = new JLabel("Anzahl Karten:");
+
+    stackSizeCombo.setEditable(false);
+    stackSizeCombo.setToolTipText("Gesamte Anzahl der Karten im Spiel");
+    stackSizeCombo.setMaximumSize(stackSizeCombo.getPreferredSize());
+    gameSettingsPanel.setLayout(new GridLayout(0,2,2,0));
+    gameSettingsPanel.setBorder(BorderFactory.createTitledBorder("Spieleinstellungen"));
+    gameSettingsPanel.add(stackSizeLabel);
+    gameSettingsPanel.add(stackSizeCombo);
+
+    return gameSettingsPanel;
   }
 
   /* Inner Classes */
@@ -183,6 +224,32 @@ public class ServerFrame extends JFrame implements Observer {
         startGameServer((Observer) SwingUtilities.getRoot((Component) e.getSource()));
       } else if (ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
         stopGameServer();
+      } else if (ACTION_COMMAND_GAME_START.equals(e.getActionCommand())) {
+        startGame();
+      }
+    }
+
+    private void startGame() {
+      GameProcess process = GameProcess.getInstance();
+      GameServer server = GameServer.getServerInstance();
+      process.initialiseNewGame((Integer) stackSizeCombo.getSelectedItem());
+      try {
+        server.broadcastMessage(GUIObserverType.INITIALISE_STACK, Converter.toDTO(GameCardStack.getInstance()));
+        server.broadcastArray(GUIObserverType.INITIALISE_CARDS, Converter.playersCardsToDTO(process.getPlayerList()));
+
+        List<ClientInfo> clientInfoList = new ArrayList<ClientInfo>();
+        DefaultListModel<ClientInfo> listModel = (DefaultListModel<ClientInfo>) clientList.getModel();
+        for (int index = 0; index < listModel.getSize(); index++) {
+          final ClientInfo client = listModel.get(index);
+          client.setCardCount(GameConfigurationConstants.INITIAL_CARD_COUNT);
+          clientInfoList.add(client);
+        }
+        for (ClientInfo clientInfo : clientInfoList) {
+          System.out.println(clientInfo+" "+clientInfo.getCardCount());
+        }
+        server.broadcastMessage(GUIObserverType.INITIALISE_OPPONENTS, clientInfoList);
+      } catch (GameServerException e) {
+        LOGGER.log(Level.SEVERE, e.getMessage());
       }
     }
 

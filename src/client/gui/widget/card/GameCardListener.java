@@ -12,11 +12,11 @@ import java.awt.event.MouseMotionListener;
  */
 public class GameCardListener implements MouseListener, MouseMotionListener {
   private Point oldPoint;
-  private Point grabingPoint;
+  private Point grabbingPoint;
 
   public GameCardListener() {
     oldPoint = new Point();
-    grabingPoint = new Point();
+    grabbingPoint = new Point();
   }
 
   public void mouseDragged(MouseEvent e) {
@@ -24,13 +24,13 @@ public class GameCardListener implements MouseListener, MouseMotionListener {
     cardWidget.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
     cardWidget.getParent().setComponentZOrder(cardWidget,0);
     Point point = e.getLocationOnScreen();
-    grabingPoint = getCentredGrabingPoint(cardWidget);
+    grabbingPoint = getCentredGrabingPoint(cardWidget);
 
     if(componentContainsPoint(point, cardWidget.getParent())) {
       cardWidget.setLocation(((point.x - oldPoint.x)+cardWidget.getLocation().x),
           (point.y - oldPoint.y)+cardWidget.getLocation().y);
-      oldPoint.setLocation(cardWidget.getLocationOnScreen().getX()+grabingPoint.getX(),
-          cardWidget.getLocationOnScreen().getY()+grabingPoint.getY());
+      oldPoint.setLocation(cardWidget.getLocationOnScreen().getX()+ grabbingPoint.getX(),
+          cardWidget.getLocationOnScreen().getY()+ grabbingPoint.getY());
       cardWidget.repaint();
     }
   }

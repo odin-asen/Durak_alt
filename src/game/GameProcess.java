@@ -49,13 +49,14 @@ public class GameProcess {
   /* Methods */
   /**
    * This method initialises a game. It sets up a new shuffled stack of {@code cardsPerColour}
-   * where the maximum of the cards are bordered by the stack. It also distributes 6 cards
-   * to each player in the game and determines the first and second attacker and the defender
-   * of the game.
+   * where the maximum of the cards are bordered by the stack. It also distributes
+   * {@link GameConfigurationConstants#INITIAL_CARD_COUNT} cards to each player in the game
+   * and determines the first and second attacker and the defender of the game.
    */
   public void initialiseNewGame(Integer cardsPerColour) {
     distributeCards(cardsPerColour);
-    determineInitialPlayers();
+//    determineInitialPlayers();
+    //TODO auslagern, da das von außerhalb aufgerufen werden muss
     setGameInProcess(true);
   }
 
@@ -107,14 +108,36 @@ public class GameProcess {
 
   /**
    * This method initialises a new game. It sets up a new shuffled stack of 36 cards
-   * and distributes 6 cards to each player in the game.
+   * and distributes {@link GameConfigurationConstants#INITIAL_CARD_COUNT} cards
+   * to each player in the game and sets the players neighbours.
    */
   public void distributeCards(Integer cardsPerColour) {
-    this.stack = GameCardStack.getInstance();
-    this.stack.initialiseStack(cardsPerColour);
+    initPlayerNeighbours();
+    stack = GameCardStack.getInstance();
+    stack.initialiseStack(cardsPerColour);
     for(int i = 0; i< GameConfigurationConstants.INITIAL_CARD_COUNT; i++)
       for (Player player : playerList)
         player.pickUpCard(this.stack.drawCard());
+  }
+
+  private void initPlayerNeighbours() {
+    for (int index = 0; index < playerList.size(); index++) {
+      final Player player = playerList.get(index);
+      setPlayerNeighbours(index, player);
+    }
+  }
+
+  private void setPlayerNeighbours(int index, Player player) {
+    if(index == 0) {
+      player.setLeftPlayer(playerList.get(playerList.size()-1));
+      player.setRightPlayer(playerList.get(index+1));
+    } else if(index+1 == playerList.size()) {
+      player.setLeftPlayer(playerList.get(index-1));
+      player.setRightPlayer(playerList.get(0));
+    } else {
+      player.setLeftPlayer(playerList.get(index-1));
+      player.setRightPlayer(playerList.get(index+1));
+    }
   }
 
   /**
@@ -130,6 +153,11 @@ public class GameProcess {
     if(!gameInProcess) {
       playerList.add(player);
     }
+  }
+
+  public void removePlayer(Player player) {
+    if(playerList.contains(player))
+      removePlayer(player);
   }
 
   /* Getter and Setter */
@@ -169,15 +197,6 @@ public class GameProcess {
 
     if(attackers.contains(defender))
       attackers.remove(defender);
-  }
-
-  public GameCardStack getStack() {
-    return stack;
-  }
-
-  public void setStack(GameCardStack stack) {
-    if(!gameInProcess)
-      this.stack = stack;
   }
 
   public boolean isGameInProcess() {

@@ -42,9 +42,9 @@ public class Converter {
     DTOCardStack dto = new DTOCardStack();
     try {
       final Deque<GameCard> cardDeque = stack.getCardStack();
-      dto.cardStack = (Deque<DTOCard>) Class.forName(cardDeque.getClass().getName()).newInstance();
+      dto.setCardStack((Deque<DTOCard>) Class.forName(cardDeque.getClass().getName()).newInstance());
       for (GameCard card  : cardDeque) {
-        dto.cardStack.add(Converter.toDTO(card));
+        dto.getCardStack().add(Converter.toDTO(card));
       }
     } catch (InstantiationException e) {
       LOGGER.log(Level.SEVERE, "Error converting object to dto!");
@@ -60,8 +60,8 @@ public class Converter {
   public static GameCardStack fromDTO(DTOCardStack dto) {
     GameCardStack stack = GameCardStack.getInstance();
     try {
-      final Deque<GameCard> cardDeque = (Deque<GameCard>) Class.forName(dto.cardStack.getClass().getName()).newInstance();
-      for (DTOCard card  : dto.cardStack) {
+      final Deque<GameCard> cardDeque = (Deque<GameCard>) Class.forName(dto.getCardStack().getClass().getName()).newInstance();
+      for (DTOCard card  : dto.getCardStack()) {
         cardDeque.add(Converter.fromDTO(card));
       }
       stack.setCardStack(cardDeque);
@@ -76,15 +76,19 @@ public class Converter {
     return stack;
   }
 
-  public static List<List<DTOCard>> playerCardsToDTO(List<Player> playerList) {
+  public static List<List<DTOCard>> playersCardsToDTO(List<Player> playerList) {
     final List<List<DTOCard>> playersHands = new ArrayList<List<DTOCard>>(playerList.size());
     for (Player player : playerList) {
-      final List<DTOCard> cards = new ArrayList<DTOCard>();
-      for (GameCard gameCard : player.getCards()) {
-        cards.add(Converter.toDTO(gameCard));
-      }
-      playersHands.add(cards);
+      playersHands.add(playerCardsToDTO(player));
     }
     return playersHands;
+  }
+
+  public static List<DTOCard> playerCardsToDTO(Player player) {
+    final List<DTOCard> cards = new ArrayList<DTOCard>();
+    for (GameCard gameCard : player.getCards()) {
+      cards.add(Converter.toDTO(gameCard));
+    }
+    return cards;
   }
 }

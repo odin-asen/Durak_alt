@@ -10,10 +10,7 @@ package dto.message;
 public enum MessageType {
   CHAT_MESSAGE,
   GAME_ACTION,
-  INITIAL_CARDS,
   LOGIN,
-  QUIT_GAME_SIGNAL,
-  START_GAME_SIGNAL,
   SERVER_PING,
   WAIT_FOR_PLAYER
 }

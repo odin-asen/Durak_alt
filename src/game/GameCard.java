@@ -76,7 +76,6 @@ public class GameCard {
         return false;
       else return true;
     }
-    //TODO compareTo methode muss getestet werden, da jetzt Enums verglichen werden
     return true;
   }
 
@@ -93,7 +92,6 @@ public class GameCard {
         return false;
       else return true;
     }
-    //TODO compareTo methode muss getestet werden, da jetzt Enums verglichen werden
     return false;
   }
 }

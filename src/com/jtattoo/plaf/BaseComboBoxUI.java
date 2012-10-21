@@ -4,16 +4,16 @@
  */
 package com.jtattoo.plaf;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.UIResource;
+import javax.swing.plaf.basic.BasicComboBoxUI;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import javax.swing.*;
-import javax.swing.plaf.*;
-import javax.swing.plaf.basic.*;
-import javax.swing.border.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 public class BaseComboBoxUI extends BasicComboBoxUI {
 
@@ -80,7 +80,8 @@ public class BaseComboBoxUI extends BasicComboBoxUI {
     }
 
     public Dimension getPreferredSize(JComponent c) {
-        Dimension size = super.getPreferredSize(c);
+      System.out.println(c.getX());
+      Dimension size = super.getPreferredSize(c);
         return new Dimension(size.width + 2, size.height + 2);
     }
 

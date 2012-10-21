@@ -1,6 +1,6 @@
 package client.gui.widget.card;
 
-import client.gui.widget.card.GameCardWidget;
+import utilities.constants.GameCardConstants;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,11 +31,11 @@ public class CardMoveListener implements ComponentListener{
     Rectangle currentBiggest = new Rectangle(0,0,0,0);
     Rectangle newBiggest;
 
-    final Rectangle toucher = widget.getBounds();
+    final Rectangle touchier = widget.getBounds();
     for (GameCardWidget touchedWidget : touchedWidgets) {
       final Rectangle touched = touchedWidget.getBounds();
-      newBiggest = SwingUtilities.computeIntersection(toucher.x,toucher.y,
-          toucher.width,toucher.height,touched);
+      newBiggest = SwingUtilities.computeIntersection(touchier.x,touchier.y,
+          touchier.width,touchier.height,touched);
       if((currentBiggest.width*currentBiggest.height)<(newBiggest.width*newBiggest.height)) {
         currentBiggest = newBiggest;
         resultWidget = touchedWidget;
@@ -68,8 +68,8 @@ public class CardMoveListener implements ComponentListener{
   }
 
   public void componentMoved(ComponentEvent e) {
-    GameCardWidget widget = (GameCardWidget) e.getComponent();
-    GameCardWidget nearestWidget = getMostTouchedWidget(widget);
+    final GameCardWidget widget = (GameCardWidget) e.getComponent();
+    final GameCardWidget nearestWidget = getMostTouchedWidget(widget);
 
     if(nearestWidget == null) {
       if(curtainWidget != null) {
@@ -77,7 +77,9 @@ public class CardMoveListener implements ComponentListener{
         curtainWidget = null;
       }
     } else {
-      setCurtainWidget(nearestWidget);
+      if(GameCardConstants.CardType.DEFENSE.equals(widget.getCardInfo().getCardType()) &&
+         GameCardConstants.CardType.ATTACK.equals(nearestWidget.getCardInfo().getCardType()))
+        setCurtainWidget(nearestWidget);
     }
   }
 

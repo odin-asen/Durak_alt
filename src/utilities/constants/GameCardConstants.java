@@ -12,12 +12,12 @@ public interface GameCardConstants {
     ATTACK(1),
     DEFENSE(2);
 
-    private int value;
-    CardType(int value) {
+    private Integer value;
+    CardType(Integer value) {
       this.value = value;
     }
 
-    public int getValue() {
+    public Integer getValue() {
       return value;
     }
   }
@@ -29,19 +29,26 @@ public interface GameCardConstants {
     HEARTS(2, "Herz"),
     DIAMONDS(3, "Karo");
 
-    private int value;
+    private Integer value;
     private String name;
-    CardColour(int value, String name) {
+    CardColour(Integer value, String name) {
       this.value = value;
       this.name = name;
     }
 
-    public int getValue() {
+    public Integer getValue() {
       return value;
     }
 
     public String getName() {
       return name;
+    }
+
+    public String toString() {
+      return "CardColour{" +
+          "name='" + name + '\'' +
+          ", value=" + value +
+          '}';
     }
   }
 
@@ -61,19 +68,26 @@ public interface GameCardConstants {
     KING(12, "K\u00fcnig"),
     ACE(0, "Ass");
 
-    private int value;
+    private Integer value;
     private String valueName;
-    CardValue(int value, String valueName) {
+    CardValue(Integer value, String valueName) {
       this.value = value;
       this.valueName = valueName;
     }
 
-    public int getValue() {
+    public Integer getValue() {
       return value;
     }
 
     public String getValueName() {
       return valueName;
+    }
+
+    public String toString() {
+      return "CardValue{" +
+          "value=" + value +
+          ", valueName='" + valueName + '\'' +
+          '}';
     }
   }
 

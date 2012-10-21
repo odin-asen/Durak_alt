@@ -1,5 +1,7 @@
 package game;
 
+import utilities.constants.GameConfigurationConstants;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,11 +20,14 @@ public class Player {
   private Boolean isDefending;
   private Boolean isAttacking;
 
+  private String name;
+
   private List<GameCard> cards;
 
   /* Constructors */
-  public Player() {
-    cards = new ArrayList<GameCard>(6);
+  public Player(String name) {
+    cards = new ArrayList<GameCard>(GameConfigurationConstants.INITIAL_CARD_COUNT);
+    this.name = name;
     leftPlayer = null;
     rightPlayer = null;
     isDefending = false;
@@ -56,11 +61,23 @@ public class Player {
    */
   public GameCard getSmallestValue(CardColour colour) {
     GameCard card = null;
-    //TODO muss noch geschrieben werden
+    for (GameCard gameCard : cards) {
+      if(gameCard.getCardColour().equals(colour))
+        if(gameCard.hasLowerValue(card))
+          card = gameCard;
+    }
     return card;
   }
 
   /* Getter and Setter */
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
   public Boolean isDefending() {
     return isDefending;
   }

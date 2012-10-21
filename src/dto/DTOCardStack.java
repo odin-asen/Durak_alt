@@ -10,7 +10,7 @@ import java.util.Deque;
  * Time: 18:06
  */
 public class DTOCardStack implements Serializable {
-  public Deque<DTOCard> cardStack;
+  private Deque<DTOCard> cardStack;
 
   /* Constructors */
   public DTOCardStack() {
@@ -18,6 +18,10 @@ public class DTOCardStack implements Serializable {
   }
 
   /* Methods */
+  public Integer getSize() {
+    return cardStack.size();
+  }
+
   public String toString() {
     String string = "DTOCardStack {\ncardStack=";
     for (DTOCard dtoCard : cardStack) {
@@ -28,4 +32,11 @@ public class DTOCardStack implements Serializable {
   }
 
   /* Getter and Setter */
+  public Deque<DTOCard> getCardStack() {
+    return cardStack;
+  }
+
+  public void setCardStack(Deque<DTOCard> cardStack) {
+    this.cardStack = cardStack;
+  }
 }

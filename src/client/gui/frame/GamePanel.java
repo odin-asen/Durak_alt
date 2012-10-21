@@ -3,13 +3,12 @@ package client.gui.frame;
 import client.gui.widget.card.CardMoveListener;
 import client.gui.widget.card.GameCardListener;
 import client.gui.widget.card.GameCardWidget;
-import resources.ResourceGetter;
-import utilities.constants.GameCardConstants;
+import dto.DTOCard;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashSet;
-import java.util.Random;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -22,35 +21,30 @@ import java.util.Set;
 public class GamePanel extends JPanel {
   private CardMoveListener cardManager;
   private Set<GameCardWidget> widgetSet;
-  private GameCardWidget testWidget;
 
+  /* Constructors */
   public GamePanel() {
     this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
     this.setLayout(null);
+    widgetSet = new HashSet<GameCardWidget>();
   }
 
-  public void placeCards() {
-    Random random = new Random();
-
-    GameCardWidget widget;
-    widgetSet = new HashSet<GameCardWidget>();
-
-    for(int i = 0; i < 13; i++) {
-      final int number = random.nextInt(13);
-      final ImageIcon image = ResourceGetter.getCardImage(
-          ResourceGetter.STRING_CARD_COLOUR_HEARTS, GameCardConstants.CardValue.values()[number],
-          "Herz "+GameCardConstants.CardValue.values()[number].getValueName());
-      widget = new GameCardWidget(image.getImage());
-      widget.setBounds(10+i*10,10,10,10);
-      widget.addGameCardListener(new GameCardListener());
+  /* Methods */
+  public void placeCards(List<DTOCard> cards, Rectangle cardRectangle) {
+    int i = 0;
+    final GameCardListener cardListener = new GameCardListener();
+    for (DTOCard card : cards){
+      final GameCardWidget widget = new GameCardWidget(card);
+      final Rectangle rect = new Rectangle(cardRectangle);
+      rect.x = rect.x +i++*10;
+      widget.setBounds(rect);
+      widget.addGameCardListener(cardListener);
       widget.setMovable(true);
-      this.add(widget);
-      widgetSet.add(widget);
-      if(i == 0)
-        testWidget = widget;
+      this.addCard(widget);
     }
 
     cardManager = new CardMoveListener(widgetSet);
+    repaintCards();
   }
 
   public void paint(Graphics g) {
@@ -64,4 +58,16 @@ public class GamePanel extends JPanel {
       gameCardWidget.repaint();
     }
   }
+
+  public void addCard(GameCardWidget widget) {
+    this.add(widget);
+    widgetSet.add(widget);
+  }
+
+  public void removeCard(GameCardWidget widget) {
+    this.remove(widget);
+    widgetSet.remove(widget);
+  }
+
+  /* Getter and Setter */
 }

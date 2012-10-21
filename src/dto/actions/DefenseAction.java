@@ -1,7 +1,5 @@
 package dto.actions;
 
-import dto.GameAction;
-
 /**
  * User: Timm Herrmann
  * Date: 07.10.12
