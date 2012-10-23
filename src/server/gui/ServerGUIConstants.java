@@ -29,7 +29,8 @@ public interface ServerGUIConstants {
   String ALTERNATIVE_START = "Start";
 
   /* Printed messages */
-  String SERVER_INACTIVE = "Server ist inaktiv";
+  String STATUS_SERVER_INACTIVE = "Server ist inaktiv";
+  String STATUS_SERVER_ACTIVE = "Server l\u00e4uft";
 
   int PREFERRED_FIELD_WIDTH = 80;
   int LIST_WIDTH = 200;

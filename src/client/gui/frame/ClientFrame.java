@@ -1,7 +1,7 @@
 package client.gui.frame;
 
 import client.StartClient;
-import client.business.GameClient;
+import client.business.client.GameClient;
 import client.gui.frame.setup.SetUpFrame;
 import client.gui.widget.card.GameCardWidget;
 import dto.ClientInfo;

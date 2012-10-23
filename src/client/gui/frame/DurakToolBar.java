@@ -1,10 +1,8 @@
 package client.gui.frame;
 
-import client.business.GameClient;
+import client.business.client.GameClient;
 import client.gui.frame.setup.SetUpFrame;
 import dto.ClientInfo;
-import dto.message.MessageObject;
-import dto.message.MessageType;
 import resources.ResourceGetter;
 
 import javax.swing.*;
@@ -12,6 +10,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.rmi.NotBoundException;
+import java.rmi.server.ServerNotActiveException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * User: Timm Herrmann
@@ -19,10 +22,13 @@ import java.awt.event.KeyEvent;
  * Time: 20:44
  */
 public class DurakToolBar extends JToolBar {
+  private static final Logger LOGGER = Logger.getLogger(DurakToolBar.class.getName());
+
   private ClientFrame parent;
   private JButton connectionButton;
   private JButton setUpButton;
   private JButton closeButton;
+
 
   public DurakToolBar(ClientFrame parent) {
     this.parent = parent;
@@ -67,21 +73,36 @@ public class DurakToolBar extends JToolBar {
         parent.dispose();
         System.exit(0);
       } else if(ClientGUIConstants.ACTION_COMMAND_CONNECTION.equals(e.getActionCommand())) {
-        GameClient client = GameClient.getClient();
-        if(!client.isConnected()) {
-          client.setPort(SetUpFrame.getInstance().getConnectionInfo().getPort());
-          client.setServerAddress(SetUpFrame.getInstance().getConnectionInfo().getIpAddress());
-          client.connect();
-
-          ClientInfo info = SetUpFrame.getInstance().getClientInfo();
-          client.send(new MessageObject(MessageType.LOGIN, info));
-        } else {
-          client.disconnect();
-        }
+        connectDisconnect();
       } else if(ClientGUIConstants.ACTION_COMMAND_SETUP.equals(e.getActionCommand())) {
         SetUpFrame frame = SetUpFrame.getInstance();
         if(!frame.isVisible() || !frame.isActive())
           frame.setVisible(true);
+      }
+    }
+
+    private void connectDisconnect() {
+      GameClient client = GameClient.getClient();
+      if(!client.isConnected()) {
+        client.setPort(SetUpFrame.getInstance().getConnectionInfo().getPort());
+        client.setServerAddress(SetUpFrame.getInstance().getConnectionInfo().getIpAddress());
+
+        try {
+          client.connect();
+          ClientInfo info = SetUpFrame.getInstance().getClientInfo();
+          System.out.println(client.getAuthenticator().login(info, ""));
+        } catch (NotBoundException e) {
+          LOGGER.log(Level.SEVERE, e.getMessage());
+        } catch (IOException e) {
+          LOGGER.log(Level.SEVERE, e.getMessage());
+          e.printStackTrace();
+        } catch (ServerNotActiveException e) {
+          LOGGER.log(Level.SEVERE, e.getMessage());
+        }
+
+//          client.send(new MessageObject(MessageType.LOGIN, info));
+      } else {
+        client.disconnect();
       }
     }
   }

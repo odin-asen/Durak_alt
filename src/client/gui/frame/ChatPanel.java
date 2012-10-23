@@ -1,6 +1,6 @@
 package client.gui.frame;
 
-import client.business.GameClient;
+import client.business.client.GameClient;
 import dto.message.MessageObject;
 import dto.message.MessageType;
 

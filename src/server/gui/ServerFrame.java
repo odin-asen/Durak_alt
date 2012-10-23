@@ -19,6 +19,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,10 +88,6 @@ public class ServerFrame extends JFrame implements Observer {
       listModel.addElement((ClientInfo) object.getSendingObject());
     } else if (GUIObserverType.CLIENT_DISCONNECTED.equals(object.getType())) {
       listModel.removeElement(object.getSendingObject());
-    } else if (GUIObserverType.SERVER_START.equals(object.getType())) {
-      statusBar.setText("Server l\u00e4uft");
-    } else if (GUIObserverType.SERVER_STOP.equals(object.getType())) {
-      statusBar.setText(SERVER_INACTIVE);
     } else if (GUIObserverType.SERVER_FAIL.equals(object.getType())) {
       statusBar.setText("Keine Berechtigung f\u00dcr Port "+portField.getText()+" oder schon belegt.");
     }
@@ -103,7 +101,7 @@ public class ServerFrame extends JFrame implements Observer {
     statusPanel = new JPanel();
     statusBar = new JLabel();
 
-    statusBar.setText(SERVER_INACTIVE);
+    statusBar.setText(STATUS_SERVER_INACTIVE);
     statusPanel.setPreferredSize(new Dimension(0, 16));
 
     statusPanel.setLayout(new BorderLayout());
@@ -254,7 +252,14 @@ public class ServerFrame extends JFrame implements Observer {
     }
 
     private void stopGameServer() {
-      gameServer.stopRunning();
+      try {
+        GameServer.getServerInstance().shutdownServer();
+      } catch (NotBoundException e) {
+        LOGGER.info(e.getMessage());
+      } catch (RemoteException e) {
+        LOGGER.info(e.getMessage());
+      }
+      statusBar.setText(STATUS_SERVER_INACTIVE);
     }
 
     private void closeFrame(ActionEvent e) {
@@ -268,7 +273,17 @@ public class ServerFrame extends JFrame implements Observer {
       gameServer = GameServer.getServerInstance();
       gameServer.addObserver(observer);
       gameServer.setPort(Integer.parseInt(portField.getText()));
-      gameServer.startServer();
+      try {
+        gameServer.startServer();
+        statusBar.setText(STATUS_SERVER_ACTIVE);
+      } catch (IllegalAccessException e) {
+        LOGGER.log(Level.SEVERE, e.getMessage());
+      } catch (InstantiationException e) {
+        LOGGER.log(Level.SEVERE, e.getMessage());
+      } catch (RemoteException e) {
+        LOGGER.log(Level.SEVERE, "Could not register services");
+        e.printStackTrace();
+      }
     }
   }
 }
