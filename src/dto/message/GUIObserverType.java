@@ -10,8 +10,8 @@ package dto.message;
  * </p>
  */
 public enum GUIObserverType {
-  CLIENT_CONNECTED,
-  CLIENT_DISCONNECTED,
+  ADD_CLIENT,
+  REMOVE_CLIENT,
   CONNECTED,
   CONNECTION_FAIL,
   DISCONNECTED,

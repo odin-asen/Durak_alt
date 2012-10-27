@@ -6,6 +6,7 @@ import rmi.RMIObserver;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.ServerNotActiveException;
+import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,9 +27,35 @@ public class RMIObservableImpl implements RMIObservable {
   }
 
   /* Methods */
+  private String parseSocket(String objectString) {
+    String socket = "";
+    StringTokenizer tokenizer = new StringTokenizer(objectString, "[]");
+    while(tokenizer.hasMoreElements()) {
+      final StringTokenizer socketTokenizer = new StringTokenizer(tokenizer.nextToken(), ".:");
+      if(socketTokenizer.countTokens() == 5) {
+        for (int i = 0; i < 4; i++) {
+          if(!socket.isEmpty())
+            socket = socket+".";
+          socket = socket + socketTokenizer.nextToken();
+        }
+        socket = socket + ":" + socketTokenizer.nextToken();
+        return socket;
+      }
+    }
+
+    return "";
+  }
+
   public void registerInterest(RMIObserver observer)
       throws RemoteException, ServerNotActiveException {
-    observers.add(observer);
+    final String socket = parseSocket(observer.toString());
+    boolean adding = true;
+    for (RMIObserver rmiObserver : observers) {
+      if(socket.equals(parseSocket(rmiObserver.toString())))
+        adding = false;
+    }
+    if(adding)
+      observers.add(observer);
   }
 
   public void notifyObservers(Serializable notification)
@@ -38,6 +65,9 @@ public class RMIObservableImpl implements RMIObservable {
     }
   }
 
+  public void removeObserver(RMIObserver observer) {
+    observers.remove(observer);
+  }
   /* Getter and Setter */
   public Vector<RMIObserver> getObservers() {
     return observers;
@@ -51,6 +81,7 @@ public class RMIObservableImpl implements RMIObservable {
     catch (Exception e) {
       LOGGER.log(Level.SEVERE, "Client " + observers.get(observerIndex)
           + " could not been notified: " + e.getMessage());
+      removeObserver(observers.get(observerIndex));
     }
   }
 }

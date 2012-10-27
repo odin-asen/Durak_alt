@@ -29,7 +29,7 @@ public class OpponentHandWidget extends JComponent {
   public void paint(Graphics g) {
     Graphics2D g2D = (Graphics2D) g;
 
-    final Rectangle2D stringRect = g2D.getFont().getStringBounds(opponent.getClientName(),g2D.getFontRenderContext());
+    final Rectangle2D stringRect = g2D.getFont().getStringBounds(opponent.getName(),g2D.getFontRenderContext());
     final int drawWidth = (int) ((opponent.getCardCount()-1)* CARD_WIDTH *LEFT_BORDER_DISTANCE)+ CARD_WIDTH;
     final int xDrawOffset = getWidth()/2 - drawWidth/2;
 
@@ -37,7 +37,7 @@ public class OpponentHandWidget extends JComponent {
       g2D.drawImage(cardBack.getImage(), (int) (i* CARD_WIDTH *LEFT_BORDER_DISTANCE) + xDrawOffset,
           getHeight()/2 - CARD_HEIGHT /2 - Y_OFFSET, CARD_WIDTH, CARD_HEIGHT,this);
     g2D.setColor(Color.BLACK);
-    g2D.drawString(opponent.getClientName(),
+    g2D.drawString(opponent.getName(),
         getWidth()/2-(int)stringRect.getCenterX(),
         getHeight()/2-(int)stringRect.getCenterY() - Y_OFFSET);
   }

@@ -1,8 +1,8 @@
 package client.gui.frame;
 
 import client.business.client.GameClient;
-import dto.message.MessageObject;
-import dto.message.MessageType;
+import client.gui.frame.setup.SetUpFrame;
+import dto.ClientInfo;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.rmi.RemoteException;
 
 /**
  * User: Timm Herrmann
@@ -83,6 +84,21 @@ public class ChatPanel extends JPanel {
   public void addMessage(String text) {
     chatReadArea.append(text+'\n');
     scrollPaneRead.getVerticalScrollBar().setValue(scrollPaneRead.getVerticalScrollBar().getMaximum());
+  }
+
+  private void sendChatMessage(String text) {
+    if(!text.isEmpty()) {
+      ClientInfo info = SetUpFrame.getInstance().getClientInfo();
+      try {
+        GameClient.getClient().getChatHandler().sendMessage(info, text);
+        chatWriteArea.setText("");
+      } catch (Exception e) {
+        JOptionPane.showMessageDialog(
+            this, "Die Nachricht konnte nicht gesendet werden!" +
+            "\nM\u00f6glicherweise besteht keine Verbindung zum Server!",
+            "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    }
   }
 
   /* Getter and Setter */
@@ -161,14 +177,14 @@ public class ChatPanel extends JPanel {
     return scrollPaneWrite;
   }
 
+  /* Inner Class */
   private class ButtonListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
       if(e.getActionCommand().equals(BUTTON_NAME_SEND)) {
         new Thread(new Runnable() {
           public void run() {
             String text = chatWriteArea.getText();
-            chatWriteArea.setText("");
-            GameClient.getClient().send(new MessageObject(MessageType.CHAT_MESSAGE, text));
+            sendChatMessage(text);
           }
         }).start();
       }

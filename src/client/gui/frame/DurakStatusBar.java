@@ -1,7 +1,6 @@
 package client.gui.frame;
 
 import resources.ResourceGetter;
-import resources.ResourceGetterException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,8 +25,8 @@ public class DurakStatusBar extends JPanel implements Runnable {
 
   private JLabel statusLabel;
   private JLabel clockLabel;
-  private boolean connected;
-  private boolean running;
+  private Boolean connected;
+  private Boolean running;
 
   /* Constructors */
   public DurakStatusBar() {
@@ -55,7 +54,7 @@ public class DurakStatusBar extends JPanel implements Runnable {
    * @param connected Sets the corresponding icon to the value
    * @param serverAddress Will be set to the tooltip as information
    */
-  public void setConnected(boolean connected, String serverAddress) {
+  public void setConnected(Boolean connected, String serverAddress) {
     if(connected) {
       statusLabel.setIcon(ResourceGetter.getImage(ResourceGetter.STRING_IMAGE_CONNECTED, "Verbunden"));
       statusLabel.setToolTipText("Verbunden mit "+serverAddress);

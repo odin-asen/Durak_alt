@@ -7,5 +7,6 @@ package dto.message;
  */
 public enum BroadcastType {
   CHAT_MESSAGE,
-  LOGIN_LIST
+  LOGIN_LIST,
+  SERVER_SHUTDOWN
 }

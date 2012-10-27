@@ -8,9 +8,7 @@ package dto.message;
  * This enum contains constants that will be used on client and server side.
  */
 public enum MessageType {
-  CHAT_MESSAGE,
   GAME_ACTION,
-  LOGIN,
   SERVER_PING,
   WAIT_FOR_PLAYER
 }

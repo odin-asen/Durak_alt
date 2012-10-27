@@ -77,10 +77,12 @@ public class CardStackWidget extends JComponent {
     final int cardX = (int) (getWidth()*RATIO_RIGHT_MARGIN) - cardHeight;
     final int cardY = getHeight()/2-cardHeight/2;
 
-    g2D.drawImage(trumpCard.getImage(), cardX, cardY + cardHeight/2-cardWidth/2,
+    if(cardCount > 0) {
+      g2D.drawImage(trumpCard.getImage(), cardX, cardY + cardHeight/2-cardWidth/2,
         cardWidth, cardHeight, this);
-    for(int i = 0; i < cardCount-1; i++)
-      g2D.drawImage(cardBack.getImage(), cardX + cardHeight-cardWidth+i*cardWidth/700, cardY, cardWidth, cardHeight,this);
+      for(int i = 0; i < cardCount-1; i++)
+        g2D.drawImage(cardBack.getImage(), cardX + cardHeight-cardWidth+i*cardWidth/700, cardY, cardWidth, cardHeight,this);
+    }
   }
 
   public void updateTooltip() {

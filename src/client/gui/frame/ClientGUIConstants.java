@@ -53,4 +53,9 @@ public interface ClientGUIConstants {
   String SET_UP_APPLY_TEXT = "\u00dcbernehmen";
   String SET_UP_CHECKBOX_PLAYING_TEXT = "Spielbereit";
   String SET_UP_CHECKBOX_PASSWORD_TEXT = "Passwort anzeigen";
+
+  /* Status Messages */
+  String STATUS_CONNECTION_FAIL = "Verbindung zum Server konnte nicht aufgebaut werden!";
+  String STATUS_CONNECTED = "Verbindung zum Server wurde erfolgreich aufgebaut";
+  String STATUS_PERMISSION_DENIED = "Das Passwort f\u00fcr den Server ist falsch";
 }

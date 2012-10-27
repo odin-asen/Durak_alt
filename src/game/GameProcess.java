@@ -1,5 +1,6 @@
 package game;
 
+import dto.ClientInfo;
 import utilities.constants.GameConfigurationConstants;
 
 import java.util.ArrayList;
@@ -29,12 +30,12 @@ public class GameProcess {
   private List<Player> attackers;
   private Player defender;
   private GameCardStack stack;
-  private boolean gameInProcess;
+  private Boolean gameInProcess;
 
   /* Constructors */
   private GameProcess() {
     this.playerList = new ArrayList<Player>();
-    this.attackers = new ArrayList<Player>(ATTACKERS_MAXIMUM);
+    initAttackers();
     defender = null;
     gameInProcess = false;
   }
@@ -47,17 +48,30 @@ public class GameProcess {
   }
 
   /* Methods */
+  private void initAttackers() {
+    attackers = new ArrayList<Player>(ATTACKERS_MAXIMUM);
+    for (int i = 0; i < ATTACKERS_MAXIMUM; i++) {
+      attackers.add(new Player(new ClientInfo("")));
+    }
+  }
+
   /**
    * This method initialises a game. It sets up a new shuffled stack of {@code cardsPerColour}
-   * where the maximum of the cards are bordered by the stack. It also distributes
-   * {@link GameConfigurationConstants#INITIAL_CARD_COUNT} cards to each player in the game
-   * and determines the first and second attacker and the defender of the game.
+   * cards per colour, where the maximum of the cards per colour are bordered by the stack.
+   * It also distributes {@link GameConfigurationConstants#INITIAL_CARD_COUNT} cards to each
+   * player in the game and determines the first and second attacker and the defender of the game.
+   * The game will only be initialised if more than one player is in the list. Otherwise it does
+   * nothing.
+   * @param cardsPerColour Number of cards per colour for this game.
+   * @return True, if the game has been initialised, otherwise false.
    */
-  public void initialiseNewGame(Integer cardsPerColour) {
-    distributeCards(cardsPerColour);
-//    determineInitialPlayers();
-    //TODO auslagern, da das von außerhalb aufgerufen werden muss
-    setGameInProcess(true);
+  public Boolean initialiseNewGame(Integer cardsPerColour) {
+    if(playerList.size() > 1) {
+      distributeCards(cardsPerColour);
+      determineInitialPlayers();
+      setGameInProcess(true);
+      return true;
+    } else return false;
   }
 
   /**
@@ -66,7 +80,7 @@ public class GameProcess {
   private void determineInitialPlayers() {
     final CardColour trumpColour = this.stack.getTrumpCard().getCardColour();
     Player smallestColourPlayer = whoHasSmallestColour(trumpColour);
-    //TODO whoHasSmallestColour überprüfen
+    //TODO einen zufälligen starter auswählen (vielleicht anhand der ID)
     if(smallestColourPlayer == null)
       LOGGER.log(Level.INFO, "No player has a trump!");
     else {
@@ -158,6 +172,16 @@ public class GameProcess {
   public void removePlayer(Player player) {
     if(playerList.contains(player))
       removePlayer(player);
+  }
+
+  public void removePlayer(ClientInfo info) {
+    int playerIndex = 0;
+    for (int index = 0; index < playerList.size(); index++) {
+      if(playerList.get(index).contains(info)) {
+        playerIndex = index;
+      }
+    }
+    playerList.remove(playerIndex);
   }
 
   /* Getter and Setter */

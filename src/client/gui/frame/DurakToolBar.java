@@ -10,10 +10,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
 import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.rmi.server.ServerNotActiveException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -25,19 +24,15 @@ public class DurakToolBar extends JToolBar {
   private static final Logger LOGGER = Logger.getLogger(DurakToolBar.class.getName());
 
   private ClientFrame parent;
-  private JButton connectionButton;
-  private JButton setUpButton;
-  private JButton closeButton;
-
 
   public DurakToolBar(ClientFrame parent) {
     this.parent = parent;
-    connectionButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_NETWORK, "Verbindung zu Server aufbauen",
+    JButton connectionButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_NETWORK, "Verbindung zu Server aufbauen",
         ClientGUIConstants.ACTION_COMMAND_CONNECTION, "Verbindung", KeyEvent.VK_V);
-    setUpButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_PINION, "\u00d6ffnet Fenster f\u00fcr Einstellungen",
+    JButton setUpButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_PINION, "\u00d6ffnet Fenster f\u00fcr Einstellungen",
         ClientGUIConstants.ACTION_COMMAND_SETUP, "Einstellungen", KeyEvent.VK_E);
-    closeButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_CLOSE,"Schlie\u00dft die Anwendung",
-        ClientGUIConstants.ACTION_COMMAND_CLOSE,"Schlie\u00dfen", KeyEvent.VK_Q);
+    JButton closeButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_CLOSE, "Schlie\u00dft die Anwendung",
+        ClientGUIConstants.ACTION_COMMAND_CLOSE, "Schlie\u00dfen", KeyEvent.VK_Q);
 
     this.setMargin(new Insets(5,5,5,5));
     this.setRollover(true);
@@ -67,13 +62,17 @@ public class DurakToolBar extends JToolBar {
   }
 
   private class ToolBarComponentAL implements ActionListener {
+
     public void actionPerformed(ActionEvent e) {
       if(ClientGUIConstants.ACTION_COMMAND_CLOSE.equals(e.getActionCommand())) {
-        parent.setVisible(false);
-        parent.dispose();
-        System.exit(0);
+        close();
       } else if(ClientGUIConstants.ACTION_COMMAND_CONNECTION.equals(e.getActionCommand())) {
-        connectDisconnect();
+        GameClient client = GameClient.getClient();
+        if(!client.isConnected()) {
+          connectClient(client);
+        } else {
+          disconnectClient(client);
+        }
       } else if(ClientGUIConstants.ACTION_COMMAND_SETUP.equals(e.getActionCommand())) {
         SetUpFrame frame = SetUpFrame.getInstance();
         if(!frame.isVisible() || !frame.isActive())
@@ -81,28 +80,57 @@ public class DurakToolBar extends JToolBar {
       }
     }
 
-    private void connectDisconnect() {
-      GameClient client = GameClient.getClient();
-      if(!client.isConnected()) {
-        client.setPort(SetUpFrame.getInstance().getConnectionInfo().getPort());
-        client.setServerAddress(SetUpFrame.getInstance().getConnectionInfo().getIpAddress());
+    private void close() {
+      disconnect(GameClient.getClient());
+      parent.setVisible(false);
+      parent.dispose();
+      System.exit(0);
+    }
 
-        try {
-          client.connect();
-          ClientInfo info = SetUpFrame.getInstance().getClientInfo();
-          System.out.println(client.getAuthenticator().login(info, ""));
-        } catch (NotBoundException e) {
-          LOGGER.log(Level.SEVERE, e.getMessage());
-        } catch (IOException e) {
-          LOGGER.log(Level.SEVERE, e.getMessage());
-          e.printStackTrace();
-        } catch (ServerNotActiveException e) {
-          LOGGER.log(Level.SEVERE, e.getMessage());
+    private void disconnect(GameClient client) {
+      try {
+        ClientInfo info = SetUpFrame.getInstance().getClientInfo();
+        client.disconnect(info);
+      } catch (NotBoundException e) {
+        LOGGER.severe(e.getMessage());
+      } catch (RemoteException e) {
+        LOGGER.severe(e.getMessage());
+      }
+    }
+
+    private void disconnectClient(GameClient client) {
+      disconnect(client);
+      SetUpFrame.getInstance().setConnectionEnabled(true);
+      parent.setStatusBarText(false, "", "");
+      parent.clearClientList();
+    }
+
+    private void connectClient(GameClient client) {
+      client.setPort(SetUpFrame.getInstance().getConnectionInfo().getPort());
+      client.setServerAddress(SetUpFrame.getInstance().getConnectionInfo().getIpAddress());
+
+      try {
+        client.connect();
+        SetUpFrame setup = SetUpFrame.getInstance();
+        setup.setConnectionEnabled(false);
+        if(client.getAuthenticator().login(setup.getClientInfo(), "")) {
+          parent.setStatusBarText(true, ClientGUIConstants.STATUS_CONNECTED,
+              setup.getConnectionInfo().getIpAddress());
+        } else {
+          parent.setStatusBarText(false, ClientGUIConstants.STATUS_PERMISSION_DENIED, "");
         }
-
-//          client.send(new MessageObject(MessageType.LOGIN, info));
-      } else {
-        client.disconnect();
+      } catch (RemoteException e) {
+        LOGGER.severe(e.getMessage());
+        parent.setStatusBarText(false, ClientGUIConstants.STATUS_CONNECTION_FAIL, "");
+        e.printStackTrace();
+      } catch (NotBoundException e) {
+        LOGGER.severe(e.getMessage());
+        parent.setStatusBarText(false, ClientGUIConstants.STATUS_CONNECTION_FAIL, "");
+        e.printStackTrace();
+      } catch (ServerNotActiveException e) {
+        LOGGER.severe(e.getMessage());
+        parent.setStatusBarText(false, ClientGUIConstants.STATUS_CONNECTION_FAIL, "");
+        e.printStackTrace();
       }
     }
   }

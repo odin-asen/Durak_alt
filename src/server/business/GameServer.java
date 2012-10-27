@@ -1,7 +1,11 @@
 package server.business;
 
+import dto.ClientInfo;
+import dto.message.BroadcastType;
 import dto.message.GUIObserverType;
 import dto.message.MessageObject;
+import game.GameProcess;
+import game.Player;
 import rmi.RMIService;
 import server.business.exception.GameServerException;
 import server.business.rmiImpl.*;
@@ -13,10 +17,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Observable;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -33,7 +34,12 @@ public class GameServer extends Observable {
   public static final String SERVER_PING_ANSWER = "Hello! Is it me you're looking for?";
 
   private Map<RMIService,Remote> services;
+  private Registry registry;
+
+  private List<ClientInfo> clients;
   private Integer port;
+  private Boolean running;
+  private String password;
 
   /* Constructors */
   public static GameServer getServerInstance() {
@@ -43,18 +49,21 @@ public class GameServer extends Observable {
     return gameServer;
   }
 
-  public static GameServer getServerInstance(Integer port) {
+  public static GameServer getServerInstance(Integer port, String password) {
     if(gameServer == null) {
       gameServer = new GameServer();
     }
     gameServer.setPort(port);
+    gameServer.setPassword(password);
 
     return gameServer;
   }
 
   private GameServer() {
     this.port = Registry.REGISTRY_PORT;
-    services = new HashMap<RMIService,Remote>();
+    this.services = new HashMap<RMIService,Remote>();
+    this.clients = new ArrayList<ClientInfo>();
+    this.running = false;
   }
 
   /* Methods */
@@ -77,29 +86,60 @@ public class GameServer extends Observable {
     registerService(registry, RMIObservableImpl.class, RMIService.OBSERVER);
   }
 
+  private void initImplementations() {
+    Object implementation = services.get(RMIService.AUTHENTICATION);
+    if(implementation != null) {
+      AuthenticatorImpl impl = (AuthenticatorImpl) implementation;
+      impl.setPassword(password);
+    }
+  }
+
   private void unregisterServices(Registry registry) throws RemoteException, NotBoundException {
     for (RMIService rmiService : services.keySet()) {
       registry.unbind(rmiService.getServiceName());
+      UnicastRemoteObject.unexportObject(services.get(rmiService),true);
     }
   }
 
   public void startServer() throws InstantiationException, IllegalAccessException, RemoteException {
-    Registry registry = LocateRegistry.createRegistry(port);
+    if(!isServerRunning()) {
+      registry = getSafeRegistry(port);
+      initServices(registry);
+      initImplementations();
+      running = true;
+    }
+  }
 
-    initServices(registry);
+  private Registry getSafeRegistry(Integer port) throws RemoteException {
+    Registry registry;
+
+    try {
+      registry = LocateRegistry.createRegistry(port);
+    } catch (RemoteException e) {
+      LOGGER.info("Port "+ port + " already used, getting this registry.");
+      registry = LocateRegistry.getRegistry(port);
+    }
+
+    return registry;
   }
 
   public void shutdownServer() throws NotBoundException, RemoteException {
-    Registry registry = LocateRegistry.getRegistry(port);
-    unregisterServices(registry);
+    if(isServerRunning()) {
+      try {
+        getRMIObservable().notifyObservers(new MessageObject(BroadcastType.SERVER_SHUTDOWN));
+      } catch (ServerNotActiveException e) {
+        LOGGER.warning("Server is not active: "+e.getMessage());
+      }
+      unregisterServices(registry);
+      running = false;
+    }
   }
 
-  void setChangedAndNotify(GUIObserverType type) {
-    this.setChanged();
-    this.notifyObservers(new MessageObject(type));
+  void setChangedAndNotify(Enum<?> type) {
+    setChangedAndNotify(type, null);
   }
 
-  void setChangedAndNotify(GUIObserverType type, Object sendingObject) {
+  void setChangedAndNotify(Enum<?> type, Object sendingObject) {
     this.setChanged();
     this.notifyObservers(new MessageObject(type, sendingObject));
   }
@@ -117,10 +157,6 @@ public class GameServer extends Observable {
 
   public void broadcastMessage(Enum<?> type) {
     broadcastMessage(type, null);
-  }
-
-  private RMIObservableImpl getRMIObservable() {
-    return (RMIObservableImpl) services.get(RMIService.OBSERVER);
   }
 
   /**
@@ -141,71 +177,67 @@ public class GameServer extends Observable {
     }
   }
 
-  public boolean isServerRunning() {
-    return !services.isEmpty();
+  public Boolean clientExists(ClientInfo client) {
+    for (ClientInfo clientInfo : clients) {
+      if(client.equalsID(clientInfo))
+        return true;
+    }
+
+    return false;
+  }
+
+  public ClientInfo getRMIReference(ClientInfo info) {
+    for (ClientInfo client : clients) {
+      if(client.equalsID(info))
+        return client;
+    }
+    return null;
+  }
+
+  public void addClient(ClientInfo client) {
+    if(!clientExists(client)) {
+      clients.add(client);
+      GameProcess.getInstance().addPlayer(new Player(client));
+      setChangedAndNotify(GUIObserverType.ADD_CLIENT, client);
+      broadcastMessage(BroadcastType.LOGIN_LIST, clients);
+    }
+  }
+
+  public void removeClient(ClientInfo client) {
+    final ClientInfo reference = getRMIReference(client);
+    clients.remove(reference);
+    GameProcess.getInstance().removePlayer(reference);
+    setChangedAndNotify(GUIObserverType.REMOVE_CLIENT, client);
+    broadcastMessage(BroadcastType.LOGIN_LIST, clients);
   }
 
   /* Getter and Setter */
+  public List<ClientInfo> getClients() {
+    return clients;
+  }
+
+  private RMIObservableImpl getRMIObservable() {
+    return (RMIObservableImpl) services.get(RMIService.OBSERVER);
+  }
+
   public void setPort(int port) {
     if(!isServerRunning())
       this.port = port;
   }
 
-  public int getPort() {
+  public Integer getPort() {
     return port;
   }
-}
 
-//  static MessageObject getAnswer(MessageObject messageObject, ServerThread serverThread) throws GameServerException {
-//    final Enum<?> type = messageObject.getType();
-//    final MessageObject answer = new MessageObject(type);
-//    Object sendingObject = null;
-//    final GameServer gameServer = GameServer.getServerInstance();
-//
-//    if(MessageType.SERVER_PING.equals(type)) { /* Answer the ping request */
-//      sendingObject = GameServer.SERVER_PING_ANSWER;
-//    } else if(MessageType.LOGIN.equals(type)) {
-//      /* Provide the user information of the server and its logged clients */
-//      /* and add it to the list, update all other user */
-//      sendingObject = loginUserToServer(messageObject, serverThread);
-//      gameServer.broadcastMessage(LOGIN_LIST, gameServer.getClients());
-//    } else if(MessageType.CHAT_MESSAGE.equals(type)) {
-//      sendingObject = clientChatAnswer(serverThread.getClientInfo(),
-//          messageObject.getSendingObject().toString());
-//      gameServer.broadcastMessage(BroadcastType.CHAT_MESSAGE, sendingObject);
-//    } else if(MessageType.GAME_ACTION.equals(type)) {
-//      //TODO Kartenaktion prüfen und antwort senden, z.B. angriff nicht zulässig
-//    } else {
-//      throw new GameServerException("Unknown MessageType to handle: "+type);
-//    }
-//    answer.setSendingObject(sendingObject);
-//    return answer;
-//  }
-//
-//  private static Object clientChatAnswer(ClientInfo client, String message) {
-//    List<Object> sendingObject = new ArrayList<Object>();
-//    sendingObject.add(new Long(System.currentTimeMillis()));
-//    sendingObject.add(client);
-//    sendingObject.add(message);
-//    return sendingObject;
-//  }
-//
-//  /**
-//   * Adds a client to the server.
-//   * @return Returns information for the client like, e.g. which clients are
-//   * also logged in.
-//   */
-//  private static Object loginUserToServer(MessageObject messageObject, ServerThread serverThread) {
-//    final GameServer gameServer = GameServer.getServerInstance();
-//    final List<Object> list = new ArrayList<Object>();
-//
-//    serverThread.setClientInfo((ClientInfo) messageObject.getSendingObject());
-//    GameServer.getServerInstance().setChangedAndNotify(GUIObserverType.CLIENT_CONNECTED, messageObject.getSendingObject());
-//    GameProcess.getInstance().addPlayer(new Player(
-//        ((ClientInfo) messageObject.getSendingObject()).getClientName()));
-//    list.add(Converter.toDTO(GameCardStack.getInstance()));
-//    list.add(gameServer.getClients());
-//
-//    return list;
-//  }
-//}
+  public Boolean isServerRunning() {
+    return running;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+}

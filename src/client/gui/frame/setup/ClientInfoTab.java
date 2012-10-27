@@ -38,7 +38,7 @@ public class ClientInfoTab extends JPanel {
   }
 
   void fillClientInfo() {
-    clientInfo.setClientName(nameField.getText());
+    clientInfo.setName(nameField.getText());
   }
 
   void initComponents() {

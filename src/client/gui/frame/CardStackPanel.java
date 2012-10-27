@@ -70,5 +70,10 @@ public class CardStackPanel extends JPanel {
     this.cardStack.updateTooltip();
   }
 
+  public void deleteCards() {
+    this.cardStack.setCardCount(0);
+    this.cardStack.repaint();
+  }
+
   /* Getter and Setter */
 }

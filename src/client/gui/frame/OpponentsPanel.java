@@ -52,4 +52,9 @@ public class OpponentsPanel extends JPanel {
       else LOGGER.log(Level.INFO, opponent+" konnte nicht gefunden werden!");
     }
   }
+
+  public void deleteCards() {
+    this.removeAll();
+    this.repaint();
+  }
 }

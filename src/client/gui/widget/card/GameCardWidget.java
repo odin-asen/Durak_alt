@@ -25,15 +25,16 @@ public class GameCardWidget extends JComponent implements Observer{
 
   private Image cardImage;
   private GameCard cardInfo;
-  private boolean paintCurtain;
+  private Boolean paintCurtain;
   private GameCardListener gameCardListener;
+  private Boolean movable;
 
   /* Constructors */
   public GameCardWidget(DTOCard dtoCard) {
     this.cardInfo = Converter.fromDTO(dtoCard);
     this.paintCurtain = false;
     this.gameCardListener = new GameCardListener();
-    cardInfo.setMovable(false);
+    this.movable = false;
 
     this.setToolTipText(dtoCard.getColourAndValue());
     this.cardImage = ResourceGetter.getCardImage(dtoCard.cardColour,
@@ -84,18 +85,6 @@ public class GameCardWidget extends JComponent implements Observer{
       this.paintCurtain = paint;
   }
 
-  public void setMovable(boolean movable) {
-    cardInfo.setMovable(movable);
-    if(isMovable())
-      this.addMouseMotionListener(gameCardListener);
-    else
-      this.removeMouseMotionListener(gameCardListener);
-  }
-
-  public boolean isMovable() {
-    return cardInfo.isMovable();
-  }
-
   public void update(Observable o, Object arg) {
     String parameter = arg.toString();
 
@@ -135,5 +124,20 @@ public class GameCardWidget extends JComponent implements Observer{
   /* Getter and Setter */
   public GameCard getCardInfo() {
     return cardInfo;
+  }
+
+  public void setMovable(Boolean movable) {
+    if(movable ^ this.movable) {
+      this.movable = movable;
+
+      if(isMovable())
+        this.addMouseMotionListener(gameCardListener);
+      else
+        this.removeMouseMotionListener(gameCardListener);
+    }
+  }
+
+  public Boolean isMovable() {
+    return movable;
   }
 }

@@ -7,10 +7,7 @@ import client.gui.widget.card.GameCardWidget;
 import dto.ClientInfo;
 import dto.DTOCard;
 import dto.DTOCardStack;
-import dto.message.BroadcastType;
-import dto.message.GUIObserverType;
-import dto.message.GameUpdateType;
-import dto.message.MessageObject;
+import dto.message.*;
 import utilities.Miscellaneous;
 import utilities.gui.FensterPositionen;
 
@@ -18,6 +15,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -38,7 +37,7 @@ public class ClientFrame extends JFrame implements Observer {
   private ChatPanel chatPanel;
   private OpponentsPanel opponentsPanel;
   private CardStackPanel cardStackPanel;
-  public GamePanel playerPanel;
+  private GamePanel playerPanel;
   private DurakStatusBar statusBar;
   private DurakToolBar toolBar;
   private JPanel stackClientsPanel;
@@ -71,7 +70,8 @@ public class ClientFrame extends JFrame implements Observer {
     getContentPane().add(getSecondPane(), BorderLayout.CENTER);
   }
 
-  public void setStatusBarText(String text) {
+  public void setStatusBarText(Boolean connected, String text, String serverAddress) {
+    statusBar.setConnected(connected, serverAddress);
     statusBar.setText(text);
   }
 
@@ -79,6 +79,16 @@ public class ClientFrame extends JFrame implements Observer {
     final MessageObject object = (MessageObject) arg;
     ClientFrameUpdater updater = new ClientFrameUpdater();
     updater.handleUpdate(object);
+  }
+
+  public void clearClientList() {
+    ((DefaultListModel<ClientInfo>) clientsList.getModel()).removeAllElements();
+  }
+
+  public void clearGameCards() {
+    playerPanel.deleteCards();
+    opponentsPanel.deleteCards();
+    cardStackPanel.deleteCards();
   }
 
   /* Getter and Setter */
@@ -140,7 +150,7 @@ public class ClientFrame extends JFrame implements Observer {
     cardStackPanel.add(Box.createGlue(), BorderLayout.PAGE_END);
 
     clientsList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-
+    clientsList.setCellRenderer(new ClientInfoCellRenderer());
     listPanel.setLayout(new GridLayout());
     listPanel.setBorder(BorderFactory.createTitledBorder("Mitspieler"));
     listPanel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, 100));
@@ -183,15 +193,28 @@ public class ClientFrame extends JFrame implements Observer {
         chatPanel.addMessage(buildChatAnswer(object));
       } else if(BroadcastType.LOGIN_LIST.equals(object.getType())) {
         refreshClients(object);
+      } else if(BroadcastType.SERVER_SHUTDOWN.equals(object.getType())) {
+        disconnectClient();
+        clearGameCards();
       }
     }
 
+    private void disconnectClient() {
+      try {
+        GameClient.getClient().disconnect(SetUpFrame.getInstance().getClientInfo());
+      } catch (NotBoundException e) {
+        LOGGER.warning(e.getMessage());
+      } catch (RemoteException e) {
+        LOGGER.warning(e.getMessage());
+      }
+      setStatusBarText(false, "","");
+    }
+
     private String buildChatAnswer(MessageObject object) {
-      //TODO DTO für ChatMessage erzeugen, damit diese rumgeschickt werden kann
-      final List<Object> chatMessage = (List<Object>) object.getSendingObject();
-      final ClientInfo sender = (ClientInfo) chatMessage.get(1);
-      String message = Miscellaneous.getChatMessage(sender.getClientName(), (String) chatMessage.get(2));
-      if(sender.equalsID(SetUpFrame.getInstance().getClientInfo()))
+      final ChatMessage chatMessage = (ChatMessage) object.getSendingObject();
+      String message = Miscellaneous.getChatMessage(chatMessage.getSender().getName(),
+          chatMessage.getMessage());
+      if(chatMessage.getSender().equalsID(SetUpFrame.getInstance().getClientInfo()))
         message = Miscellaneous.changeChatMessageInBrackets("ich", message);
       return message;
     }
@@ -216,33 +239,39 @@ public class ClientFrame extends JFrame implements Observer {
     }
 
     private void handleGUIObserverType(MessageObject object) {
-      if(GUIObserverType.CONNECTED.equals(object.getType())) {
-        SetUpFrame.getInstance().setConnectionEnabled(false);
-        statusBar.setConnected(true, (String) object.getSendingObject());
-        statusBar.setText("Verbindung zu "+object.getSendingObject()+" wurde erfolgreich aufgebaut");
-      } else if(GUIObserverType.DISCONNECTED.equals(object.getType())) {
-        SetUpFrame.getInstance().setConnectionEnabled(true);
-        statusBar.setConnected(false, null);
-        statusBar.setText("");
-        ((DefaultListModel<ClientInfo>) clientsList.getModel()).removeAllElements();
-      } else if(GUIObserverType.CONNECTION_FAIL.equals(object.getType())) {
-        statusBar.setText("Verbindungsfehler: " + object.getSendingObject());
-      } else if(GUIObserverType.INITIALISE_CARDS.equals(object.getType())) {
+      if(GUIObserverType.INITIALISE_CARDS.equals(object.getType())) {
         final Dimension dim = GameCardWidget.computeCardDimension(playerPanel.getHeight());
         final Rectangle rect = new Rectangle(new Point(10, playerPanel.getHeight()-dim.height-10), dim);
         playerPanel.placeCards((List<DTOCard>) object.getSendingObject(), rect);
       } else if(GUIObserverType.INITIALISE_STACK.equals(object.getType())) {
         DTOCardStack stack = (DTOCardStack) object.getSendingObject();
-        cardStackPanel.initialiseStack(stack.getSize(),stack.getCardStack().getLast());
+        cardStackPanel.initialiseStack(stack.getSize(), stack.getCardStack().getLast());
       } else if(GUIObserverType.INITIALISE_OPPONENTS.equals(object.getType())) {
         List<ClientInfo> opponents = (List<ClientInfo>) object.getSendingObject();
         for (ClientInfo opponent : opponents) {
-          System.out.println(opponent.getCardCount());
           if(!SetUpFrame.getInstance().getClientInfo().equalsID(opponent)) {
             opponentsPanel.addOpponent(opponent);
           }
         }
       }
+    }
+  }
+
+  private class ClientInfoCellRenderer extends DefaultListCellRenderer {
+
+    public Component getListCellRendererComponent(
+        JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+      Component superComponent = super.getListCellRendererComponent(list,value,index,isSelected,cellHasFocus);
+
+      if(value ==null)
+        return this;
+
+      final ClientInfo client = (ClientInfo) value;
+      this.setText(client.getName());
+      this.setBackground(superComponent.getBackground());
+      this.setForeground(superComponent.getForeground());
+
+      return this ;
     }
   }
 }

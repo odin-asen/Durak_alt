@@ -9,6 +9,10 @@ public interface ServerGUIConstants {
   /* ServerFrame constants */
   float MAIN_FRAME_SCREEN_SIZE = 0.35f;
 
+  String APPLICATION_NAME = "Durak Server";
+  String TITLE_SEPARATOR = " - ";
+  String VERSION = "Version 0.0";
+
   /* Action commands for Buttons and MenuItems */
   String ACTION_COMMAND_START = "start";
   String ACTION_COMMAND_STOP = "stop";

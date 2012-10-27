@@ -30,19 +30,20 @@ public class GameCardStack extends Observable {
   }
 
   /**
-   * Initialises a shuffled stack with the number of {@code cardNumber} cards
+   * Initialises a shuffled stack with the number of {@code cardColourNumber} cards
    * for each of the 4 card colours.
-   * <p>If {@code cardNumber} is higher than</p>
+   * <p>If {@code cardColourNumber} is higher than</p>
    * {@link utilities.constants.GameConfigurationConstants#MAXIMUM_COLOUR_CARD_COUNT}
    * <p>it will be limited to this value.</p>
-   * @param cardNumber Number of cards for each colour.
+   * @param cardColourNumber Number of cards for each colour.
    */
-  public void initialiseStack(Integer cardNumber) {
+  public void initialiseStack(Integer cardColourNumber) {
     final List<GameCard> cardList;
 
-    stackSize = checkCardNumber(cardNumber);
+    stackSize = returnStackSize(cardColourNumber);
 
-    cardList = getSortedStack(stackSize);
+    cardList = getSortedStack(stackSize/CardColour.values().length);
+
     Collections.shuffle(cardList);
     for (GameCard gameCard : cardList) {
       cardStack.add(gameCard);
@@ -63,27 +64,36 @@ public class GameCardStack extends Observable {
     }
   }
 
-  private Integer checkCardNumber(Integer cardNumber) {
-    final int compareResult = cardNumber.compareTo(GameConfigurationConstants.MAXIMUM_COLOUR_CARD_COUNT);
+  /**
+   * Returns the stack size for the specified number of cards for each colour.
+   * @param cardColourNumber Number of cards for each colour
+   * @return An Integer object that represents the stack size.
+   */
+  private Integer returnStackSize(Integer cardColourNumber) {
+    final int compareResult = cardColourNumber.compareTo(GameConfigurationConstants.MAXIMUM_COLOUR_CARD_COUNT);
     if(compareResult > 0)
-      cardNumber = GameConfigurationConstants.MAXIMUM_COLOUR_CARD_COUNT;
+      cardColourNumber = GameConfigurationConstants.MAXIMUM_COLOUR_CARD_COUNT;
     else if (compareResult < 0)
-      cardNumber = 0;
-    return cardNumber;
+      if(cardColourNumber < 0)
+        cardColourNumber = 0;
+
+    return cardColourNumber*CardColour.values().length;
   }
 
-  private List<GameCard> getSortedStack(Integer cardNumber) {
-    final List<GameCard> list = new ArrayList<GameCard>(cardNumber);
+  private List<GameCard> getSortedStack(Integer cardsPerColour) {
+    final List<GameCard> list = new ArrayList<GameCard>(cardsPerColour*CardColour.values().length);
+    final CardValue[] values = CardValue.values(cardsPerColour);
+
     for (CardColour cardColour : CardColour.values()) {
-      for (CardValue cardValue : CardValue.values()) {
+      for (CardValue cardValue : values) {
         final GameCard card = new GameCard();
         card.setCardColour(cardColour);
         card.setCardValue(cardValue);
         card.setCardType(CardType.DEFAULT);
-        card.setMovable(false);
         list.add(card);
       }
     }
+
     return list;
   }
 

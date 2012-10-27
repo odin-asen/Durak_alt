@@ -65,7 +65,7 @@ public interface GameCardConstants {
     TEN(9, "10"),
     JACK(10, "Bube"),
     QUEEN(11, "Dame"),
-    KING(12, "K\u00fcnig"),
+    KING(12, "K\u00f6nig"),
     ACE(0, "Ass");
 
     private Integer value;
@@ -88,6 +88,29 @@ public interface GameCardConstants {
           "value=" + value +
           ", valueName='" + valueName + '\'' +
           '}';
+    }
+
+    /**
+     * Returns a specified number of values descending from the highest value.
+     * If {@code valueCount} is bigger than the number of values, all values
+     * will be returned.
+     * @param valueCount Number of values that will be returned.
+     * @return An array of the values.
+     */
+    public static CardValue[] values(Integer valueCount) {
+      final CardValue[] allValues = CardValue.values();
+      final CardValue[] values;
+
+      if(valueCount.compareTo(allValues.length) > 0)
+        valueCount = allValues.length;
+      else if(valueCount.compareTo(allValues.length) < 0)
+        if(valueCount < 0)
+          valueCount = 0;
+
+      values = new CardValue[valueCount];
+      System.arraycopy(allValues, allValues.length - valueCount, values, 0, valueCount);
+
+      return values;
     }
   }
 

@@ -1,5 +1,6 @@
 package game;
 
+import dto.ClientInfo;
 import utilities.constants.GameConfigurationConstants;
 
 import java.util.ArrayList;
@@ -20,14 +21,14 @@ public class Player {
   private Boolean isDefending;
   private Boolean isAttacking;
 
-  private String name;
+  private ClientInfo info;
 
   private List<GameCard> cards;
 
   /* Constructors */
-  public Player(String name) {
+  public Player(ClientInfo info) {
     cards = new ArrayList<GameCard>(GameConfigurationConstants.INITIAL_CARD_COUNT);
-    this.name = name;
+    this.info = info;
     leftPlayer = null;
     rightPlayer = null;
     isDefending = false;
@@ -43,6 +44,10 @@ public class Player {
   public void useCard(GameCard card) {
     if(cards.contains(card))
       cards.remove(card);
+  }
+
+  public Boolean contains(ClientInfo info) {
+    return info.equals(this.info);
   }
 
   /**
@@ -71,11 +76,11 @@ public class Player {
 
   /* Getter and Setter */
   public String getName() {
-    return name;
+    return info.getName();
   }
 
   public void setName(String name) {
-    this.name = name;
+    this.info.setName(name);
   }
 
   public Boolean isDefending() {

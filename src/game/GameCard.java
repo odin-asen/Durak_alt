@@ -9,27 +9,45 @@ import static utilities.constants.GameCardConstants.*;
  */
 public class GameCard {
   private CardType cardType;
-  private Boolean movable;      //TODO löschen und getter und setter in GameCardWidget übertragen
   private CardValue cardValue;
   private CardColour cardColour;
 
   public GameCard() {
-    this.movable = false;
     this.cardType = CardType.DEFAULT;
   }
 
-  public Boolean isMovable() {
-    return movable;
+  /* Methods */
+  public String toString() {
+    return "GameCard{" +
+        "cardType=" + cardType +
+        ", cardValue=" + cardValue +
+        ", cardColour=" + cardColour +
+        '}';
   }
 
-  public void setMovable(Boolean movable) {
-    if(movable && !this.movable) {
-      this.movable = movable;
-    } else if(!movable && this.movable) {
-      this.movable = movable;
-    }
+  /**
+   * Determines if the value of this card is higher than
+   * the arguments.
+   * @param card The argument.
+   * @return Returns only true, if the argument is null or
+   * this cards value is higher than the arguments.
+   */
+  public boolean hasHigherValue(GameCard card) {
+    return card == null || this.getCardValue().compareTo(card.getCardValue()) > 0;
   }
 
+  /**
+   * Determines if the value of this card is lower than
+   * the arguments.
+   * @param card The argument.
+   * @return Returns true, if the argument is null or
+   * this cards value is lower than the arguments.
+   */
+  public boolean hasLowerValue(GameCard card) {
+    return card == null || this.getCardValue().compareTo(card.getCardValue()) < 0;
+  }
+
+  /* Getter and Setter */
   public void setCardType(CardType type) {
     this.cardType = type;
   }
@@ -52,46 +70,5 @@ public class GameCard {
 
   public void setCardColour(CardColour cardColour) {
     this.cardColour = cardColour;
-  }
-
-  public String toString() {
-    return "GameCard{" +
-        "cardType=" + cardType +
-        ", movable=" + movable +
-        ", cardValue=" + cardValue +
-        ", cardColour=" + cardColour +
-        '}';
-  }
-
-  /**
-   * Determines if the value of this card is higher than
-   * the arguments.
-   * @param card The argument.
-   * @return Returns only true, if the argument is null or the
-   * this cards value is higher than the arguments.
-   */
-  public boolean hasHigherValue(GameCard card) {
-    if(card != null) {
-      if(this.getCardValue().compareTo(card.getCardValue())<=0)
-        return false;
-      else return true;
-    }
-    return true;
-  }
-
-  /**
-   * Determines if the value of this card is lower than
-   * the arguments.
-   * @param card The argument.
-   * @return Returns only true, if the argument is not null
-   * and the this cards value is lower than the arguments.
-   */
-  public boolean hasLowerValue(GameCard card) {
-    if(card != null) {
-      if(this.getCardValue().compareTo(card.getCardValue())>=0)
-        return false;
-      else return true;
-    }
-    return false;
   }
 }

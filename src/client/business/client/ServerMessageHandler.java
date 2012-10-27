@@ -35,8 +35,9 @@ public class ServerMessageHandler extends UnicastRemoteObject implements RMIObse
   }
 
   public void incomingMessage(Serializable notificationObject) throws RemoteException {
-    if(notificationObject instanceof MessageObject)
+    if(notificationObject instanceof MessageObject) {
       GameClient.getClient().sendServerMessage((MessageObject) notificationObject);
+    }
     else System.out.println(notificationObject);
   }
 }

@@ -1,5 +1,6 @@
 package client.business.client;
 
+import dto.ClientInfo;
 import dto.message.MessageObject;
 import rmi.Authenticator;
 import rmi.ChatHandler;
@@ -15,7 +16,6 @@ import java.rmi.server.ServerNotActiveException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Observable;
-import java.util.logging.Logger;
 
 /**
  * User: Timm Herrmann
@@ -23,15 +23,13 @@ import java.util.logging.Logger;
  * Time: 01:37
  */
 public class GameClient extends Observable {
-  private static Logger LOGGER = Logger.getLogger(GameClient.class.getName());
-
   private static GameClient client;
 
   public static final String DEFAULT_SERVER_ADDRESS = "localhost";
   public static final Integer DEFAULT_SERVER_PORT = Registry.REGISTRY_PORT;
 
   private Map<RMIService,Remote> services;
-  private Registry registry;
+  private ServerMessageHandler serverObserver;
 
   private String serverAddress;
   private Integer port;
@@ -74,13 +72,7 @@ public class GameClient extends Observable {
     lookupServices(registry, RMIService.AUTHENTICATION);
     lookupServices(registry, RMIService.CHAT);
     lookupServices(registry, RMIService.DEFENSE_ACTION);
-    lookupServices(registry, RMIService.OBSERVER);
-  }
-
-  private void unregisterServices(Registry registry) throws RemoteException, NotBoundException {
-    for (RMIService rmiService : services.keySet()) {
-      registry.unbind(rmiService.getServiceName());
-    }
+    serverObserver = new ServerMessageHandler(registry, RMIService.OBSERVER.getServiceName());
   }
 
   public void sendServerMessage(MessageObject object) {
@@ -96,32 +88,22 @@ public class GameClient extends Observable {
   public void connect()
       throws RemoteException, NotBoundException, ServerNotActiveException {
     if (!isConnected()) {
-      registry = LocateRegistry.getRegistry(serverAddress, port);
+      Registry registry = LocateRegistry.getRegistry(serverAddress, port);
       initServices(registry);
-      getRMIObservable().getServer().registerInterest(getRMIObservable());
+      getRMIObserver().getServer().registerInterest(getRMIObserver());
       connected = true;
     }
   }
 
-  public void disconnect() throws NotBoundException, RemoteException {
+  public void disconnect(ClientInfo info) throws NotBoundException, RemoteException {
     if(isConnected()) {
-      unregisterServices(registry);
+      getAuthenticator().logoff(info);
       connected = false;
     }
   }
 
-  private ServerMessageHandler getRMIObservable() {
-    return (ServerMessageHandler) services.get(RMIService.OBSERVER);
-  }
-
-  /**
-   * Sends a message to the server and returns the answer of it.
-   *
-   * @param message Message to send.
-   * @return A MessageObject as answer of the server.
-   */
-  public MessageObject send(MessageObject message) {
-    return null; //TODO senden implementieren mit RMI Objekten
+  private ServerMessageHandler getRMIObserver() {
+    return serverObserver;
   }
 
   /* Getter and Setter */

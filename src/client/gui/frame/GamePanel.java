@@ -69,5 +69,11 @@ public class GamePanel extends JPanel {
     widgetSet.remove(widget);
   }
 
+  public void deleteCards() {
+    this.removeAll();
+    widgetSet = new HashSet<GameCardWidget>();
+    this.repaint();
+  }
+
   /* Getter and Setter */
 }

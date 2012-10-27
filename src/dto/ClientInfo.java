@@ -9,19 +9,19 @@ import java.io.Serializable;
  */
 public class ClientInfo implements Serializable {
   private String id;
-  private String clientName;
+  private String name;
   private int cardCount;
 
   /* Constructors */
   public ClientInfo(String name) {
     id = Integer.toString(this.hashCode());
-    this.clientName = name;
+    this.name = name;
     this.cardCount = 0;
   }
 
   /* Methods */
   public String toString() {
-    return clientName+id;
+    return name +id;
   }
 
   public boolean equalsID(ClientInfo info) {
@@ -29,12 +29,12 @@ public class ClientInfo implements Serializable {
   }
 
   /* Getter and Setter */
-  public String getClientName() {
-    return clientName;
+  public String getName() {
+    return name;
   }
 
-  public void setClientName(String clientName) {
-    this.clientName = clientName;
+  public void setName(String name) {
+    this.name = name;
   }
 
   public int getCardCount() {
