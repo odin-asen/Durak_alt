@@ -2,6 +2,7 @@ package client.gui.frame.setup;
 
 import client.gui.frame.ClientGUIConstants;
 import dto.ClientInfo;
+import utilities.constants.GameConfigurationConstants;
 import utilities.gui.Constraints;
 import utilities.gui.WidgetCreator;
 
@@ -17,6 +18,7 @@ public class ClientInfoTab extends JPanel {
 
   private InputMethodListener inputListener;
 
+  /* Constructors */
   ClientInfoTab() {
     final int labelIPadX = 5;
 
@@ -33,10 +35,11 @@ public class ClientInfoTab extends JPanel {
     constraints = Constraints.getDefaultFieldConstraintLeft(3, 0, 2, 1);
     this.add(nameField, constraints);
 
-    clientInfo = new ClientInfo("");
+    clientInfo = new ClientInfo("", GameConfigurationConstants.NO_LOGIN_NUMBER);
     fillClientInfo();
   }
 
+  /* Methods */
   void fillClientInfo() {
     clientInfo.setName(nameField.getText());
   }
@@ -55,7 +58,12 @@ public class ClientInfoTab extends JPanel {
     nameField.addInputMethodListener(inputListener);
   }
 
+  /* Getter and Setter */
   public ClientInfo getClientInfo() {
     return clientInfo;
+  }
+
+  void setClientInfo(ClientInfo info) {
+    clientInfo = info;
   }
 }

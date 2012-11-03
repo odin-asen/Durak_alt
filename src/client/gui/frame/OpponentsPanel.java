@@ -37,7 +37,7 @@ public class OpponentsPanel extends JPanel {
   private OpponentHandWidget findOpponentHandWidget(ClientInfo info) {
     for (Component component : getComponents()) {
       final OpponentHandWidget widget = (OpponentHandWidget) component;
-      if(widget.getOpponent().equalsID(info))
+      if(widget.getOpponent().isEqual(info))
         return widget;
     }
 
@@ -47,8 +47,10 @@ public class OpponentsPanel extends JPanel {
   public void updateOpponents(List<ClientInfo> opponents) {
     for (ClientInfo opponent : opponents) {
       final OpponentHandWidget widget = findOpponentHandWidget(opponent);
-      if(widget != null)
+      if(widget != null) {
         widget.getOpponent().setCardCount(opponent.getCardCount());
+        widget.setStatusIcon(opponent.getPlayerType());
+      }
       else LOGGER.log(Level.INFO, opponent+" konnte nicht gefunden werden!");
     }
   }

@@ -1,9 +1,11 @@
 package client.gui.frame;
 
 import client.business.client.GameClient;
+import client.gui.frame.chat.ChatFrame;
 import client.gui.frame.setup.SetUpFrame;
 import dto.ClientInfo;
 import resources.ResourceGetter;
+import resources.ResourceList;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,6 +16,8 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.ServerNotActiveException;
 import java.util.logging.Logger;
+
+import static client.gui.frame.ClientGUIConstants.*;
 
 /**
  * User: Timm Herrmann
@@ -27,12 +31,15 @@ public class DurakToolBar extends JToolBar {
 
   public DurakToolBar(ClientFrame parent) {
     this.parent = parent;
-    JButton connectionButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_NETWORK, "Verbindung zu Server aufbauen",
-        ClientGUIConstants.ACTION_COMMAND_CONNECTION, "Verbindung", KeyEvent.VK_V);
-    JButton setUpButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_PINION, "\u00d6ffnet Fenster f\u00fcr Einstellungen",
-        ClientGUIConstants.ACTION_COMMAND_SETUP, "Einstellungen", KeyEvent.VK_E);
-    JButton closeButton = makeToolBarButton(ResourceGetter.STRING_IMAGE_CLOSE, "Schlie\u00dft die Anwendung",
-        ClientGUIConstants.ACTION_COMMAND_CLOSE, "Schlie\u00dfen", KeyEvent.VK_Q);
+    JButton connectionButton = makeToolBarButton(ResourceList.IMAGE_TOOLBAR_NETWORK,
+        TOOLTIP_CONNECT, ACTION_COMMAND_CONNECT, ALTERNATIVE_CONNECT, KeyEvent.VK_V);
+    JButton setUpButton = makeToolBarButton(ResourceList.IMAGE_TOOLBAR_PINION,
+        TOOLTIP_SETUP, ACTION_COMMAND_SETUP, ALTERNATIVE_SETUP,
+        KeyEvent.VK_E);
+    JButton chatButton = makeToolBarButton(ResourceList.IMAGE_TOOLBAR_CHAT,
+        TOOLTIP_CHAT, ACTION_COMMAND_CHAT, ALTERNATIVE_CHAT, KeyEvent.VK_C);
+    JButton closeButton = makeToolBarButton(ResourceList.IMAGE_TOOLBAR_CLOSE,
+        TOOLTIP_CLOSE, ACTION_COMMAND_CLOSE, ALTERNATIVE_CLOSE, KeyEvent.VK_Q);
 
     this.setMargin(new Insets(5,5,5,5));
     this.setRollover(true);
@@ -40,6 +47,8 @@ public class DurakToolBar extends JToolBar {
     this.add(connectionButton);
     this.addSeparator();
     this.add(setUpButton);
+    this.addSeparator();
+    this.add(chatButton);
     this.add(Box.createHorizontalGlue());
     this.addSeparator();
     this.add(closeButton);
@@ -62,22 +71,45 @@ public class DurakToolBar extends JToolBar {
   }
 
   private class ToolBarComponentAL implements ActionListener {
-
     public void actionPerformed(ActionEvent e) {
-      if(ClientGUIConstants.ACTION_COMMAND_CLOSE.equals(e.getActionCommand())) {
+      if(ACTION_COMMAND_CLOSE.equals(e.getActionCommand())) {
         close();
-      } else if(ClientGUIConstants.ACTION_COMMAND_CONNECTION.equals(e.getActionCommand())) {
+      } else if(ACTION_COMMAND_CONNECT.equals(e.getActionCommand())) {
         GameClient client = GameClient.getClient();
-        if(!client.isConnected()) {
-          connectClient(client);
-        } else {
-          disconnectClient(client);
+        connectClient(client);
+
+        if(client.isConnected()) {
+          changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_NETWORK_CLOSE,
+              ACTION_COMMAND_DISCONNECT, TOOLTIP_DISCONNECT, ALTERNATIVE_DISCONNECT);
         }
-      } else if(ClientGUIConstants.ACTION_COMMAND_SETUP.equals(e.getActionCommand())) {
+      } else if(ACTION_COMMAND_DISCONNECT.equals(e.getActionCommand())) {
+        GameClient client = GameClient.getClient();
+        disconnectClient(client);
+        if(!client.isConnected()) {
+          changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_NETWORK,
+              ACTION_COMMAND_CONNECT, TOOLTIP_CONNECT, ALTERNATIVE_CONNECT);
+        }
+      } else if(ACTION_COMMAND_SETUP.equals(e.getActionCommand())) {
         SetUpFrame frame = SetUpFrame.getInstance();
-        if(!frame.isVisible() || !frame.isActive())
+        if(!frame.isVisible())
           frame.setVisible(true);
+        else frame.setVisible(false);
+      } else if(ACTION_COMMAND_CHAT.equals(e.getActionCommand())) {
+        ChatFrame frame = ChatFrame.getFrame();
+        if(!frame.isVisible())
+          frame.setVisible(true);
+        else frame.setVisible(false);
       }
+    }
+
+    private void changeButton(JButton button, String pictureName, String actionCommand,
+                              String toolTipText, String alternativeText) {
+      button.setActionCommand(actionCommand);
+      if(pictureName != null) {
+        ImageIcon icon = ResourceGetter.getImage(pictureName, alternativeText);
+        button.setIcon(icon);
+      }
+      button.setToolTipText(toolTipText);
     }
 
     private void close() {
@@ -114,22 +146,22 @@ public class DurakToolBar extends JToolBar {
         SetUpFrame setup = SetUpFrame.getInstance();
         setup.setConnectionEnabled(false);
         if(client.getAuthenticator().login(setup.getClientInfo(), "")) {
-          parent.setStatusBarText(true, ClientGUIConstants.STATUS_CONNECTED,
+          parent.setStatusBarText(true, STATUS_CONNECTED,
               setup.getConnectionInfo().getIpAddress());
         } else {
-          parent.setStatusBarText(false, ClientGUIConstants.STATUS_PERMISSION_DENIED, "");
+          parent.setStatusBarText(false, STATUS_PERMISSION_DENIED, "");
         }
       } catch (RemoteException e) {
         LOGGER.severe(e.getMessage());
-        parent.setStatusBarText(false, ClientGUIConstants.STATUS_CONNECTION_FAIL, "");
+        parent.setStatusBarText(false, STATUS_CONNECTION_FAIL, "");
         e.printStackTrace();
       } catch (NotBoundException e) {
         LOGGER.severe(e.getMessage());
-        parent.setStatusBarText(false, ClientGUIConstants.STATUS_CONNECTION_FAIL, "");
+        parent.setStatusBarText(false, STATUS_CONNECTION_FAIL, "");
         e.printStackTrace();
       } catch (ServerNotActiveException e) {
         LOGGER.severe(e.getMessage());
-        parent.setStatusBarText(false, ClientGUIConstants.STATUS_CONNECTION_FAIL, "");
+        parent.setStatusBarText(false, STATUS_CONNECTION_FAIL, "");
         e.printStackTrace();
       }
     }

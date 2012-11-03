@@ -89,7 +89,6 @@ public class GameCardStack extends Observable {
         final GameCard card = new GameCard();
         card.setCardColour(cardColour);
         card.setCardValue(cardValue);
-        card.setCardType(CardType.DEFAULT);
         list.add(card);
       }
     }

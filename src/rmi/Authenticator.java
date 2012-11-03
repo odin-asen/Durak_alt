@@ -26,4 +26,11 @@ public interface Authenticator extends Remote {
    * @throws RemoteException
    */
   public void logoff(ClientInfo client) throws RemoteException;
+
+  /**
+   * This method returns a reason why the login returned false. If login
+   * returns true, this method should return an empty String.
+   * @return Returns a reason for refusing the login.
+   */
+  public String getRefusedReason() throws RemoteException;
 }

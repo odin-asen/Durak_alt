@@ -1,6 +1,7 @@
 package client.gui.frame;
 
 import resources.ResourceGetter;
+import resources.ResourceList;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,7 +26,6 @@ public class DurakStatusBar extends JPanel implements Runnable {
 
   private JLabel statusLabel;
   private JLabel clockLabel;
-  private Boolean connected;
   private Boolean running;
 
   /* Constructors */
@@ -56,10 +56,10 @@ public class DurakStatusBar extends JPanel implements Runnable {
    */
   public void setConnected(Boolean connected, String serverAddress) {
     if(connected) {
-      statusLabel.setIcon(ResourceGetter.getImage(ResourceGetter.STRING_IMAGE_CONNECTED, "Verbunden"));
+      statusLabel.setIcon(ResourceGetter.getImage(ResourceList.IMAGE_STATUS_CONNECTED, "Verbunden"));
       statusLabel.setToolTipText("Verbunden mit "+serverAddress);
     } else {
-      statusLabel.setIcon(ResourceGetter.getImage(ResourceGetter.STRING_IMAGE_DISCONNECTED, "Verbunden"));
+      statusLabel.setIcon(ResourceGetter.getImage(ResourceList.IMAGE_STATUS_DISCONNECTED, "Verbunden"));
       statusLabel.setToolTipText("Momentan besteht keine Verbindung zu einem Server");
     }
     this.connected = connected;

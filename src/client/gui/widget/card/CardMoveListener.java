@@ -1,7 +1,5 @@
 package client.gui.widget.card;
 
-import utilities.constants.GameCardConstants;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
@@ -77,9 +75,9 @@ public class CardMoveListener implements ComponentListener{
         curtainWidget = null;
       }
     } else {
-      if(GameCardConstants.CardType.DEFENSE.equals(widget.getCardInfo().getCardType()) &&
-         GameCardConstants.CardType.ATTACK.equals(nearestWidget.getCardInfo().getCardType()))
-        setCurtainWidget(nearestWidget);
+//      if(GameCardConstants.CardType.DEFENSE.equals(widget.getCardInfo().getCardType()) &&
+//         GameCardConstants.CardType.ATTACK.equals(nearestWidget.getCardInfo().getCardType()))
+//        setCurtainWidget(nearestWidget); TODO andere lösung finden
     }
   }
 

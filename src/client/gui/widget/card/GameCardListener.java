@@ -14,6 +14,11 @@ public class GameCardListener implements MouseListener, MouseMotionListener {
   private Point oldPoint;
   private Point grabbingPoint;
 
+  private Double borderLeft;       //TODO als bewegungsbegrenzung implementieren
+  private Double borderRight;
+  private Double borderTop;
+  private Double borderBottom;
+
   public GameCardListener() {
     oldPoint = new Point();
     grabbingPoint = new Point();
@@ -42,18 +47,13 @@ public class GameCardListener implements MouseListener, MouseMotionListener {
   private boolean componentContainsPoint(Point point, Container parent) {
     final Point screenLocation = parent.getLocationOnScreen();
     final Dimension dimension = parent.getSize();
-    if(((screenLocation.x+dimension.width)>=point.x) &&
-       ((screenLocation.x)<=point.x) &&
-       ((screenLocation.y+dimension.height)>=point.y) &&
-       ((screenLocation.y)<=point.y))
-      return true;
-    else
-      return false;
+    return ((screenLocation.x + dimension.width) >= point.x) &&
+        ((screenLocation.x) <= point.x) &&
+        ((screenLocation.y + dimension.height) >= point.y) &&
+        ((screenLocation.y) <= point.y);
   }
 
-  @Override
   public void mouseMoved(MouseEvent e) {
-    //To change body of implemented methods use File | Settings | File Templates.
   }
 
   public void mouseClicked(MouseEvent e) {
@@ -74,5 +74,32 @@ public class GameCardListener implements MouseListener, MouseMotionListener {
 
   public void mouseExited(MouseEvent e) {
     e.getComponent().setCursor(Cursor.getDefaultCursor());
+  }
+
+  /**
+   * These four values are percentages of the width and the height of the
+   * listeners holders parent. E.g. if borderLeft is 0.1 and the holders parents
+   * width is 100, the left border for the holder is 10 pixels. If borderRight
+   * is 0.9 the holders right border is at 90 pixels.
+   * The border values should bound the moving of the holder to a specified
+   * area. The range for the values is between 0.0 and 1.0.
+   * @param borderLeft Percentage of the left border.
+   * @param borderRight Percentage of the right border.
+   * @param borderTop Percentage of the upper border.
+   * @param borderBottom Percentage of the lower border.
+   */
+  public void setMoveArea(Double borderLeft, Double borderRight, Double borderTop, Double borderBottom) {
+    this.borderLeft = getBorderValues(borderLeft);
+    this.borderRight = getBorderValues(borderRight);
+    this.borderTop = getBorderValues(borderTop);
+    this.borderBottom = getBorderValues(borderBottom);
+  }
+
+  private Double getBorderValues(Double d) {
+    if(d < 0.0)
+      return 0.0;
+    else if(d > 1.0)
+      return 1.0;
+    else return d;
   }
 }

@@ -13,10 +13,12 @@ import java.rmi.RemoteException;
  */
 public class AuthenticatorImpl implements Authenticator {
   private String password;
+  private String reason;
 
   /* Constructors */
   public AuthenticatorImpl() {
     password = "";
+    reason = "";
   }
 
   /* Methods */
@@ -25,11 +27,18 @@ public class AuthenticatorImpl implements Authenticator {
       GameServer.getServerInstance().addClient(client);
       return true;
     }
-    else return false;
+    else {
+      reason = "Das Passwort ist falsch!";
+      return false;
+    }
   }
 
   public void logoff(ClientInfo client) throws RemoteException {
     GameServer.getServerInstance().removeClient(client);
+  }
+
+  public String getRefusedReason() {
+    return reason;
   }
 
   /* Getter and Setter */

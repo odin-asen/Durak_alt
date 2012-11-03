@@ -3,14 +3,9 @@ package server.gui;
 import dto.ClientInfo;
 import dto.message.GUIObserverType;
 import dto.message.MessageObject;
-import game.GameCardStack;
-import game.GameProcess;
 import resources.ResourceGetter;
+import resources.ResourceList;
 import server.business.GameServer;
-import server.business.exception.GameServerException;
-import utilities.Converter;
-import utilities.constants.GameCardConstants;
-import utilities.constants.GameConfigurationConstants;
 import utilities.gui.Constraints;
 import utilities.gui.FensterPositionen;
 import utilities.gui.WidgetCreator;
@@ -23,11 +18,8 @@ import java.awt.event.KeyEvent;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static server.gui.ServerGUIConstants.*;
@@ -95,7 +87,7 @@ public class ServerFrame extends JFrame implements Observer {
   private void removeClient(ClientInfo client) {
     int clientIndex = -1;
     for (int i = 0; i < listModel.size(); i++) {
-      if(listModel.get(i).equalsID(client)) {
+      if(listModel.get(i).isEqual(client)) {
         clientIndex = i;
         i = listModel.size();
       }
@@ -138,22 +130,18 @@ public class ServerFrame extends JFrame implements Observer {
 
     toolBar = new JToolBar();
     ToolBarComponentAL listener = new ToolBarComponentAL(this);
-    JButton startButton = WidgetCreator.makeToolBarButton(ResourceGetter.STRING_IMAGE_PLAY, TOOLTIP_START,
+    JButton startStopButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_PLAY, TOOLTIP_START,
         ACTION_COMMAND_START, ALTERNATIVE_START, listener, KeyEvent.VK_G);
-    JButton stopButton = WidgetCreator.makeToolBarButton(ResourceGetter.STRING_IMAGE_STOP_PLAYER, TOOLTIP_STOP,
-        ACTION_COMMAND_STOP, ALTERNATIVE_STOP, listener, KeyEvent.VK_A);
-    JButton gameStartButton = WidgetCreator.makeToolBarButton(ResourceGetter.STRING_IMAGE_PLAY, TOOLTIP_GAME_START,
+    JButton gameStartButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_GAME_START, TOOLTIP_GAME_START,
         ACTION_COMMAND_GAME_START, ALTERNATIVE_GAME_START, listener, KeyEvent.VK_S);
-    JButton closeButton = WidgetCreator.makeToolBarButton(ResourceGetter.STRING_IMAGE_CLOSE, TOOLTIP_CLOSE,
+    JButton closeButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_CLOSE, TOOLTIP_CLOSE,
         ACTION_COMMAND_CLOSE, ALTERNATIVE_CLOSE, listener, KeyEvent.VK_Q);
 
     toolBar.setMargin(new Insets(5, 5, 5, 5));
     toolBar.setRollover(true);
     toolBar.setFloatable(false);
 
-    toolBar.add(startButton);
-    toolBar.addSeparator();
-    toolBar.add(stopButton);
+    toolBar.add(startStopButton);
     toolBar.addSeparator();
     toolBar.add(gameStartButton);
     toolBar.add(Box.createHorizontalGlue());
@@ -255,39 +243,29 @@ class ToolBarComponentAL implements ActionListener {
       closeFrame(e);
     } else if (ACTION_COMMAND_START.equals(e.getActionCommand())) {
       startGameServer();
+      changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_STOP_PLAYER,
+          ACTION_COMMAND_STOP, TOOLTIP_STOP, ALTERNATIVE_STOP);
     } else if (ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
       stopGameServer();
+      changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_PLAY,
+          ACTION_COMMAND_START, TOOLTIP_START, ALTERNATIVE_START);
     } else if (ACTION_COMMAND_GAME_START.equals(e.getActionCommand())) {
       startGame();
     }
   }
 
-  private void startGame() {
-    GameProcess process = GameProcess.getInstance();
-    GameServer server = GameServer.getServerInstance();
-    Integer cardsPerColour = frame.getStackSize()/ GameCardConstants.CardColour.values().length;
-    process.initialiseNewGame(cardsPerColour);
-    try {
-      List<ClientInfo> clientInfoList = getInitialisedClients();
-      //TODO playerliste muss auch aktualisiert werden, wenn sich ein client an oder abmeldet
-      server.broadcastMessage(GUIObserverType.INITIALISE_STACK, Converter.toDTO(GameCardStack.getInstance()));
-      server.broadcastArray(GUIObserverType.INITIALISE_CARDS, Converter.playersCardsToDTO(process.getPlayerList()));
-
-      server.broadcastMessage(GUIObserverType.INITIALISE_OPPONENTS, clientInfoList);
-    } catch (GameServerException e) {
-      LOGGER.log(Level.SEVERE, e.getMessage());
+  private void changeButton(JButton button, String pictureName, String actionCommand,
+                            String toolTipText, String alternativeText) {
+    button.setActionCommand(actionCommand);
+    if(pictureName != null) {
+      ImageIcon icon = ResourceGetter.getImage(pictureName, alternativeText);
+      button.setIcon(icon);
     }
+    button.setToolTipText(toolTipText);
   }
 
-  private List<ClientInfo> getInitialisedClients() {
-    List<ClientInfo> clientInfoList = new ArrayList<ClientInfo>();
-    DefaultListModel<ClientInfo> listModel = frame.getClientList();
-    for (int index = 0; index < listModel.getSize(); index++) {
-      final ClientInfo client = listModel.get(index);
-      client.setCardCount(GameConfigurationConstants.INITIAL_CARD_COUNT);
-      clientInfoList.add(client);
-    }
-    return clientInfoList;
+  private void startGame() {
+    GameServer.getServerInstance().startGame(frame.getStackSize());
   }
 
   private void stopGameServer() {

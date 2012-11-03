@@ -6,25 +6,9 @@ package utilities.constants;
  * Time: 14:27
  */
 public interface GameCardConstants {
-  /* Card Type */
-  public static enum CardType {
-    DEFAULT(0),
-    ATTACK(1),
-    DEFENSE(2);
-
-    private Integer value;
-    CardType(Integer value) {
-      this.value = value;
-    }
-
-    public Integer getValue() {
-      return value;
-    }
-  }
-
   /* Card Color */
   public static enum CardColour {
-    SPADE(0, "Pik"),
+    SPADES(0, "Pik"),
     CLUBS(1, "Kreuz"),
     HEARTS(2, "Herz"),
     DIAMONDS(3, "Karo");

@@ -54,8 +54,10 @@ public class RMIObservableImpl implements RMIObservable {
       if(socket.equals(parseSocket(rmiObserver.toString())))
         adding = false;
     }
-    if(adding)
+    if(adding) {
+      System.out.println("Adding "+socket);
       observers.add(observer);
+    }
   }
 
   public void notifyObservers(Serializable notification)
@@ -68,10 +70,6 @@ public class RMIObservableImpl implements RMIObservable {
   public void removeObserver(RMIObserver observer) {
     observers.remove(observer);
   }
-  /* Getter and Setter */
-  public Vector<RMIObserver> getObservers() {
-    return observers;
-  }
 
   public void notifyObserver(Integer observerIndex, Serializable notification) {
     try {
@@ -79,9 +77,15 @@ public class RMIObservableImpl implements RMIObservable {
         observers.get(observerIndex).incomingMessage(notification);
     }
     catch (Exception e) {
+      e.printStackTrace();
       LOGGER.log(Level.SEVERE, "Client " + observers.get(observerIndex)
           + " could not been notified: " + e.getMessage());
       removeObserver(observers.get(observerIndex));
     }
+  }
+
+  /* Getter and Setter */
+  public Vector<RMIObserver> getObservers() {
+    return observers;
   }
 }

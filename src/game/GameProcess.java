@@ -1,14 +1,19 @@
 package game;
 
-import dto.ClientInfo;
+import dto.DTOCard;
+import game.rules.RuleChecker;
+import game.rules.RuleException;
+import game.rules.RuleFactory;
+import rmi.GameAction;
+import server.business.rmiImpl.AttackAction;
+import server.business.rmiImpl.DefenseAction;
+import utilities.Converter;
 import utilities.constants.GameConfigurationConstants;
+import utilities.constants.PlayerConstants;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static utilities.constants.GameCardConstants.CardColour;
 
 /**
  * User: Timm Herrmann
@@ -19,24 +24,22 @@ import static utilities.constants.GameCardConstants.CardColour;
  * this class.
  */
 public class GameProcess {
-  private static Logger LOGGER = Logger.getLogger(GameProcess.class.getName());
-
   private static GameProcess gameProcess;
-  public static final int INDEX_FIRST_ATTACKER = 0;
-  public static final int INDEX_SECOND_ATTACKER = 1;
-  public static final int ATTACKERS_MAXIMUM = 2;
 
   private List<Player> playerList;
-  private List<Player> attackers;
-  private Player defender;
+  private List<GameCard> attackCards;
+  private List<GameCard> defenseCards;
   private GameCardStack stack;
   private Boolean gameInProcess;
+
+  private RuleChecker ruleChecker;
 
   /* Constructors */
   private GameProcess() {
     this.playerList = new ArrayList<Player>();
-    initAttackers();
-    defender = null;
+    this.attackCards = new ArrayList<GameCard>();
+    this.defenseCards = new ArrayList<GameCard>();
+    ruleChecker = RuleFactory.getStandardRules();
     gameInProcess = false;
   }
 
@@ -48,13 +51,6 @@ public class GameProcess {
   }
 
   /* Methods */
-  private void initAttackers() {
-    attackers = new ArrayList<Player>(ATTACKERS_MAXIMUM);
-    for (int i = 0; i < ATTACKERS_MAXIMUM; i++) {
-      attackers.add(new Player(new ClientInfo("")));
-    }
-  }
-
   /**
    * This method initialises a game. It sets up a new shuffled stack of {@code cardsPerColour}
    * cards per colour, where the maximum of the cards per colour are bordered by the stack.
@@ -78,46 +74,8 @@ public class GameProcess {
    * Determines the first and second attackers and the defender.
    */
   private void determineInitialPlayers() {
-    final CardColour trumpColour = this.stack.getTrumpCard().getCardColour();
-    Player smallestColourPlayer = whoHasSmallestColour(trumpColour);
-    //TODO einen zufälligen starter auswählen (vielleicht anhand der ID)
-    if(smallestColourPlayer == null)
-      LOGGER.log(Level.INFO, "No player has a trump!");
-    else {
-      setFirstAttacker(smallestColourPlayer);
-    }
-  }
-
-  /**
-   * Sets the first attacker in the round and therefore the defender and
-   * the second attacker.
-   * @param firstAttacker The player who is the first attacker
-   */
-  private void setFirstAttacker(Player firstAttacker) {
-    Player secondAttacker = firstAttacker.getLeftPlayer().getLeftPlayer();
-
-    firstAttacker.setAttacking(true);
-    secondAttacker.setAttacking(true);
-
-    attackers.set(INDEX_FIRST_ATTACKER, firstAttacker);
-    attackers.set(INDEX_SECOND_ATTACKER, secondAttacker);
-    this.setDefender(firstAttacker.getLeftPlayer());
-  }
-
-  private Player whoHasSmallestColour(CardColour cardColour) {
-    GameCard currentSmallestCard = null;
-    Player smallestColourPlayer = null;
-
-    for (Player player : playerList) {
-      final GameCard smallestColour = player.getSmallestValue(cardColour);
-      if(smallestColour != null)
-        if(smallestColour.hasLowerValue(currentSmallestCard)) {
-          currentSmallestCard = smallestColour;
-          smallestColourPlayer = player;
-        }
-    }
-
-    return smallestColourPlayer;
+    ruleChecker.setTrumpColour(stack.getTrumpCard().getCardColour());
+    ruleChecker.initStartPlayer(playerList);
   }
 
   /**
@@ -155,6 +113,47 @@ public class GameProcess {
   }
 
   /**
+   * Validates a surpassed action with the current settings of the RuleChecker
+   * object.
+   * @param action Action to validate.
+   * @throws RuleException If a rule has been broken, a
+   * {@link game.rules.RuleException} will be thrown with a message for the client.
+   * @throws IllegalArgumentException If {@code action} is not instanceof
+   * {@link server.business.rmiImpl.AttackAction} or {@link server.business.rmiImpl.DefenseAction}
+   */
+  public void validateAction(GameAction action) throws RuleException {
+    if(action instanceof AttackAction) {
+      final AttackAction attack = (AttackAction) action;
+      validateAttack(attack);
+    } else if(action instanceof DefenseAction) {
+      DefenseAction defense = (DefenseAction) action;
+      validateDefend(defense);
+    } else throw new IllegalArgumentException("The parameter is neither instanceof\n"+
+      AttackAction.class +" nor\n"+DefenseAction.class);
+  }
+
+  private void validateDefend(DefenseAction defense) throws RuleException {
+    ruleChecker.canDoDefendMove(
+        playerList.get(defense.getExecutor().getLoginNumber()), attackCards.isEmpty(),
+        Converter.fromDTO(defense.getDefendCard()),
+        Converter.fromDTO(defense.getAttackCard()));
+
+    Collections.addAll(defenseCards, Converter.fromDTO(defense.getDefendCard()));
+  }
+
+  private void validateAttack(AttackAction attack) throws RuleException {
+    final List<GameCard> allCards = new ArrayList<GameCard>();
+    final List<GameCard> cards = Converter.fromDTO(attack.getCards());
+    Collections.addAll(allCards, (GameCard[]) attackCards.toArray());
+    Collections.addAll(allCards, (GameCard[]) defenseCards.toArray());
+
+    ruleChecker.canDoAttackMove(playerList.get(attack.getExecutor().getLoginNumber()),
+        cards, allCards);
+
+    Collections.addAll(attackCards, (GameCard[]) cards.toArray());
+  }
+
+  /**
    * Switches the players states, e.g isDefender, and determines, who is the next player
    * to defend and to attack. One round starts when a new player has to defend and ends
    * when the attackers and the defender pick up new cards.
@@ -163,71 +162,35 @@ public class GameProcess {
 
   }
 
-  public void addPlayer(Player player) {
+  public void addPlayer() {
     if(!gameInProcess) {
-      playerList.add(player);
+      playerList.add(new Player());
     }
   }
 
-  public void removePlayer(Player player) {
-    if(playerList.contains(player))
-      removePlayer(player);
+  public void removePlayer(int clientIndex) {
+    playerList.remove(clientIndex);
   }
 
-  public void removePlayer(ClientInfo info) {
-    int playerIndex = 0;
-    for (int index = 0; index < playerList.size(); index++) {
-      if(playerList.get(index).contains(info)) {
-        playerIndex = index;
-      }
-    }
-    playerList.remove(playerIndex);
+  public List<List<DTOCard>> getPlayerCards() {
+    return Converter.playersCardsToDTO(playerList);
   }
 
   /* Getter and Setter */
-  public List<Player> getPlayerList() {
-    return playerList;
-  }
-
-  public void setPlayerList(List<Player> playerList) {
-    if(!gameInProcess)
-      this.playerList = playerList;
-  }
-
-  public List<Player> getAttackers() {
-    return attackers;
-  }
-
-  public void setAttackers(List<Player> attackers) {
-    this.attackers = attackers;
-    for (Player attacker : attackers) {
-      if(attacker != null)
-        attacker.setAttacking(true);
-    }
-
-    if(attackers.contains(defender))
-      defender = null;
-  }
-
-  public Player getDefender() {
-    return defender;
-  }
-
-  public void setDefender(Player defender) {
-    this.defender = defender;
-    if (defender != null) {
-      this.defender.setDefending(true);
-    }
-
-    if(attackers.contains(defender))
-      attackers.remove(defender);
-  }
-
   public boolean isGameInProcess() {
     return gameInProcess;
   }
 
   private void setGameInProcess(boolean gameInProcess) {
     this.gameInProcess = gameInProcess;
+  }
+
+  public List<PlayerConstants.PlayerType> getPlayerTypes() {
+    List<PlayerConstants.PlayerType> types = new ArrayList<PlayerConstants.PlayerType>();
+    for (Player player : playerList) {
+      types.add(player.getType());
+    }
+
+    return types;
   }
 }

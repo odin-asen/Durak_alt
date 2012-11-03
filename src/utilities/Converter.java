@@ -1,6 +1,7 @@
 package utilities;
 
 
+import dto.ClientInfo;
 import dto.DTOCard;
 import dto.DTOCardStack;
 import game.GameCard;
@@ -22,10 +23,17 @@ import java.util.logging.Logger;
 public class Converter {
   private static final Logger LOGGER = Logger.getLogger(Converter.class.getName());
 
+  public static ClientInfo toDTO(ClientInfo client, Player player) {
+    if(client != null) {
+      client.setCardCount(player.getCards().size());
+      client.setPlayerType(player.getType());
+    }
+    return client;
+  }
+
   public static DTOCard toDTO(GameCard card) {
     DTOCard dto = new DTOCard();
     dto.cardColour = card.getCardColour();
-    dto.cardType = card.getCardType();
     dto.cardValue = card.getCardValue();
     return dto;
   }
@@ -33,9 +41,24 @@ public class Converter {
   public static GameCard fromDTO(DTOCard dto) {
     GameCard card = new GameCard();
     card.setCardColour(dto.cardColour);
-    card.setCardType(dto.cardType);
     card.setCardValue(dto.cardValue);
     return card;
+  }
+
+  public static List<DTOCard> toDTO(List<GameCard> cards) {
+    List<DTOCard> dto = new ArrayList<DTOCard>();
+    for (GameCard card : cards) {
+      dto.add(toDTO(card));
+    }
+    return dto;
+  }
+
+  public static List<GameCard> fromDTO(List<DTOCard> dtoList) {
+    List<GameCard> cards = new ArrayList<GameCard>();
+    for (DTOCard dtoCard : dtoList) {
+      cards.add(fromDTO(dtoCard));
+    }
+    return cards;
   }
 
   public static DTOCardStack toDTO(GameCardStack stack) {

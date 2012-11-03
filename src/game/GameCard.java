@@ -8,19 +8,13 @@ import static utilities.constants.GameCardConstants.*;
  * Time: 16:26
  */
 public class GameCard {
-  private CardType cardType;
   private CardValue cardValue;
   private CardColour cardColour;
-
-  public GameCard() {
-    this.cardType = CardType.DEFAULT;
-  }
 
   /* Methods */
   public String toString() {
     return "GameCard{" +
-        "cardType=" + cardType +
-        ", cardValue=" + cardValue +
+        " cardValue=" + cardValue +
         ", cardColour=" + cardColour +
         '}';
   }
@@ -47,15 +41,11 @@ public class GameCard {
     return card == null || this.getCardValue().compareTo(card.getCardValue()) < 0;
   }
 
+  public String getColourAndValue() {
+    return cardColour.getName()+" "+cardValue.getValueName();
+  }
+
   /* Getter and Setter */
-  public void setCardType(CardType type) {
-    this.cardType = type;
-  }
-
-  public CardType getCardType() {
-    return cardType;
-  }
-
   public CardValue getCardValue() {
     return cardValue;
   }

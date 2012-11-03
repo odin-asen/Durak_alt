@@ -14,7 +14,10 @@ public class StartClient {
   public static final String LOOK_AND_FEEL = "com.jtattoo.plaf.noire.NoireLookAndFeel";
 
   public static void main(String[] args) throws Exception{
-    loadLaF(new ClientFrame());
+    ClientFrame frame = new ClientFrame();
+    frame.initTest(true);
+    frame.placeCardTest(true);
+    loadLaF(frame);
   }
 
   public static void loadLaF(Component comp)

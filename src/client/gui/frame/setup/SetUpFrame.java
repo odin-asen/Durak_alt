@@ -155,6 +155,11 @@ public class SetUpFrame extends JDialog {
     return connectionInfoTab.getConnectionInfo();
   }
 
+  public void updateClientInfo(ClientInfo info) {
+    clientInfoPanel.setClientInfo(info);
+  }
+
+  /* Inner Classes */
   private class ButtonListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
       if(e.getActionCommand().equals(ClientGUIConstants.ACTION_COMMAND_APPLY)) {

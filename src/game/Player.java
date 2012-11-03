@@ -1,12 +1,12 @@
 package game;
 
-import dto.ClientInfo;
 import utilities.constants.GameConfigurationConstants;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static utilities.constants.GameCardConstants.CardColour;
+import static utilities.constants.PlayerConstants.PlayerType;
 
 /**
  * User: Timm Herrmann
@@ -18,21 +18,16 @@ import static utilities.constants.GameCardConstants.CardColour;
 public class Player {
   private Player leftPlayer;
   private Player rightPlayer;
-  private Boolean isDefending;
-  private Boolean isAttacking;
-
-  private ClientInfo info;
 
   private List<GameCard> cards;
+  private PlayerType type;
 
   /* Constructors */
-  public Player(ClientInfo info) {
+  public Player() {
     cards = new ArrayList<GameCard>(GameConfigurationConstants.INITIAL_CARD_COUNT);
-    this.info = info;
     leftPlayer = null;
     rightPlayer = null;
-    isDefending = false;
-    isAttacking = false;
+    type = PlayerType.DEFAULT;
   }
 
 
@@ -44,18 +39,6 @@ public class Player {
   public void useCard(GameCard card) {
     if(cards.contains(card))
       cards.remove(card);
-  }
-
-  public Boolean contains(ClientInfo info) {
-    return info.equals(this.info);
-  }
-
-  /**
-   * Idle means not attacking and not defending.
-   * @return True, if in idle, false, if either attacking or defending.
-   */
-  public boolean isIdle() {
-    return !isDefending() && !isAttacking();
   }
 
   /**
@@ -75,34 +58,6 @@ public class Player {
   }
 
   /* Getter and Setter */
-  public String getName() {
-    return info.getName();
-  }
-
-  public void setName(String name) {
-    this.info.setName(name);
-  }
-
-  public Boolean isDefending() {
-    return isDefending;
-  }
-
-  public void setDefending(Boolean defending) {
-    isDefending = defending;
-    if(defending)
-      setAttacking(false);
-  }
-
-  public Boolean isAttacking() {
-    return isAttacking;
-  }
-
-  public void setAttacking(Boolean attacking) {
-    isAttacking = attacking;
-    if(attacking)
-      setDefending(false);
-  }
-
   public Player getLeftPlayer() {
     return leftPlayer;
   }
@@ -121,5 +76,13 @@ public class Player {
 
   public List<GameCard> getCards() {
     return cards;
+  }
+
+  public PlayerType getType() {
+    return type;
+  }
+
+  public void setType(PlayerType type) {
+    this.type = type;
   }
 }

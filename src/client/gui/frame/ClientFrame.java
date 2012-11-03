@@ -1,22 +1,22 @@
 package client.gui.frame;
 
-import client.StartClient;
 import client.business.client.GameClient;
+import client.gui.frame.chat.ChatFrame;
+import client.gui.frame.gamePanel.GamePanel;
 import client.gui.frame.setup.SetUpFrame;
-import client.gui.widget.card.GameCardWidget;
 import dto.ClientInfo;
 import dto.DTOCard;
 import dto.DTOCardStack;
 import dto.message.*;
 import utilities.Miscellaneous;
+import utilities.constants.GameCardConstants;
 import utilities.gui.FensterPositionen;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -34,7 +34,6 @@ public class ClientFrame extends JFrame implements Observer {
   private static final Logger LOGGER = Logger.getLogger(ClientFrame.class.getName());
 
   private JPanel secondPane;
-  private ChatPanel chatPanel;
   private OpponentsPanel opponentsPanel;
   private CardStackPanel cardStackPanel;
   private GamePanel playerPanel;
@@ -47,17 +46,12 @@ public class ClientFrame extends JFrame implements Observer {
   public ClientFrame() {
     final FensterPositionen positionen = FensterPositionen.createFensterPositionen(
         MAIN_FRAME_SCREEN_SIZE, MAIN_FRAME_SCREEN_SIZE);
-    JFrame frame = new JFrame();
-    StartClient.loadLaF(frame);
-    frame.dispose();
-
     GameClient.getClient().addObserver(this);
 
     this.setTitle(APPLICATION_NAME + TITLE_SEPARATOR + VERSION);
     this.setBounds(positionen.getRectangle());
     this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     initComponents();
-    this.addComponentListener(new CardResizer());
     this.setVisible(true);
   }
 
@@ -91,6 +85,41 @@ public class ClientFrame extends JFrame implements Observer {
     cardStackPanel.deleteCards();
   }
 
+  public void placeCardTest(boolean init) {
+    if(!init) return;
+
+    List<DTOCard> cards = new ArrayList<DTOCard>();
+    for (int i = 0; i < 6; i++) {
+      final DTOCard card = new DTOCard();
+      card.cardValue = GameCardConstants.CardValue.TWO;
+      card.cardColour = GameCardConstants.CardColour.CLUBS;
+      cards.add(card);
+    }
+    playerPanel.placeClientCards(cards);
+  }
+
+  public void initTest(boolean init) {
+    if(!init) return;
+
+    List<DTOCard> attackCards = new ArrayList<DTOCard>();
+    for (int i = 0; i < 7; i++) {
+      final DTOCard card = new DTOCard();
+      card.cardValue = GameCardConstants.CardValue.ACE;
+      card.cardColour = GameCardConstants.CardColour.HEARTS;
+      attackCards.add(card);
+    }
+
+    List<DTOCard> defenderCards = new ArrayList<DTOCard>();
+    for (int i = 0; i < 1; i++) {
+      final DTOCard card = new DTOCard();
+      card.cardValue = GameCardConstants.CardValue.ACE;
+      card.cardColour = GameCardConstants.CardColour.SPADES;
+      defenderCards.add(card);
+    }
+
+    playerPanel.placeInGameCards(attackCards, defenderCards);
+  }
+
   /* Getter and Setter */
   private JPanel getSecondPane() {
     if(secondPane != null)
@@ -105,21 +134,10 @@ public class ClientFrame extends JFrame implements Observer {
     secondPane.setLayout(new BorderLayout());
     secondPane.add(opponentsPanel, BorderLayout.PAGE_START);
     secondPane.add(getStackClientsPanel(), BorderLayout.LINE_START);
-
-    secondPane.add(getChatPanel(), BorderLayout.LINE_END);
     secondPane.add(playerPanel, BorderLayout.CENTER);
     secondPane.add(getStatusPanel(), BorderLayout.PAGE_END);
 
     return secondPane;
-  }
-
-  private ChatPanel getChatPanel() {
-    if(chatPanel != null)
-      return chatPanel;
-
-    chatPanel = new ChatPanel();
-
-    return chatPanel;
   }
 
   private DurakStatusBar getStatusPanel() {
@@ -166,13 +184,6 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   /* Inner Classes */
-  private class CardResizer extends ComponentAdapter {
-    public void componentResized(ComponentEvent e) {
-      if(playerPanel != null)
-        playerPanel.repaintCards();
-    }
-  }
-
   private class ClientFrameUpdater {
     private void handleUpdate(MessageObject object) {
       if(object == null)
@@ -185,12 +196,20 @@ public class ClientFrame extends JFrame implements Observer {
         handleBroadcastType(object);
       } else if(enumClass.equals(GameUpdateType.class)) {
         handleGameUpdateType(object);
+      } else if(enumClass.equals(MessageType.class)) {
+        handleMessageType(object);
+      }
+    }
+
+    private void handleMessageType(MessageObject object) {
+      if(MessageType.LOGIN_NUMBER.equals(object.getType())) {
+        SetUpFrame.getInstance().updateClientInfo((ClientInfo) object.getSendingObject());
       }
     }
 
     private void handleBroadcastType(MessageObject object) {
       if(BroadcastType.CHAT_MESSAGE.equals(object.getType())) {
-        chatPanel.addMessage(buildChatAnswer(object));
+        ChatFrame.getFrame().addMessage(buildChatAnswer(object));
       } else if(BroadcastType.LOGIN_LIST.equals(object.getType())) {
         refreshClients(object);
       } else if(BroadcastType.SERVER_SHUTDOWN.equals(object.getType())) {
@@ -214,7 +233,7 @@ public class ClientFrame extends JFrame implements Observer {
       final ChatMessage chatMessage = (ChatMessage) object.getSendingObject();
       String message = Miscellaneous.getChatMessage(chatMessage.getSender().getName(),
           chatMessage.getMessage());
-      if(chatMessage.getSender().equalsID(SetUpFrame.getInstance().getClientInfo()))
+      if(chatMessage.getSender().isEqual(SetUpFrame.getInstance().getClientInfo()))
         message = Miscellaneous.changeChatMessageInBrackets("ich", message);
       return message;
     }
@@ -240,16 +259,15 @@ public class ClientFrame extends JFrame implements Observer {
 
     private void handleGUIObserverType(MessageObject object) {
       if(GUIObserverType.INITIALISE_CARDS.equals(object.getType())) {
-        final Dimension dim = GameCardWidget.computeCardDimension(playerPanel.getHeight());
-        final Rectangle rect = new Rectangle(new Point(10, playerPanel.getHeight()-dim.height-10), dim);
-        playerPanel.placeCards((List<DTOCard>) object.getSendingObject(), rect);
+        playerPanel.placeClientCards((List<DTOCard>) object.getSendingObject());
       } else if(GUIObserverType.INITIALISE_STACK.equals(object.getType())) {
         DTOCardStack stack = (DTOCardStack) object.getSendingObject();
         cardStackPanel.initialiseStack(stack.getSize(), stack.getCardStack().getLast());
       } else if(GUIObserverType.INITIALISE_OPPONENTS.equals(object.getType())) {
+        System.out.println("Initialise Opponents");
         List<ClientInfo> opponents = (List<ClientInfo>) object.getSendingObject();
         for (ClientInfo opponent : opponents) {
-          if(!SetUpFrame.getInstance().getClientInfo().equalsID(opponent)) {
+          if(!SetUpFrame.getInstance().getClientInfo().isEqual(opponent)) {
             opponentsPanel.addOpponent(opponent);
           }
         }

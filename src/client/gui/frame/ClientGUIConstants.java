@@ -16,12 +16,14 @@ public interface ClientGUIConstants {
   ImageIcon CARD_BACK = ResourceGetter.getBackCard();
 
   /* Action commands for Buttons and MenuItems */
-  String ACTION_COMMAND_CONNECTION = "connection";
-  String ACTION_COMMAND_SETUP = "setup";
-  String ACTION_COMMAND_CLOSE = "close";
-  String ACTION_COMMAND_OKAY = "okay";
   String ACTION_COMMAND_APPLY = "apply";
   String ACTION_COMMAND_CANCEL = "cancel";
+  String ACTION_COMMAND_CHAT = "chat";
+  String ACTION_COMMAND_CLOSE = "close";
+  String ACTION_COMMAND_CONNECT = "connect";
+  String ACTION_COMMAND_DISCONNECT = "disconnect";
+  String ACTION_COMMAND_OKAY = "okay";
+  String ACTION_COMMAND_SETUP = "setup";
 
   /* ClientFrame constants */
   float MAIN_FRAME_SCREEN_SIZE = 0.8f;
@@ -38,7 +40,7 @@ public interface ClientGUIConstants {
   float SET_UP_FRAME_SCREEN_SIZE_WIDTH = 0.25f;
   int PREFERRED_FIELD_WIDTH = 150;
 
-  String SET_UP_TITLE = "Clienteinstellungen";
+  String SET_UP_TITLE = "Client Einstellungen";
   String TITLE_CONNECTION = "Verbindung";
   String TITLE_INFORMATION = "Client Information";
 
@@ -54,8 +56,34 @@ public interface ClientGUIConstants {
   String SET_UP_CHECKBOX_PLAYING_TEXT = "Spielbereit";
   String SET_UP_CHECKBOX_PASSWORD_TEXT = "Passwort anzeigen";
 
+  /* ChatFrame constants */
+  float CHAT_FRAME_SCREEN_SIZE_HEIGHT = 0.5f;
+  float CHAT_FRAME_SCREEN_SIZE_WIDTH = 0.25f;
+
+  String CHAT_TITLE = "Chat";
+
+  int CHAT_WRITE_AREA_HEIGHT = 70;
+  String BUTTON_NAME_SEND = "Senden";
+  String SCROLL_READ_NAME = "Lesen";
+  String SCROLL_WRITE_NAME = "Schreiben";
+  String BUTTON_PANEL_NAME = "Kn\u00f6pfe";
+
   /* Status Messages */
   String STATUS_CONNECTION_FAIL = "Verbindung zum Server konnte nicht aufgebaut werden!";
   String STATUS_CONNECTED = "Verbindung zum Server wurde erfolgreich aufgebaut";
   String STATUS_PERMISSION_DENIED = "Das Passwort f\u00fcr den Server ist falsch";
+
+  /* Alternative texts */
+  String ALTERNATIVE_CONNECT = "Verbindung";
+  String ALTERNATIVE_DISCONNECT = "Trennen";
+  String ALTERNATIVE_SETUP = "Einstellungen";
+  String ALTERNATIVE_CLOSE = "Schlie\u00dfen";
+  String ALTERNATIVE_CHAT = "Chat";
+
+  /* Tooltip Texts */
+  String TOOLTIP_CLOSE = "Schlie\u00dft die Anwendung";
+  String TOOLTIP_CHAT = "\u00d6ffnet und schlie\u00dft das Chatfenster";
+  String TOOLTIP_SETUP = "\u00d6ffnet ein Fenster f\u00fcr Einstellungen";
+  String TOOLTIP_CONNECT = "Verbindung zu Server aufbauen";
+  String TOOLTIP_DISCONNECT = "Verbindung zum Server trennen";
 }

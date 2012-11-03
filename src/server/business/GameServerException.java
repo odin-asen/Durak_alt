@@ -1,4 +1,4 @@
-package server.business.exception;
+package server.business;
 
 /**
  * User: Timm Herrmann
@@ -10,5 +10,6 @@ public class GameServerException extends Exception {
 
   }
   public GameServerException(String s) {
+    super(s);
   }
 }
