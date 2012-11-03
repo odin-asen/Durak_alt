@@ -20,33 +20,13 @@ public class ResourceGetter {
   private static Logger LOGGER = Logger.getLogger(ResourceGetter.class.getName());
 
   private static final int CARD_STRIPE_X_AXIS_GAP = 1;
-
-  public static final String RESOURCES_ROOT = "";
-  public static final String PICTURES_ROOT = RESOURCES_ROOT + "icons/";
-  public static final String CARDS_ROOT = PICTURES_ROOT + "cards/";
-  public static final String SOUNDS_ROOT = RESOURCES_ROOT + "sounds/";
-
-  public static final String STRING_IMAGE_CLOSE = "Close.png";
-  public static final String STRING_IMAGE_NETWORK = "Network.png";
-  public static final String STRING_IMAGE_PINION = "Pinion.png";
-  public static final String STRING_IMAGE_PLAY = "Play.png";
-  public static final String STRING_IMAGE_STOP_PLAYER = "Stop Player.png";
-  public static final String STRING_IMAGE_CONNECTED = "Connected.png";
-  public static final String STRING_IMAGE_DISCONNECTED = "Disconnected.png";
-
-  public static final String STRING_CARD_BACK = "back.png";
-  public static final String STRING_CARD_COLOUR_CLUBS = "clubs.png";
-  public static final String STRING_CARD_COLOUR_DIAMONDS = "diamonds.png";
-  public static final String STRING_CARD_COLOUR_HEARTS = "hearts.png";
-  public static final String STRING_CARD_COLOUR_SPADES = "spades.png";
-
   private static final int MAGIC_X_AXIS_GAP_CONSTANT = 2;
 
   public static ImageIcon getCardImage(GameCardConstants.CardColour colour, GameCardConstants.CardValue cardValue, String alternativeText) {
     ImageIcon image = null;
 
     try {
-      final String path = ResourceGetter.CARDS_ROOT + getStringCardColour(colour);
+      final String path = ResourceList.CARDS_ROOT + getStringCardColour(colour);
       image = getCardFromStripe(loadImage(path, alternativeText), cardValue.getValue());
     } catch (ResourceGetterException e) {
       LOGGER.log(Level.WARNING, e.getMessage());
@@ -59,13 +39,13 @@ public class ResourceGetter {
     final String string;
 
     if(GameCardConstants.CardColour.CLUBS.equals(colour)) {
-      string = STRING_CARD_COLOUR_CLUBS;
+      string = ResourceList.CARD_COLOUR_CLUBS;
     } else if(GameCardConstants.CardColour.DIAMONDS.equals(colour)) {
-      string = STRING_CARD_COLOUR_DIAMONDS;
+      string = ResourceList.CARD_COLOUR_DIAMONDS;
     } else if(GameCardConstants.CardColour.HEARTS.equals(colour)) {
-      string = STRING_CARD_COLOUR_HEARTS;
+      string = ResourceList.CARD_COLOUR_HEARTS;
     } else {
-      string = STRING_CARD_COLOUR_SPADES;
+      string = ResourceList.CARD_COLOUR_SPADES;
     }
 
     return string;
@@ -86,7 +66,7 @@ public class ResourceGetter {
     ImageIcon image = null;
 
     try {
-      final String path = ResourceGetter.PICTURES_ROOT + imageName;
+      final String path = ResourceList.PICTURES_ROOT + imageName;
       image = loadImage(path, alternativeText);
     } catch (ResourceGetterException e) {
       LOGGER.log(Level.WARNING, e.getMessage());
@@ -126,7 +106,7 @@ public class ResourceGetter {
   }
 
   public static ImageIcon getBackCard() {
-    return getImage("cards/"+STRING_CARD_BACK, "Back");
+    return getImage("cards/"+ ResourceList.CARD_BACK, "Back");
   }
 }
 
