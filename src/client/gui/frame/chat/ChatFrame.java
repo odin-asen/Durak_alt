@@ -3,7 +3,7 @@ package client.gui.frame.chat;
 import client.business.client.GameClient;
 import client.gui.frame.setup.SetUpFrame;
 import dto.ClientInfo;
-import utilities.gui.FensterPositionen;
+import utilities.gui.FramePosition;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,13 +38,13 @@ public class ChatFrame extends JDialog {
 
   /* Constructors */
   public ChatFrame() {
-    final FensterPositionen positionen = FensterPositionen.createFensterPositionen(
+    final FramePosition position = FramePosition.createFensterPositionen(
         CHAT_FRAME_SCREEN_SIZE_WIDTH, CHAT_FRAME_SCREEN_SIZE_HEIGHT);
     buttonListener = new ButtonListener();
     chatMessageHandler = new ChatMessageHandler();
     initComponents();
 
-    this.setBounds(positionen.getRectangle());
+    this.setBounds(position.getRectangle());
     this.setTitle(CHAT_TITLE);
     this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
   }

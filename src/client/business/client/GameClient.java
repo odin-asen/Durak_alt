@@ -1,11 +1,13 @@
 package client.business.client;
 
 import dto.ClientInfo;
+import dto.DTOCard;
 import dto.message.MessageObject;
 import rmi.Authenticator;
 import rmi.ChatHandler;
 import rmi.GameAction;
 import rmi.RMIService;
+import utilities.constants.PlayerConstants;
 
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
@@ -106,6 +108,15 @@ public class GameClient extends Observable {
     return serverObserver;
   }
 
+  public Boolean sendAction(ClientInfo info, DTOCard... cards) throws RemoteException {
+    if(info.getPlayerType().equals(PlayerConstants.PlayerType.FIRST_ATTACKER) ||
+       info.getPlayerType().equals(PlayerConstants.PlayerType.SECOND_ATTACKER))
+      return getGameActionAttack().doAction(info, cards);
+    else if(info.getPlayerType().equals(PlayerConstants.PlayerType.DEFENDER))
+      return getGameActionDefend().doAction(info, cards);
+    else return false;
+  }
+
   /* Getter and Setter */
   public String getSocketAddress() {
     return serverAddress + ":" + port;
@@ -133,11 +144,11 @@ public class GameClient extends Observable {
     return (ChatHandler) services.get(RMIService.CHAT);
   }
 
-  public GameAction getGameActionAttack() {
+  private GameAction getGameActionAttack() {
     return (GameAction) services.get(RMIService.ATTACK_ACTION);
   }
 
-  public GameAction getGameActionDefend() {
+  private GameAction getGameActionDefend() {
     return (GameAction) services.get(RMIService.DEFENSE_ACTION);
   }
 }

@@ -3,7 +3,7 @@ package client.gui.frame.setup;
 import client.business.ConnectionInfo;
 import client.gui.frame.ClientGUIConstants;
 import dto.ClientInfo;
-import utilities.gui.FensterPositionen;
+import utilities.gui.FramePosition;
 import utilities.gui.WidgetCreator;
 
 import javax.swing.*;
@@ -36,11 +36,11 @@ public class SetUpFrame extends JDialog {
 
   /* Constructors */
   private SetUpFrame() {
-    final FensterPositionen positionen = FensterPositionen.createFensterPositionen(
+    final FramePosition position = FramePosition.createFensterPositionen(
         ClientGUIConstants.SET_UP_FRAME_SCREEN_SIZE_WIDTH, ClientGUIConstants.SET_UP_FRAME_SCREEN_SIZE_HEIGHT);
     buttonListener = new ButtonListener();
 
-    this.setBounds(positionen.getRectangle());
+    this.setBounds(position.getRectangle());
     this.setTitle(ClientGUIConstants.SET_UP_TITLE);
     this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 

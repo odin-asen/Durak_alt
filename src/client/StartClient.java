@@ -17,7 +17,7 @@ public class StartClient {
     ClientFrame frame = new ClientFrame();
     frame.initTest(true);
     frame.placeCardTest(true);
-    loadLaF(frame);
+//    loadLaF(frame);
   }
 
   public static void loadLaF(Component comp)

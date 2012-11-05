@@ -10,7 +10,7 @@ import dto.DTOCardStack;
 import dto.message.*;
 import utilities.Miscellaneous;
 import utilities.constants.GameCardConstants;
-import utilities.gui.FensterPositionen;
+import utilities.gui.FramePosition;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,12 +44,12 @@ public class ClientFrame extends JFrame implements Observer {
 
   /* Constructors */
   public ClientFrame() {
-    final FensterPositionen positionen = FensterPositionen.createFensterPositionen(
+    final FramePosition position = FramePosition.createFensterPositionen(
         MAIN_FRAME_SCREEN_SIZE, MAIN_FRAME_SCREEN_SIZE);
     GameClient.getClient().addObserver(this);
 
     this.setTitle(APPLICATION_NAME + TITLE_SEPARATOR + VERSION);
-    this.setBounds(positionen.getRectangle());
+    this.setBounds(position.getRectangle());
     this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     initComponents();
     this.setVisible(true);
@@ -89,7 +89,7 @@ public class ClientFrame extends JFrame implements Observer {
     if(!init) return;
 
     List<DTOCard> cards = new ArrayList<DTOCard>();
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 15; i++) {
       final DTOCard card = new DTOCard();
       card.cardValue = GameCardConstants.CardValue.TWO;
       card.cardColour = GameCardConstants.CardColour.CLUBS;
@@ -102,7 +102,7 @@ public class ClientFrame extends JFrame implements Observer {
     if(!init) return;
 
     List<DTOCard> attackCards = new ArrayList<DTOCard>();
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 0; i++) {
       final DTOCard card = new DTOCard();
       card.cardValue = GameCardConstants.CardValue.ACE;
       card.cardColour = GameCardConstants.CardColour.HEARTS;
@@ -110,7 +110,7 @@ public class ClientFrame extends JFrame implements Observer {
     }
 
     List<DTOCard> defenderCards = new ArrayList<DTOCard>();
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 0; i++) {
       final DTOCard card = new DTOCard();
       card.cardValue = GameCardConstants.CardValue.ACE;
       card.cardColour = GameCardConstants.CardColour.SPADES;

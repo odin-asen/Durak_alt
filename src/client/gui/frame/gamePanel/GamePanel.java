@@ -2,7 +2,6 @@ package client.gui.frame.gamePanel;
 
 import client.gui.frame.ClientGUIConstants;
 import client.gui.widget.card.CardMoveListener;
-import client.gui.widget.card.GameCardListener;
 import client.gui.widget.card.GameCardWidget;
 import dto.DTOCard;
 
@@ -11,9 +10,7 @@ import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * User: Timm Herrmann
@@ -26,26 +23,28 @@ public class GamePanel extends JPanel {
   private static final Float USER_CARDS_PANEL_HEIGHT = 0.4f;
   private static final Float DISTANCE_CARD_X = 0.05f;
   private static final Float DISTANCE_CARD_Y = 0.05f;
-  public static final double CARD_TO_CARD_DISTANCE_X = 0.18;
 
   private JPanel inGamePanel;
 
-  private CardMoveListener cardManager; //TODO implementieren, damit karten aufeinander reagieren können
+  private CardMoveListener cardManager;
 
-  private Set<GameCardWidget> clientWidgets;
+  private List<GameCardWidget> clientWidgets;
+  private List<CombatCardPanel> cardPanels;
 
   /* Constructors */
   public GamePanel() {
     inGamePanel = new JPanel();
     inGamePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
     inGamePanel.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
-    inGamePanel.setLayout(new GridLayout(1,1));
+    inGamePanel.setLayout(new GridLayout(1, 1));
     this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
     this.setLayout(null);
     this.add(inGamePanel);
     this.addComponentListener(new CardReplacer());
 
-    clientWidgets = new HashSet<GameCardWidget>();
+    clientWidgets = new ArrayList<GameCardWidget>();
+    cardPanels = new ArrayList<CombatCardPanel>();
+    cardManager = CardMoveListener.getDefaultInstance(this);
   }
 
   /* Methods */
@@ -58,25 +57,20 @@ public class GamePanel extends JPanel {
   public void placeInGameCards(List<DTOCard> attackCards, List<DTOCard> defenderCards) {
     clearInGameField();
 
-    List<CombatCardPanel>  cardPanels = new ArrayList<CombatCardPanel>(attackCards.size());
-    //TODO panels fangen ab, wenn eine Karte im Bereich ist, sodass die Karte als Verteidigungskarte hinzugefügt wird
-
     final Integer[] gridValues = computePanelGrid(inGamePanel, attackCards.size(), GameCardWidget.WIDTH_TO_HEIGHT);
     inGamePanel.setLayout(new GridLayout(gridValues[0], gridValues[1]));
     for (DTOCard card : attackCards) {
       final CombatCardPanel panel = new CombatCardPanel();
       panel.setAttackerCard(new GameCardWidget(card));
-      cardPanels.add(panel);
-      inGamePanel.add(panel);
+      addInGameCards(panel);
     }
 
-    for (int index = 0; index < defenderCards.size(); index++) {
-      cardPanels.get(index).setDefenderCard(new GameCardWidget(defenderCards.get(index)));
-    }
-
-    for (CombatCardPanel cardPanel : cardPanels) {
+    for (int index = 0; index < defenderCards.size() && index < attackCards.size(); index++) {
+      final CombatCardPanel cardPanel = cardPanels.iterator().next();
+      cardPanel.setDefenderCard(new GameCardWidget(defenderCards.get(index)));
       cardPanel.placeCards();
     }
+    cardManager = CardMoveListener.getAttackerInstance(this);
   }
 
   /**
@@ -111,29 +105,32 @@ public class GamePanel extends JPanel {
 
   private void clearInGameField() {
     inGamePanel.removeAll();
+    cardPanels.removeAll(cardPanels);
     this.repaint();
   }
 
   public void placeClientCards(List<DTOCard> cards) {
-    clientWidgets = new HashSet<GameCardWidget>();
+    for (GameCardWidget widget : clientWidgets) {
+      removeCard(widget);
+    }
 
     setClientCards(computeClientCardArea(), cards);
+    this.repaint();
   }
 
   private void setClientCards(Rectangle region, List<DTOCard> cards) {
     final Rectangle rect = getFirstCardBounds(region, GameCardWidget.WIDTH_TO_HEIGHT);
-    final Double heightLimit = 1.0-rect.getHeight()/getHeight();
-    final GameCardListener cardListener = new GameCardListener();
+    final double distance = computeRelativeCardToCardDistanceX(rect, cards.size());
 
-    cardListener.setMoveArea(0.0,1.0,heightLimit,1.0);
 
-    for (DTOCard card : cards) {
-      final GameCardWidget widget = new GameCardWidget(card);
-      rect.x = (int) (rect.x + rect.width * CARD_TO_CARD_DISTANCE_X);
+    for (int index = 0; index < cards.size(); index++) {
+      final GameCardWidget widget = new GameCardWidget(cards.get(index));
+      if(index > 0)
+        rect.x = (int) (rect.x + rect.width * distance);
       widget.setBounds(rect);
-      widget.setGameCardListener(cardListener);
+      widget.setCardMoveListener(cardManager);
       widget.setMovable(true);
-      addCard(clientWidgets, widget);
+      addCard(widget);
       widget.getParent().setComponentZOrder(widget, 0);
     }
   }
@@ -148,46 +145,71 @@ public class GamePanel extends JPanel {
         new Dimension(width,height));
   }
 
+  public void addInGameCards(CombatCardPanel panel) {
+    if(panel != null) {
+      cardPanels.add(panel);
+      inGamePanel.add(panel);
+    }
+  }
+
   public Rectangle computeClientCardArea() {
     return new Rectangle(0, (int) (getHeight()*(1.0f-USER_CARDS_PANEL_HEIGHT)),
     getWidth(), (int) (getHeight()*USER_CARDS_PANEL_HEIGHT));
   }
 
-  public void addCard(Set<GameCardWidget> widgetSet, GameCardWidget widget) {
-    this.add(widget);
-    widgetSet.add(widget);
+  private double computeRelativeCardToCardDistanceX(Rectangle cardBounds, Integer cardCount) {
+    double distance = 1.0;
+    if(cardCount > 1) {
+      final Rectangle cardArea = computeClientCardArea();
+      final double width = cardArea.width - (cardArea.width*2.0*DISTANCE_CARD_X);
+      if(cardCount*cardBounds.width > width)
+        distance = (width-cardBounds.width)/(cardBounds.width*(cardCount-1));
+      else distance = 1.0;
+    }
+    return distance;
   }
 
-  public void removeCard(Set<GameCardWidget> widgetSet, GameCardWidget widget) {
+  public void addCard(GameCardWidget widget) {
+    this.add(widget);
+    clientWidgets.add(widget);
+  }
+
+  public void removeCard(GameCardWidget widget) {
     this.remove(widget);
-    widgetSet.remove(widget);
+    clientWidgets.remove(widget);
+    replaceCards(computeClientCardArea());
   }
 
   public void deleteCards() {
-    //this.removeAll();
+    for (GameCardWidget widget : clientWidgets) {
+      this.removeCard(widget);
+    }
+    inGamePanel.removeAll();
     this.repaint();
   }
 
   /* paint-Methode */
   public void paint(Graphics g) {
     super.paint(g);
-
     final Rectangle area = computeClientCardArea();
 
     resizePanels(new Dimension(getWidth(), getHeight()-area.height));
     resizeClientCards(area);
 
     g.setColor(Color.WHITE);
-    g.drawRect(area.x, area.y+1, area.width - 1, area.height);
+    g.drawRect(area.x, area.y + 1, area.width - 1, area.height);
   }
 
   private void replaceCards(Rectangle area) {
     final Rectangle rect = getFirstCardBounds(area, GameCardWidget.WIDTH_TO_HEIGHT);
+    final double distance = computeRelativeCardToCardDistanceX(rect, clientWidgets.size());
 
-    for (GameCardWidget widget : clientWidgets) {
-      rect.x = (int) (rect.x + rect.width*CARD_TO_CARD_DISTANCE_X);
-      widget.setBounds(rect);
-      this.setComponentZOrder(widget,0);
+    for (int index = 0; index < clientWidgets.size(); index++) {
+      final GameCardWidget widget = clientWidgets.get(index);
+      if(index > 0)
+        rect.x = (int) (rect.x + rect.width*distance);
+      widget.setLocation(rect.getLocation());
+      this.setComponentZOrder(widget, 0);
     }
   }
 
@@ -201,9 +223,10 @@ public class GamePanel extends JPanel {
   private void resizeClientCards(Rectangle area) {
     final Rectangle rect = getFirstCardBounds(area, GameCardWidget.WIDTH_TO_HEIGHT);
     for (GameCardWidget gameCardWidget : clientWidgets) {
-      gameCardWidget.setSize(rect.width,rect.height);
+      gameCardWidget.setSize(rect.getSize());
     }
   }
+
   /* Getter and Setter */
 
   /* Inner Classes */
@@ -212,13 +235,10 @@ public class GamePanel extends JPanel {
       replaceCards(computeClientCardArea());
     }
 
-    public void componentMoved(ComponentEvent e) {
-    }
+    public void componentMoved(ComponentEvent e) {}
 
-    public void componentShown(ComponentEvent e) {
-    }
+    public void componentShown(ComponentEvent e) {}
 
-    public void componentHidden(ComponentEvent e) {
-    }
+    public void componentHidden(ComponentEvent e) {}
   }
 }

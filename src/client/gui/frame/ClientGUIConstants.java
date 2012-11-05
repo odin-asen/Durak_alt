@@ -13,6 +13,7 @@ import java.awt.*;
 public interface ClientGUIConstants {
   /* General constants */
   Color GAME_TABLE_COLOUR = new Color(13, 153, 0);
+  Color CURTAIN_COLOUR = new Color(0, 0, 255, 109);
   ImageIcon CARD_BACK = ResourceGetter.getBackCard();
 
   /* Action commands for Buttons and MenuItems */

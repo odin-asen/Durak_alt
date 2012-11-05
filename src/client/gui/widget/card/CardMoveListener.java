@@ -1,89 +1,108 @@
 package client.gui.widget.card;
 
-import javax.swing.*;
+import client.gui.frame.gamePanel.CombatCardPanel;
+import client.gui.frame.gamePanel.GamePanel;
+import utilities.gui.Compute;
+
 import java.awt.*;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.util.HashSet;
-import java.util.Set;
+import java.awt.event.*;
+import java.util.List;
 
 /**
  * User: Timm Herrmann
  * Date: 06.10.12
  * Time: 02:14
  */
-public class CardMoveListener implements ComponentListener{
-  private Set<GameCardWidget> widgets;
-  private GameCardWidget curtainWidget;
+public abstract class CardMoveListener
+    implements ComponentListener, MouseListener, MouseMotionListener {
+  protected GamePanel parent;
 
-  public CardMoveListener(Set<GameCardWidget> widgets) {
-    this.widgets = widgets;
-    for (GameCardWidget widget : widgets) {
-      widget.addComponentListener(this);
+  private Point oldPoint;
+  private Point grabbingPoint;
+
+  /* Constructor */
+  public CardMoveListener(GamePanel parent) {
+    this.parent = parent;
+    oldPoint = new Point();
+    grabbingPoint = null;
+  }
+
+  public static CardMoveListener getDefenderInstance(GamePanel parent,
+                                                     List<CombatCardPanel> combatPanels) {
+    return new DefenseCardMoveListener(parent, combatPanels);
+  }
+
+  public static CardMoveListener getAttackerInstance(GamePanel parent) {
+    return new AttackCardMoveListener(parent);
+  }
+
+  public static CardMoveListener getDefaultInstance(GamePanel parent) {
+    return new DefaultCardMoveListener(parent);
+  }
+
+  /* Methods */
+  public final void mouseDragged(MouseEvent e) {
+    final GameCardWidget cardWidget = (GameCardWidget) e.getSource();
+    parent.setComponentZOrder(cardWidget,0);
+    Point point = e.getLocationOnScreen();
+
+    /* Draw the widget at the correct position */
+    if(Compute.componentContainsPoint(point, parent)) {
+      cardWidget.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+      cardWidget.setLocation(((point.x - oldPoint.x)+cardWidget.getLocation().x),
+          (point.y - oldPoint.y)+cardWidget.getLocation().y);
+      oldPoint.setLocation(cardWidget.getLocationOnScreen().getX()+ grabbingPoint.getX(),
+          cardWidget.getLocationOnScreen().getY()+ grabbingPoint.getY());
     }
   }
 
-  private GameCardWidget getMostTouchedWidget(GameCardWidget widget) {
-    GameCardWidget resultWidget = null;
-    Set<GameCardWidget> touchedWidgets = getAllTouchedWidgets(widget);
-    Rectangle currentBiggest = new Rectangle(0,0,0,0);
-    Rectangle newBiggest;
+  public void mouseMoved(MouseEvent e) {}
 
-    final Rectangle touchier = widget.getBounds();
-    for (GameCardWidget touchedWidget : touchedWidgets) {
-      final Rectangle touched = touchedWidget.getBounds();
-      newBiggest = SwingUtilities.computeIntersection(touchier.x,touchier.y,
-          touchier.width,touchier.height,touched);
-      if((currentBiggest.width*currentBiggest.height)<(newBiggest.width*newBiggest.height)) {
-        currentBiggest = newBiggest;
-        resultWidget = touchedWidget;
-      }
-    }
-    return resultWidget;
+  public void mouseClicked(MouseEvent e) {
+    parent.setComponentZOrder(e.getComponent(),0);
   }
 
-  private Set<GameCardWidget> getAllTouchedWidgets(GameCardWidget widget) {
-    Set<GameCardWidget> touchedWidgets = new HashSet<GameCardWidget>();
-    final Rectangle toucher = widget.getBounds();
-    for (GameCardWidget gameCardWidget : widgets) {
-      final Rectangle touched = gameCardWidget.getBounds();
-      if((gameCardWidget != widget) && (toucher.intersects(touched)))
-        touchedWidgets.add(gameCardWidget);
-    }
-    return touchedWidgets;
+  public void mousePressed(MouseEvent e) {
+    GameCardWidget widget = (GameCardWidget) e.getComponent();
+    widget.setLastLocation(widget.getLocation());
+    widget.setLastZOrderIndex(parent.getComponentZOrder(widget));
+
+    grabbingPoint = e.getPoint();
+    if(!e.getComponent().getCursor().equals(Cursor.getDefaultCursor()))
+      e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
   }
 
-  private void setCurtainWidget(GameCardWidget nearestWidget) {
-    if(curtainWidget != nearestWidget) {
-      if(curtainWidget != null)
-        curtainWidget.setPaintCurtain(false);
-      curtainWidget = nearestWidget;
-    }
-    curtainWidget.setPaintCurtain(true);
+  /**
+   * Should be called at the end of the extending subclasses method. So it is
+   * guaranteed that the cards can be properly be moved.
+   * @param e The given mouse event.
+   */
+  public void mouseReleased(MouseEvent e) {
+    grabbingPoint = null;
+    if(!e.getComponent().getCursor().equals(Cursor.getDefaultCursor()))
+      e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
   }
 
-  public void componentResized(ComponentEvent e) {
+  public void mouseEntered(MouseEvent e) {
+    e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
   }
 
-  public void componentMoved(ComponentEvent e) {
-    final GameCardWidget widget = (GameCardWidget) e.getComponent();
-    final GameCardWidget nearestWidget = getMostTouchedWidget(widget);
-
-    if(nearestWidget == null) {
-      if(curtainWidget != null) {
-        curtainWidget.setPaintCurtain(false);
-        curtainWidget = null;
-      }
-    } else {
-//      if(GameCardConstants.CardType.DEFENSE.equals(widget.getCardInfo().getCardType()) &&
-//         GameCardConstants.CardType.ATTACK.equals(nearestWidget.getCardInfo().getCardType()))
-//        setCurtainWidget(nearestWidget); TODO andere lösung finden
-    }
+  public void mouseExited(MouseEvent e) {
+    e.getComponent().setCursor(Cursor.getDefaultCursor());
   }
 
-  public void componentShown(ComponentEvent e) {
-  }
+  public void componentResized(ComponentEvent e) {}
 
-  public void componentHidden(ComponentEvent e) {
+  public void componentMoved(ComponentEvent e) {}
+
+  public void componentShown(ComponentEvent e) {}
+
+  public void componentHidden(ComponentEvent e) {}
+
+  /* Getter and Setter */
+  protected Point getGrabbingPoint() {
+    if(grabbingPoint != null)
+      return new Point(grabbingPoint);
+    else return null;
   }
 }

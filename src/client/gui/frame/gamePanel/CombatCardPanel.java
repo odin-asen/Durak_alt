@@ -21,6 +21,7 @@ public class CombatCardPanel extends JPanel {
   private static final Float DISTANCE_DEFENDER_Y = 0.2f;
 
   private Dimension cardDimension;
+  private Boolean paintCurtain;
 
   /* Constructors */
   public CombatCardPanel() {
@@ -32,6 +33,14 @@ public class CombatCardPanel extends JPanel {
   public void paint(Graphics g) {
     super.paint(g);
     placeCards();
+    if(attackerCard == null && paintCurtain) {
+      final Rectangle curtain = new Rectangle(computeAttackerPosition(),
+          computeCardDimension());
+      final Color oldColour = g.getColor();
+      g.setColor(ClientGUIConstants.CURTAIN_COLOUR);
+      g.drawRect(curtain.x, curtain.y, curtain.width, curtain.height);
+      g.setColor(oldColour);
+    }
   }
 
   /* Methods */
@@ -41,18 +50,14 @@ public class CombatCardPanel extends JPanel {
     final Dimension cardDim = computeCardDimension();
 
     if(defenderCard != null) {
-      GameCardWidget widget = defenderCard;
+      final GameCardWidget widget = defenderCard;
       widget.setBounds(new Rectangle(defenderPoint, cardDim));
-      widget.setGameCardListener(null);
-      widget.setMovable(false);
       this.setComponentZOrder(widget,0);
     }
 
     if(attackerCard != null) {
-      GameCardWidget widget = attackerCard;
+      final GameCardWidget widget = attackerCard;
       widget.setBounds(new Rectangle(attackerPoint, cardDim));
-      widget.setGameCardListener(null);
-      widget.setMovable(false);
     }
   }
 
@@ -84,8 +89,11 @@ public class CombatCardPanel extends JPanel {
   private GameCardWidget addCard(GameCardWidget oldWidget, GameCardWidget newWidget) {
     if (oldWidget != null)
       remove(oldWidget);
-    if(newWidget != null)
+    if(newWidget != null) {
+      newWidget.setCardMoveListener(null);
+      newWidget.setMovable(false);
       add(newWidget);
+    }
 
     return newWidget;
   }
@@ -97,6 +105,23 @@ public class CombatCardPanel extends JPanel {
       else return defenderCard.getToolTipText()+" schl\u00e4gt "+attackerCard.getToolTipText();
     } else return "";
   }
+
+  /**
+   * Complete means that an attacker card is covered by a defender card.
+   * @return Returns true or false whether this panel is complete or not.
+   */
+  public Boolean isComplete() {
+    return hasAttackerCard() && hasAttackerCard();
+  }
+
+  public Boolean hasDefenderCard() {
+    return (defenderCard != null);
+  }
+
+  public Boolean hasAttackerCard() {
+    return (attackerCard != null);
+  }
+
   /* Getter and Setter */
   public GameCardWidget getAttackerCard() {
     return attackerCard;
@@ -114,5 +139,11 @@ public class CombatCardPanel extends JPanel {
   public void setDefenderCard(GameCardWidget defenderCard) {
     this.defenderCard = addCard(this.defenderCard, defenderCard);
     setToolTipText(createToolTipText());
+  }
+
+  public void setPaintCurtain(Boolean paint) {
+    paintCurtain = paint;
+    if(attackerCard != null)
+      attackerCard.setPaintCurtain(paint);
   }
 }

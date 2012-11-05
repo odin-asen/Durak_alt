@@ -1,5 +1,6 @@
 package client.gui.widget.card;
 
+import client.gui.frame.ClientGUIConstants;
 import dto.DTOCard;
 import game.GameCard;
 import resources.ResourceGetter;
@@ -7,10 +8,6 @@ import utilities.Converter;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Observable;
-import java.util.Observer;
-
-import static utilities.constants.GameCardConstants.*;
 
 /**
  * User: Timm Herrmann
@@ -19,22 +16,23 @@ import static utilities.constants.GameCardConstants.*;
  *
  * This class provides the graphical handling of the card, such as drag-and-drop.
  */
-public class GameCardWidget extends JComponent implements Observer{
+public class GameCardWidget extends JComponent {
   public static final float WIDTH_TO_HEIGHT = 0.69f;
   public static final float ALIGNMENT_CARD_HEIGHT = 0.3f;
-  //TODO Karten auf Position fixieren und nur auf andere Karten ziehbar machen oder aufs
-  //TODO Spielfeld
+
   private Image cardImage;
   private GameCard cardInfo;
   private Boolean paintCurtain;
-  private GameCardListener gameCardListener;
+  private CardMoveListener cardMoveListener;
   private Boolean movable;
+
+  private Point lastLocation;
+  private int lastZOrderIndex;
 
   /* Constructors */
   public GameCardWidget(DTOCard dtoCard) {
     this.cardInfo = Converter.fromDTO(dtoCard);
     this.paintCurtain = false;
-    this.gameCardListener = new GameCardListener();
     this.movable = false;
 
     this.setToolTipText(dtoCard.getColourAndValue());
@@ -60,16 +58,20 @@ public class GameCardWidget extends JComponent implements Observer{
 
   private void paintCurtain(Graphics2D g2D, Dimension cardDim) {
     final Color oldColor = g2D.getColor();
-    g2D.setColor(new Color(0, 0, 255, 109));
+    g2D.setColor(ClientGUIConstants.CURTAIN_COLOUR);
     g2D.fillRect(0, 0, cardDim.width, cardDim.height);
     g2D.setColor(oldColor);
   }
 
-  public void setGameCardListener(GameCardListener listener) {
-    this.removeMouseListener(gameCardListener);
+  public void setCardMoveListener(CardMoveListener listener) {
+    this.removeMouseListener(cardMoveListener);
+    this.removeMouseMotionListener(cardMoveListener);
+    this.removeComponentListener(cardMoveListener);
 
-    this.gameCardListener = listener;
+    this.cardMoveListener = listener;
+    this.addMouseMotionListener(listener);
     this.addMouseListener(listener);
+    this.addComponentListener(listener);
   }
 
   public void setPaintCurtain(boolean paint) {
@@ -78,16 +80,6 @@ public class GameCardWidget extends JComponent implements Observer{
       this.repaint();
     } else
       this.paintCurtain = paint;
-  }
-
-  public void update(Observable o, Object arg) {
-    String parameter = arg.toString();
-
-    if(parameter.equals(BECAME_MOVABLE)) {
-      this.addMouseMotionListener(gameCardListener);
-    } else if(parameter.equals(BECAME_NOT_MOVABLE)) {
-      this.removeMouseMotionListener(gameCardListener);
-    }
   }
 
   /**
@@ -133,14 +125,33 @@ public class GameCardWidget extends JComponent implements Observer{
     if(movable ^ this.movable) {
       this.movable = movable;
 
-      if(isMovable())
-        this.addMouseMotionListener(gameCardListener);
-      else
-        this.removeMouseMotionListener(gameCardListener);
+      if(isMovable()) {
+        setCardMoveListener(cardMoveListener);
+      } else {
+        this.removeMouseListener(cardMoveListener);
+        this.removeMouseMotionListener(cardMoveListener);
+        this.removeComponentListener(cardMoveListener);
+      }
     }
   }
 
   public Boolean isMovable() {
     return movable;
+  }
+
+  public Point getLastLocation() {
+    return lastLocation;
+  }
+
+  public void setLastLocation(Point lastLocation) {
+    this.lastLocation = lastLocation;
+  }
+
+  public int getLastZOrderIndex() {
+    return lastZOrderIndex;
+  }
+
+  public void setLastZOrderIndex(int lastZOrderIndex) {
+    this.lastZOrderIndex = lastZOrderIndex;
   }
 }

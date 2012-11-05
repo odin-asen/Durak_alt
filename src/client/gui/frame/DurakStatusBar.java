@@ -62,7 +62,6 @@ public class DurakStatusBar extends JPanel implements Runnable {
       statusLabel.setIcon(ResourceGetter.getImage(ResourceList.IMAGE_STATUS_DISCONNECTED, "Verbunden"));
       statusLabel.setToolTipText("Momentan besteht keine Verbindung zu einem Server");
     }
-    this.connected = connected;
   }
 
   public void setText(String text) {
