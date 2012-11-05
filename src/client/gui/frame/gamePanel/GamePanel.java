@@ -24,26 +24,21 @@ public class GamePanel extends JPanel {
   private static final Float DISTANCE_CARD_X = 0.05f;
   private static final Float DISTANCE_CARD_Y = 0.05f;
 
-  private JPanel inGamePanel;
-
   private CardMoveListener cardManager;
 
   private List<GameCardWidget> clientWidgets;
-  private List<CombatCardPanel> cardPanels;
+  private InGamePanel inGamePanel;
 
   /* Constructors */
   public GamePanel() {
-    inGamePanel = new JPanel();
-    inGamePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-    inGamePanel.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
-    inGamePanel.setLayout(new GridLayout(1, 1));
+    inGamePanel= new InGamePanel();
     this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
     this.setLayout(null);
     this.add(inGamePanel);
     this.addComponentListener(new CardReplacer());
 
     clientWidgets = new ArrayList<GameCardWidget>();
-    cardPanels = new ArrayList<CombatCardPanel>();
+    inGamePanel.cardPanels = new ArrayList<CombatCardPanel>();
     cardManager = CardMoveListener.getDefaultInstance(this);
   }
 
@@ -55,58 +50,8 @@ public class GamePanel extends JPanel {
    * @param defenderCards Cards of the defender.
    */
   public void placeInGameCards(List<DTOCard> attackCards, List<DTOCard> defenderCards) {
-    clearInGameField();
 
-    final Integer[] gridValues = computePanelGrid(inGamePanel, attackCards.size(), GameCardWidget.WIDTH_TO_HEIGHT);
-    inGamePanel.setLayout(new GridLayout(gridValues[0], gridValues[1]));
-    for (DTOCard card : attackCards) {
-      final CombatCardPanel panel = new CombatCardPanel();
-      panel.setAttackerCard(new GameCardWidget(card));
-      addInGameCards(panel);
-    }
-
-    for (int index = 0; index < defenderCards.size() && index < attackCards.size(); index++) {
-      final CombatCardPanel cardPanel = cardPanels.iterator().next();
-      cardPanel.setDefenderCard(new GameCardWidget(defenderCards.get(index)));
-      cardPanel.placeCards();
-    }
-    cardManager = CardMoveListener.getAttackerInstance(this);
-  }
-
-  /**
-   * Returns the number of rows and columns for the GridLayout of the parent Panel.
-   * @param parent Panel where the GridLayout should be used.
-   * @param panelCount Number of panels to be displayed at the {@code parent}
-   * @param widthHeightRatio Ration between the width and the height of a panel
-   *                         in the {@link client.gui.frame.gamePanel.GamePanel#inGamePanel}
-   * @return An array of the class Integer with the length of two where the first value is
-   * the number of columns for the GridLayout and the second value is the number of rows.
-   */
-  private Integer[] computePanelGrid(JPanel parent, Integer panelCount, Float widthHeightRatio) {
-    if(parent == null || panelCount < 1 ||
-       parent.getHeight() < panelCount || parent.getWidth() < panelCount)
-      return new Integer[]{1,1};
-
-    /* Compute the height space that the panels have to fill */
-    int width = parent.getWidth()/panelCount;
-    int height = (int) (width/widthHeightRatio);
-    if((height) > parent.getHeight())
-      height = parent.getHeight();
-
-    /* Compute rows and columns */
-    Integer rows = parent.getHeight()/height;
-    Integer columns = panelCount/rows+1;
-
-    while((rows-1)*columns >= panelCount)
-      rows--;
-
-    return new Integer[]{rows, columns};
-  }
-
-  private void clearInGameField() {
-    inGamePanel.removeAll();
-    cardPanels.removeAll(cardPanels);
-    this.repaint();
+    inGamePanel.placeCards(attackCards, defenderCards);
   }
 
   public void placeClientCards(List<DTOCard> cards) {
@@ -133,6 +78,11 @@ public class GamePanel extends JPanel {
       addCard(widget);
       widget.getParent().setComponentZOrder(widget, 0);
     }
+    /* To ensure the accurate drawing of the cards */
+    /* Changing the size calls the CardReplacers
+    componentResized method */
+    setSize(getWidth()-1,getHeight()-1);
+    setSize(getWidth()+1,getHeight()+1);
   }
 
   private Rectangle getFirstCardBounds(Rectangle region, Float widthToHeight) {
@@ -146,10 +96,7 @@ public class GamePanel extends JPanel {
   }
 
   public void addInGameCards(CombatCardPanel panel) {
-    if(panel != null) {
-      cardPanels.add(panel);
-      inGamePanel.add(panel);
-    }
+    inGamePanel.addInGameCards(panel);
   }
 
   public Rectangle computeClientCardArea() {
@@ -184,7 +131,7 @@ public class GamePanel extends JPanel {
     for (GameCardWidget widget : clientWidgets) {
       this.removeCard(widget);
     }
-    inGamePanel.removeAll();
+    inGamePanel.clearField();
     this.repaint();
   }
 
@@ -192,9 +139,6 @@ public class GamePanel extends JPanel {
   public void paint(Graphics g) {
     super.paint(g);
     final Rectangle area = computeClientCardArea();
-
-    resizePanels(new Dimension(getWidth(), getHeight()-area.height));
-    resizeClientCards(area);
 
     g.setColor(Color.WHITE);
     g.drawRect(area.x, area.y + 1, area.width - 1, area.height);
@@ -213,15 +157,9 @@ public class GamePanel extends JPanel {
     }
   }
 
-  private void resizePanels(Dimension inGameDimension) {
-    inGamePanel.setSize(inGameDimension);
-    final int componentCount = inGamePanel.getComponentCount();
-    final Integer[] gridValues = computePanelGrid(inGamePanel, componentCount, GameCardWidget.WIDTH_TO_HEIGHT);
-    inGamePanel.setLayout(new GridLayout(gridValues[0],gridValues[1]));
-  }
-
-  private void resizeClientCards(Rectangle area) {
+  private void resizeCards(Rectangle area) {
     final Rectangle rect = getFirstCardBounds(area, GameCardWidget.WIDTH_TO_HEIGHT);
+
     for (GameCardWidget gameCardWidget : clientWidgets) {
       gameCardWidget.setSize(rect.getSize());
     }
@@ -232,7 +170,9 @@ public class GamePanel extends JPanel {
   /* Inner Classes */
   private class CardReplacer implements ComponentListener {
     public void componentResized(ComponentEvent e) {
-      replaceCards(computeClientCardArea());
+      final Rectangle area = computeClientCardArea();
+      replaceCards(area);
+      resizeCards(area);
     }
 
     public void componentMoved(ComponentEvent e) {}
