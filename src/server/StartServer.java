@@ -14,7 +14,7 @@ public class StartServer {
   public static final String LOOK_AND_FEEL = "com.jtattoo.plaf.noire.NoireLookAndFeel";
 
   public static void main(String[] args) {
-    loadLaF(new ServerFrame());
+    new ServerFrame();
   }
 
   public static void loadLaF(Component comp)

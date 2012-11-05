@@ -7,14 +7,14 @@ import java.awt.*;
  * Date: 03.10.12
  * Time: 19:44
  */
-public class FensterPositionen {
+public class FramePosition {
   private int posX;
   private int posY;
   private int breite;
   private int hoehe;
   private Rectangle rectangle;
 
-  private FensterPositionen(Dimension screenSize, float screenSizeFensterBreite, float screenSizeFensterHoehe) {
+  private FramePosition(Dimension screenSize, float screenSizeFensterBreite, float screenSizeFensterHoehe) {
     if(screenSize == null)
       screenSize = new Dimension(1366,768);
 
@@ -25,9 +25,9 @@ public class FensterPositionen {
     rectangle = new Rectangle(posX,posY,breite,hoehe);
   }
 
-  public static FensterPositionen createFensterPositionen(float screenSizeFensterBreite, float screenSizeFensterHoehe) {
+  public static FramePosition createFensterPositionen(float screenSizeFensterBreite, float screenSizeFensterHoehe) {
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    return new FensterPositionen(screenSize, screenSizeFensterBreite, screenSizeFensterHoehe);
+    return new FramePosition(screenSize, screenSizeFensterBreite, screenSizeFensterHoehe);
   }
 
   public int getPosX() {

@@ -7,7 +7,7 @@ import resources.ResourceGetter;
 import resources.ResourceList;
 import server.business.GameServer;
 import utilities.gui.Constraints;
-import utilities.gui.FensterPositionen;
+import utilities.gui.FramePosition;
 import utilities.gui.WidgetCreator;
 
 import javax.swing.*;
@@ -44,7 +44,7 @@ public class ServerFrame extends JFrame implements Observer {
 
   /* Constructors */
   public ServerFrame() {
-    FensterPositionen position = FensterPositionen.createFensterPositionen(
+    FramePosition position = FramePosition.createFensterPositionen(
         MAIN_FRAME_SCREEN_SIZE, MAIN_FRAME_SCREEN_SIZE);
 
     this.setBounds(position.getRectangle());
