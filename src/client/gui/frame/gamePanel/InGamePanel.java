@@ -12,8 +12,11 @@ public class InGamePanel extends JPanel {
   public List<CombatCardPanel> cardPanels; //TODO private machen, wenn möglich
   private Integer[] grids;
 
+  private Boolean paintCurtain;
+
   /* Constructors */
   public InGamePanel() {
+    paintCurtain = false;
     grids = new Integer[]{1,1};
     this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
     this.setLayout(new GridLayout(grids[0], grids[1]));
@@ -30,8 +33,7 @@ public class InGamePanel extends JPanel {
   public void placeCards(List<DTOCard> attackCards, List<DTOCard> defenderCards) {
     clearField();
 
-    final Integer[] gridValues = computePanelGrid(attackCards.size(), GameCardWidget.WIDTH_TO_HEIGHT);
-    this.setLayout(new GridLayout(gridValues[0], gridValues[1]));
+    refreshGrids();
     for (DTOCard card : attackCards) {
       final CombatCardPanel panel = new CombatCardPanel();
       panel.setAttackerCard(new GameCardWidget(card));
@@ -55,10 +57,11 @@ public class InGamePanel extends JPanel {
     if (panel != null) {
       cardPanels.add(panel);
       add(panel);
+      repaint();
     }
   }
 
-  public void refreshGrids() {
+  private void refreshGrids() {
     final int componentCount = getComponentCount();
     final Integer[] gridValues = computePanelGrid(componentCount, GameCardWidget.WIDTH_TO_HEIGHT);
     if(gridValues[0].compareTo(grids[0]) != 0 ||
@@ -100,8 +103,25 @@ public class InGamePanel extends JPanel {
   public void paint(Graphics g) {
     super.paint(g);
 
+    g.setColor(Color.BLACK);
+    g.drawRect(0,0,getWidth()-1,getHeight()-1);
     refreshGrids();
+    if(paintCurtain)
+      paintCurtain((Graphics2D) g, getSize());
+  }
+
+  private void paintCurtain(Graphics2D g2D, Dimension cardDim) {
+    final Color oldColor = g2D.getColor();
+    g2D.setColor(ClientGUIConstants.CURTAIN_COLOUR);
+    g2D.fillRect(0, 0, cardDim.width, cardDim.height);
+    g2D.setColor(oldColor);
   }
 
   /* Getter and Setter */
+  public void setPaintCurtain(Boolean paint) {
+    if(paintCurtain != paint) {
+      this.paintCurtain = paint;
+      this.repaint();
+    }
+  }
 }

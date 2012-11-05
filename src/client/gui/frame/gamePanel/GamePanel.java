@@ -32,6 +32,7 @@ public class GamePanel extends JPanel {
   /* Constructors */
   public GamePanel() {
     inGamePanel= new InGamePanel();
+    inGamePanel.setLocation(0,0);
     this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
     this.setLayout(null);
     this.add(inGamePanel);
@@ -39,7 +40,7 @@ public class GamePanel extends JPanel {
 
     clientWidgets = new ArrayList<GameCardWidget>();
     inGamePanel.cardPanels = new ArrayList<CombatCardPanel>();
-    cardManager = CardMoveListener.getDefaultInstance(this);
+    cardManager = CardMoveListener.getAttackerInstance(this);
   }
 
   /* Methods */
@@ -50,7 +51,6 @@ public class GamePanel extends JPanel {
    * @param defenderCards Cards of the defender.
    */
   public void placeInGameCards(List<DTOCard> attackCards, List<DTOCard> defenderCards) {
-
     inGamePanel.placeCards(attackCards, defenderCards);
   }
 
@@ -97,6 +97,10 @@ public class GamePanel extends JPanel {
 
   public void addInGameCards(CombatCardPanel panel) {
     inGamePanel.addInGameCards(panel);
+  }
+
+  public void paintInGameCurtain(Boolean paint) {
+    inGamePanel.setPaintCurtain(paint);
   }
 
   public Rectangle computeClientCardArea() {
@@ -165,12 +169,17 @@ public class GamePanel extends JPanel {
     }
   }
 
+  public Rectangle getInGameArea() {
+    return inGamePanel.getBounds();
+  }
+
   /* Getter and Setter */
 
   /* Inner Classes */
   private class CardReplacer implements ComponentListener {
     public void componentResized(ComponentEvent e) {
       final Rectangle area = computeClientCardArea();
+      inGamePanel.setSize(new Dimension(getWidth(), getHeight()-area.height));
       replaceCards(area);
       resizeCards(area);
     }

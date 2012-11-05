@@ -3,7 +3,9 @@ package client.gui.widget.card;
 import client.gui.frame.gamePanel.CombatCardPanel;
 import client.gui.frame.gamePanel.GamePanel;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 
 /**
@@ -50,6 +52,18 @@ public class AttackCardMoveListener extends CardMoveListener {
 //    }
 //
 //    return false;
+  }
+
+  public void componentMoved(ComponentEvent e) {
+    final GameCardWidget widget = (GameCardWidget) e.getComponent();
+    final Rectangle intersection = SwingUtilities.computeIntersection(
+        widget.getX(), widget.getY(), widget.getWidth(), widget.getHeight(),
+        parent.getInGameArea());
+
+    if(intersection.x != 0 || intersection.y != 0 ||
+       intersection.width != 0 || intersection.height != 0) {
+      parent.paintInGameCurtain(true);
+    } else parent.paintInGameCurtain(false);
   }
   /* Getter and Setter */
 }

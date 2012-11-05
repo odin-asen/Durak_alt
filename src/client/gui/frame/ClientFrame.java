@@ -102,7 +102,7 @@ public class ClientFrame extends JFrame implements Observer {
     if(!init) return;
 
     List<DTOCard> attackCards = new ArrayList<DTOCard>();
-    for (int i = 0; i < 0; i++) {
+    for (int i = 0; i < 5; i++) {
       final DTOCard card = new DTOCard();
       card.cardValue = GameCardConstants.CardValue.ACE;
       card.cardColour = GameCardConstants.CardColour.HEARTS;

@@ -78,8 +78,7 @@ public class GameCardWidget extends JComponent {
     if(paintCurtain != paint) {
       this.paintCurtain = paint;
       this.repaint();
-    } else
-      this.paintCurtain = paint;
+    }
   }
 
   /**
