@@ -108,6 +108,14 @@ public class GameClient extends Observable {
     return serverObserver;
   }
 
+  /**
+   * For attacks the card sequence is not important. If a defense request
+   * is send, the card sequence is first the defense card, second the attacker card.
+   * @param info Client information that will be send to the server.
+   * @param cards Used cards for this action.
+   * @return True or false, if the server accepts this action or not.
+   * @throws RemoteException
+   */
   public Boolean sendAction(ClientInfo info, DTOCard... cards) throws RemoteException {
     if(info.getPlayerType().equals(PlayerConstants.PlayerType.FIRST_ATTACKER) ||
        info.getPlayerType().equals(PlayerConstants.PlayerType.SECOND_ATTACKER))

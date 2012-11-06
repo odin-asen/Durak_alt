@@ -1,12 +1,16 @@
 package client.gui.widget.card;
 
+import client.business.client.GameClient;
 import client.gui.frame.gamePanel.CombatCardPanel;
 import client.gui.frame.gamePanel.GamePanel;
+import client.gui.frame.setup.SetUpFrame;
+import utilities.Converter;
 import utilities.gui.Compute;
 
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
+import java.rmi.RemoteException;
 import java.util.List;
 
 /**
@@ -36,27 +40,22 @@ public class DefenseCardMoveListener extends CardMoveListener {
     } else curtainPanel = null;
   }
 
-  private Boolean moveIsValid(GameCardWidget widget, CombatCardPanel panel) {
-    return panel != null;
-
-//    try {
-//      return GameClient.getClient().sendAction(SetUpFrame.getInstance().getClientInfo(),
-//          Converter.toDTO(widget.getCardInfo()));
-//    } catch (RemoteException e) {
-//      e.printStackTrace();
-//    }
-//
-//    return false;
-  }
-
   private void addCardToPanel(GameCardWidget widget) {
     parent.removeCard(widget);
     parent.repaint();
     curtainPanel.setDefenderCard(widget);
   }
 
+  public void mousePressed(MouseEvent e) {
+    final GameCardWidget widget = (GameCardWidget) e.getComponent();
+    widget.setLastLocation(widget.getLocation());
+    widget.setLastZOrderIndex(parent.getComponentZOrder(widget));
+
+    super.mousePressed(e);
+  }
+
   public void mouseReleased(MouseEvent e) {
-    GameCardWidget widget = (GameCardWidget) e.getComponent();
+    final GameCardWidget widget = (GameCardWidget) e.getComponent();
     if(moveIsValid(widget, curtainPanel)) {
       addCardToPanel(widget);
       widget.setCursor(Cursor.getDefaultCursor());
@@ -66,6 +65,21 @@ public class DefenseCardMoveListener extends CardMoveListener {
     }
 
     super.mouseReleased(e);
+  }
+
+  private Boolean moveIsValid(GameCardWidget widget, CombatCardPanel currentPanel) {
+    if(currentPanel == null)
+      return false;
+
+    try {
+      return GameClient.getClient().sendAction(SetUpFrame.getInstance().getClientInfo(),
+          Converter.toDTO(widget.getCardInfo()),
+          Converter.toDTO(currentPanel.getAttackerCard().getCardInfo()));
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    }
+
+    return false;
   }
 
   public void componentMoved(ComponentEvent e) {

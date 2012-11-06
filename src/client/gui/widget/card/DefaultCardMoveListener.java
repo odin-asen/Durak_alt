@@ -16,8 +16,16 @@ public class DefaultCardMoveListener extends CardMoveListener {
   }
 
   /* Methods */
+  public void mousePressed(MouseEvent e) {
+    final GameCardWidget widget = (GameCardWidget) e.getComponent();
+    widget.setLastLocation(widget.getLocation());
+    widget.setLastZOrderIndex(parent.getComponentZOrder(widget));
+
+    super.mousePressed(e);
+  }
+
   public void mouseReleased(MouseEvent e) {
-    GameCardWidget widget = (GameCardWidget) e.getComponent();
+    final GameCardWidget widget = (GameCardWidget) e.getComponent();
     widget.setLocation(widget.getLastLocation());
     parent.setComponentZOrder(widget, widget.getLastZOrderIndex());
 

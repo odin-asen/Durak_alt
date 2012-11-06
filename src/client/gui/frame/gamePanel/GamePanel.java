@@ -22,7 +22,7 @@ import java.util.List;
 public class GamePanel extends JPanel {
   private static final Float USER_CARDS_PANEL_HEIGHT = 0.4f;
   private static final Float DISTANCE_CARD_X = 0.05f;
-  private static final Float DISTANCE_CARD_Y = 0.05f;
+  private static final Float DISTANCE_CARD_Y = 0.08f;
 
   private CardMoveListener cardManager;
 
@@ -39,8 +39,7 @@ public class GamePanel extends JPanel {
     this.addComponentListener(new CardReplacer());
 
     clientWidgets = new ArrayList<GameCardWidget>();
-    inGamePanel.cardPanels = new ArrayList<CombatCardPanel>();
-    cardManager = CardMoveListener.getAttackerInstance(this);
+    cardManager = CardMoveListener.getDefaultInstance(this);
   }
 
   /* Methods */
@@ -91,7 +90,7 @@ public class GamePanel extends JPanel {
 
     return new Rectangle(new Point(
         (int) (DISTANCE_CARD_X*region.getWidth()+region.x),
-        (int) (DISTANCE_CARD_Y*region.getHeight()+region.y)),
+        (int) (2.0f*DISTANCE_CARD_Y*region.getHeight()+region.y)),
         new Dimension(width,height));
   }
 

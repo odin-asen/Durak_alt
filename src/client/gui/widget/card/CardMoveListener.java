@@ -16,6 +16,7 @@ import java.util.List;
 public abstract class CardMoveListener
     implements ComponentListener, MouseListener, MouseMotionListener {
   protected GamePanel parent;
+  protected Boolean dragged;
 
   private Point oldPoint;
   private Point grabbingPoint;
@@ -23,6 +24,7 @@ public abstract class CardMoveListener
   /* Constructor */
   public CardMoveListener(GamePanel parent) {
     this.parent = parent;
+    this.dragged = false;
     oldPoint = new Point();
     grabbingPoint = null;
   }
@@ -32,8 +34,8 @@ public abstract class CardMoveListener
     return new DefenseCardMoveListener(parent, combatPanels);
   }
 
-  public static CardMoveListener getAttackerInstance(GamePanel parent) {
-    return new AttackCardMoveListener(parent);
+  public static CardMoveListener getAttackerInstance(GamePanel parent, Float relativePointHeight) {
+    return new AttackCardMoveListener(parent, relativePointHeight);
   }
 
   public static CardMoveListener getDefaultInstance(GamePanel parent) {
@@ -41,32 +43,48 @@ public abstract class CardMoveListener
   }
 
   /* Methods */
-  public final void mouseDragged(MouseEvent e) {
+
+  /**
+   * Supports the moving of a widget. Should be called in the first line if
+   * the widget movement should be enabled.
+   * @param e The given mouse event.
+   */
+  public void mouseDragged(MouseEvent e) {
     final GameCardWidget cardWidget = (GameCardWidget) e.getSource();
     parent.setComponentZOrder(cardWidget,0);
     Point point = e.getLocationOnScreen();
 
     /* Draw the widget at the correct position */
-    if(Compute.componentContainsPoint(point, parent)) {
+    moveWidget(cardWidget, point);
+  }
+
+  /**
+   * Moves the specified widget to the position of the point {@code dragPointScreen} if
+   * the point is in the area of {@link CardMoveListener#parent}.
+   * @param cardWidget Specified widget, should be a widget of {@link CardMoveListener#parent}.
+   * @param dragPointScreen Position to move to.
+   */
+  protected void moveWidget(GameCardWidget cardWidget, Point dragPointScreen) {
+    if(Compute.componentContainsPoint(dragPointScreen, parent)) {
       cardWidget.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-      cardWidget.setLocation(((point.x - oldPoint.x)+cardWidget.getLocation().x),
-          (point.y - oldPoint.y)+cardWidget.getLocation().y);
+      cardWidget.setLocation(((dragPointScreen.x - oldPoint.x)+cardWidget.getLocation().x),
+          (dragPointScreen.y - oldPoint.y)+cardWidget.getLocation().y);
       oldPoint.setLocation(cardWidget.getLocationOnScreen().getX()+ grabbingPoint.getX(),
           cardWidget.getLocationOnScreen().getY()+ grabbingPoint.getY());
+      dragged = true;
     }
   }
 
   public void mouseMoved(MouseEvent e) {}
 
-  public void mouseClicked(MouseEvent e) {
-    parent.setComponentZOrder(e.getComponent(),0);
-  }
+  public void mouseClicked(MouseEvent e) {}
 
+  /**
+   * Should be called at the end of the extending subclasses method. So it is
+   * guaranteed that the cards can properly be moved.
+   * @param e The given mouse event.
+   */
   public void mousePressed(MouseEvent e) {
-    GameCardWidget widget = (GameCardWidget) e.getComponent();
-    widget.setLastLocation(widget.getLocation());
-    widget.setLastZOrderIndex(parent.getComponentZOrder(widget));
-
     grabbingPoint = e.getPoint();
     if(!e.getComponent().getCursor().equals(Cursor.getDefaultCursor()))
       e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
@@ -74,10 +92,11 @@ public abstract class CardMoveListener
 
   /**
    * Should be called at the end of the extending subclasses method. So it is
-   * guaranteed that the cards can be properly be moved.
+   * guaranteed that the cards can properly be moved.
    * @param e The given mouse event.
    */
   public void mouseReleased(MouseEvent e) {
+    dragged = false;
     grabbingPoint = null;
     if(!e.getComponent().getCursor().equals(Cursor.getDefaultCursor()))
       e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));

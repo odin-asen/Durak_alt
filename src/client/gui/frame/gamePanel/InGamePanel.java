@@ -6,10 +6,11 @@ import dto.DTOCard;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class InGamePanel extends JPanel {
-  public List<CombatCardPanel> cardPanels; //TODO private machen, wenn möglich
+  private List<CombatCardPanel> cardPanels;
   private Integer[] grids;
 
   private Boolean paintCurtain;
@@ -18,6 +19,7 @@ public class InGamePanel extends JPanel {
   public InGamePanel() {
     paintCurtain = false;
     grids = new Integer[]{1,1};
+    cardPanels = new ArrayList<CombatCardPanel>();
     this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
     this.setLayout(new GridLayout(grids[0], grids[1]));
   }
@@ -123,5 +125,9 @@ public class InGamePanel extends JPanel {
       this.paintCurtain = paint;
       this.repaint();
     }
+  }
+
+  public List<CombatCardPanel> getCardPanels() {
+    return cardPanels;
   }
 }

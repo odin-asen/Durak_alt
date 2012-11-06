@@ -35,7 +35,9 @@ public class DefenseAction implements GameAction {
       } catch (RuleException e) {
         reason = e.getMessage();
       }
-    } else reason = "Wrong format of the cards. Please debug!";
+    } else reason = "Wrong format of the cards. " +
+        "First card is the defense card, the second the attacker card." +
+        "\nPlease debug!";
 
     return actionDone;
   }
