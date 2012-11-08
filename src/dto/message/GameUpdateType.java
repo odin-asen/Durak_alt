@@ -6,6 +6,7 @@ package dto.message;
  * Time: 02:39
  */
 public enum GameUpdateType {
+  INGAME_CARDS,
   OPPONENT_CARD_UPDATE,
   STACK_UPDATE
 }

@@ -5,6 +5,7 @@ import dto.DTOCard;
 import game.GameProcess;
 import game.rules.RuleException;
 import rmi.GameAction;
+import server.business.GameServer;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -28,11 +29,13 @@ public class AttackAction implements GameAction {
     this.executor = client;
     Collections.addAll(this.cards, cards);
     Boolean actionDone = false;
+    final GameProcess process = GameProcess.getInstance();
 
     try {
-      GameProcess.getInstance().validateAction(this);
+      process.validateAction(this);
       actionDone = true;
       reason = "";
+      GameServer.getServerInstance().sendProcessUpdate();
     } catch (RuleException e) {
       reason = e.getMessage();
     }
@@ -41,7 +44,9 @@ public class AttackAction implements GameAction {
   }
 
   public String getRefusedReason() {
-    return reason;
+    final String lastText = reason;
+    reason = null;
+    return lastText;
   }
 
   /* Getter and Setter */

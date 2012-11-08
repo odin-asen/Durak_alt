@@ -4,10 +4,10 @@ import client.business.client.GameClient;
 import client.gui.frame.gamePanel.CombatCardPanel;
 import client.gui.frame.gamePanel.GamePanel;
 import client.gui.frame.setup.SetUpFrame;
+import dto.ClientInfo;
 import utilities.Converter;
 import utilities.gui.Compute;
 
-import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.rmi.RemoteException;
@@ -40,10 +40,9 @@ public class DefenseCardMoveListener extends CardMoveListener {
     } else curtainPanel = null;
   }
 
-  private void addCardToPanel(GameCardWidget widget) {
+  private void removeClientCard(GameCardWidget widget) {
     parent.removeCard(widget);
     parent.repaint();
-    curtainPanel.setDefenderCard(widget);
   }
 
   public void mousePressed(MouseEvent e) {
@@ -56,30 +55,49 @@ public class DefenseCardMoveListener extends CardMoveListener {
 
   public void mouseReleased(MouseEvent e) {
     final GameCardWidget widget = (GameCardWidget) e.getComponent();
-    if(moveIsValid(widget, curtainPanel)) {
-      addCardToPanel(widget);
-      widget.setCursor(Cursor.getDefaultCursor());
+    final String inValidString = moveIsValid(widget, curtainPanel);
+    if(inValidString != null) {
+      if(inValidString.isEmpty()) {
+        removeClientCard(widget);
+      } else {
+        parent.showRuleException(inValidString);
+        setWidgetToLastPlace(widget);
+      }
     } else {
-      widget.setLocation(widget.getLastLocation());
-      parent.setComponentZOrder(widget, widget.getLastZOrderIndex());
+      setWidgetToLastPlace(widget);
     }
 
     super.mouseReleased(e);
   }
 
-  private Boolean moveIsValid(GameCardWidget widget, CombatCardPanel currentPanel) {
+  private void setWidgetToLastPlace(GameCardWidget widget) {
+    widget.setLocation(widget.getLastLocation());
+    parent.setComponentZOrder(widget, widget.getLastZOrderIndex());
+  }
+
+  /**
+   * @param widget Widget of this defense move.
+   * @param currentPanel Current panel the widget stands over.
+   * @return Returns an empty string if the move is valid. If the reason is clear, when
+   * the move is not valid, the string has a content. If the reason is not clear, the string
+   * is null.
+   */
+  private String moveIsValid(GameCardWidget widget, CombatCardPanel currentPanel) {
+    String result;
     if(currentPanel == null)
-      return false;
+      return "Die Verteidigungskarte sollte schon auf eine andere Karte platziert werden!";
 
     try {
-      return GameClient.getClient().sendAction(SetUpFrame.getInstance().getClientInfo(),
-          Converter.toDTO(widget.getCardInfo()),
-          Converter.toDTO(currentPanel.getAttackerCard().getCardInfo()));
+      final ClientInfo clientInfo = SetUpFrame.getInstance().getClientInfo();
+      GameClient.getClient().sendAction(clientInfo, Converter.toDTO(widget.getCardInfo()),
+         Converter.toDTO(currentPanel.getAttackerCard().getCardInfo()));
+      result = GameClient.getClient().getActionDeniedReason(clientInfo);
     } catch (RemoteException e) {
       e.printStackTrace();
+      result = "Fehler mit dem Netzwerk!";
     }
 
-    return false;
+    return result;
   }
 
   public void componentMoved(ComponentEvent e) {

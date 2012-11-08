@@ -8,6 +8,7 @@ import game.GameCard;
 import game.GameCardStack;
 import game.Player;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
@@ -113,5 +114,31 @@ public class Converter {
       cards.add(Converter.toDTO(gameCard));
     }
     return cards;
+  }
+
+  public static List<List<DTOCard>> toDTO(List<GameCard>... cardLists) {
+    final List<List<DTOCard>> dtoLists = new ArrayList<List<DTOCard>>(cardLists.length);
+    for (List<GameCard> cardList : cardLists) {
+      dtoLists.add(Converter.toDTO(cardList));
+    }
+
+    return dtoLists;
+  }
+
+  public static List<List<GameCard>> fromDTO(List<DTOCard>... dtoLists) {
+    final List<List<GameCard>> cardLists = new ArrayList<List<GameCard>>(dtoLists.length);
+    for (List<DTOCard> dtoList : dtoLists) {
+      cardLists.add(fromDTO(dtoList));
+    }
+    return cardLists;
+  }
+
+  public static List<?> getList(DefaultListModel<?> listModel) {
+    final List<Object> list = new ArrayList<Object>(listModel.size());
+    for (int index = 0; index < listModel.size(); index++) {
+      list.add(listModel.get(index));
+    }
+
+    return list;
   }
 }

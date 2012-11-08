@@ -1,9 +1,9 @@
 package client.gui.widget.card;
 
 import client.business.client.GameClient;
-import client.gui.frame.gamePanel.CombatCardPanel;
 import client.gui.frame.gamePanel.GamePanel;
 import client.gui.frame.setup.SetUpFrame;
+import dto.ClientInfo;
 import dto.DTOCard;
 import utilities.Converter;
 
@@ -32,14 +32,14 @@ public class AttackCardMoveListener extends CardMoveListener {
   }
 
   /* Methods */
-  private void addCardToPanel(GameCardWidget widget) {
-    parent.removeCard(widget);
-    parent.repaint();
-
-    final CombatCardPanel panel = new CombatCardPanel();
-    panel.setAttackerCard(widget);
-    parent.addInGameCards(panel);
-  }
+//  private void addCardToPanel(GameCardWidget widget) {
+//    parent.removeCard(widget);
+//    parent.repaint();
+//
+//    final CombatCardPanel panel = new CombatCardPanel();
+//    panel.setAttackerCard(widget);
+//    parent.addInGameCards(panel);
+//  }
 
   public void mouseDragged(MouseEvent e) {
     super.mouseDragged(e);
@@ -76,11 +76,14 @@ public class AttackCardMoveListener extends CardMoveListener {
   public void mouseReleased(MouseEvent e) {
     final GameCardWidget widget = (GameCardWidget) e.getComponent();
     if(dragged) {
-      if(moveIsValid(widget)) {
-        addPointedCardsToPanel(widget);
+      final String inValidString = moveIsValid(widget);
+      if(inValidString != null) {
+        if(!inValidString.isEmpty()) {
+          parent.showRuleException(inValidString);
+          setWidgetToLastPlace(widget);
+        } else removeClientCards(widget);
       } else {
-        widget.setLocation(widget.getLastLocation());
-        parent.setComponentZOrder(widget, widget.getLastZOrderIndex());
+        setWidgetToLastPlace(widget);
       }
 
       pointedWidgets.dePointAll();
@@ -89,20 +92,35 @@ public class AttackCardMoveListener extends CardMoveListener {
     super.mouseReleased(e);
   }
 
-  private void addPointedCardsToPanel(GameCardWidget currentWidget) {
-    if(pointedWidgets.widgets.contains(currentWidget))
-      pointedWidgets.widgets.remove(currentWidget);
-    addCardToPanel(currentWidget);
-    currentWidget.setCursor(Cursor.getDefaultCursor());
-    for (GameCardWidget pointed : pointedWidgets.widgets) {
-      addCardToPanel(pointed);
-      pointed.setCursor(Cursor.getDefaultCursor());
-    }
+  private void setWidgetToLastPlace(GameCardWidget widget) {
+    widget.setLocation(widget.getLastLocation());
+    parent.setComponentZOrder(widget, widget.getLastZOrderIndex());
   }
 
-  private Boolean moveIsValid(GameCardWidget widget) {
+  private void removeClientCards(GameCardWidget currentWidget) {
+    if(pointedWidgets.widgets.contains(currentWidget))
+      pointedWidgets.widgets.remove(currentWidget);
+
+    parent.removeCard(currentWidget);
+    currentWidget.setCursor(Cursor.getDefaultCursor());
+    for (GameCardWidget pointed : pointedWidgets.widgets) {
+      parent.removeCard(pointed);
+      pointed.setCursor(Cursor.getDefaultCursor());
+    }
+    parent.repaint();
+  }
+
+  /**
+   * @param widget Main widget of this attack move.
+   * @param currentPanel Current panel the widget stands over.
+   * @return Returns an empty string if the move is valid. If the reason is clear, when
+   * the move is not valid, the string has a content. If the reason is not clear, the string
+   * is null.
+   */
+  private String moveIsValid(GameCardWidget widget) {
+    String result;
     if(!isWidgetInArea(widget, parent.getInGameArea()))
-      return false;
+      return null;
 
     try {
       if(!pointedWidgets.widgets.contains(widget))
@@ -110,16 +128,18 @@ public class AttackCardMoveListener extends CardMoveListener {
 
       final DTOCard[] cards = new DTOCard[pointedWidgets.widgets.size()];
       for (int index = 0, cardsLength = cards.length; index < cardsLength; index++) {
-        cards[index] = Converter.toDTO(pointedWidgets.widgets.iterator().next().getCardInfo());
+        cards[index] = Converter.toDTO(pointedWidgets.widgets.get(index).getCardInfo());
       }
 
-      return GameClient.getClient().sendAction(SetUpFrame.getInstance().getClientInfo(),
-          cards);
+      final ClientInfo clientInfo = SetUpFrame.getInstance().getClientInfo();
+      GameClient.getClient().sendAction(clientInfo, cards);
+      result = GameClient.getClient().getActionDeniedReason(clientInfo);
     } catch (RemoteException e) {
       e.printStackTrace();
+      result = "Fehler mit dem Netzwerk!";
     }
 
-    return false;
+    return result;
   }
 
   public void componentMoved(ComponentEvent e) {

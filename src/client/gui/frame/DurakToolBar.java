@@ -40,6 +40,7 @@ public class DurakToolBar extends JToolBar {
         TOOLTIP_CHAT, ACTION_COMMAND_CHAT, ALTERNATIVE_CHAT, KeyEvent.VK_C);
     JButton closeButton = makeToolBarButton(ResourceList.IMAGE_TOOLBAR_CLOSE,
         TOOLTIP_CLOSE, ACTION_COMMAND_CLOSE, ALTERNATIVE_CLOSE, KeyEvent.VK_Q);
+//    JButton testButton = makeToolBarButton(null, "test", "","test", 0);
 
     this.setMargin(new Insets(5,5,5,5));
     this.setRollover(true);
@@ -49,6 +50,8 @@ public class DurakToolBar extends JToolBar {
     this.add(setUpButton);
     this.addSeparator();
     this.add(chatButton);
+//    this.addSeparator();
+//    this.add(testButton);
     this.add(Box.createHorizontalGlue());
     this.addSeparator();
     this.add(closeButton);
@@ -76,16 +79,13 @@ public class DurakToolBar extends JToolBar {
         close();
       } else if(ACTION_COMMAND_CONNECT.equals(e.getActionCommand())) {
         GameClient client = GameClient.getClient();
-        connectClient(client);
-
-        if(client.isConnected()) {
+        if(connectClient(client)) {
           changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_NETWORK_CLOSE,
               ACTION_COMMAND_DISCONNECT, TOOLTIP_DISCONNECT, ALTERNATIVE_DISCONNECT);
         }
       } else if(ACTION_COMMAND_DISCONNECT.equals(e.getActionCommand())) {
         GameClient client = GameClient.getClient();
-        disconnectClient(client);
-        if(!client.isConnected()) {
+        if(disconnectClient(client)) {
           changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_NETWORK,
               ACTION_COMMAND_CONNECT, TOOLTIP_CONNECT, ALTERNATIVE_CONNECT);
         }
@@ -113,31 +113,29 @@ public class DurakToolBar extends JToolBar {
     }
 
     private void close() {
-      disconnect(GameClient.getClient());
+      disconnectClient(GameClient.getClient());
       parent.setVisible(false);
       parent.dispose();
       System.exit(0);
     }
 
-    private void disconnect(GameClient client) {
+    private Boolean disconnectClient(GameClient client) {
       try {
-        ClientInfo info = SetUpFrame.getInstance().getClientInfo();
+        final ClientInfo info = SetUpFrame.getInstance().getClientInfo();
         client.disconnect(info);
+        SetUpFrame.getInstance().setConnectionEnabled(true);
+        parent.setStatusBarText(false, "", "");
+        parent.clearClientList();
       } catch (NotBoundException e) {
         LOGGER.severe(e.getMessage());
       } catch (RemoteException e) {
         LOGGER.severe(e.getMessage());
       }
+
+      return !client.isConnected();
     }
 
-    private void disconnectClient(GameClient client) {
-      disconnect(client);
-      SetUpFrame.getInstance().setConnectionEnabled(true);
-      parent.setStatusBarText(false, "", "");
-      parent.clearClientList();
-    }
-
-    private void connectClient(GameClient client) {
+    private Boolean connectClient(GameClient client) {
       client.setPort(SetUpFrame.getInstance().getConnectionInfo().getPort());
       client.setServerAddress(SetUpFrame.getInstance().getConnectionInfo().getIpAddress());
 
@@ -164,6 +162,8 @@ public class DurakToolBar extends JToolBar {
         parent.setStatusBarText(false, STATUS_CONNECTION_FAIL, "");
         e.printStackTrace();
       }
+
+      return client.isConnected();
     }
   }
 }

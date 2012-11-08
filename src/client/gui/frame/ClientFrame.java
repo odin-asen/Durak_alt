@@ -8,15 +8,14 @@ import dto.ClientInfo;
 import dto.DTOCard;
 import dto.DTOCardStack;
 import dto.message.*;
+import utilities.Converter;
 import utilities.Miscellaneous;
-import utilities.constants.GameCardConstants;
 import utilities.gui.FramePosition;
 
 import javax.swing.*;
 import java.awt.*;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -36,11 +35,13 @@ public class ClientFrame extends JFrame implements Observer {
   private JPanel secondPane;
   private OpponentsPanel opponentsPanel;
   private CardStackPanel cardStackPanel;
-  private GamePanel playerPanel;
+  private GamePanel gamePanel;
   private DurakStatusBar statusBar;
   private DurakToolBar toolBar;
   private JPanel stackClientsPanel;
   private JList<ClientInfo> clientsList;
+
+  private ClientFrameMessageHandler handler;
 
   /* Constructors */
   public ClientFrame() {
@@ -48,6 +49,7 @@ public class ClientFrame extends JFrame implements Observer {
         MAIN_FRAME_SCREEN_SIZE, MAIN_FRAME_SCREEN_SIZE);
     GameClient.getClient().addObserver(this);
 
+    this.handler = new ClientFrameMessageHandler(this);
     this.setTitle(APPLICATION_NAME + TITLE_SEPARATOR + VERSION);
     this.setBounds(position.getRectangle());
     this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -71,8 +73,7 @@ public class ClientFrame extends JFrame implements Observer {
 
   public void update(Observable o, Object arg) {
     final MessageObject object = (MessageObject) arg;
-    ClientFrameUpdater updater = new ClientFrameUpdater();
-    updater.handleUpdate(object);
+    handler.handleUpdate(object);
   }
 
   public void clearClientList() {
@@ -80,44 +81,64 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   public void clearGameCards() {
-    playerPanel.deleteCards();
+    gamePanel.deleteCards();
     opponentsPanel.deleteCards();
     cardStackPanel.deleteCards();
   }
 
-  public void placeCardTest(boolean init) {
-    if(!init) return;
+  public void updateClients(List<ClientInfo> clients) {
+    final DefaultListModel<ClientInfo> listModel =
+        ((DefaultListModel<ClientInfo>) clientsList.getModel());
+    final List<ClientInfo> modelList = (List<ClientInfo>) Converter.getList(listModel);
+    final ClientInfo ownInfo = SetUpFrame.getInstance().getClientInfo();
 
-    List<DTOCard> cards = new ArrayList<DTOCard>();
-    for (int i = 0; i < 15; i++) {
-      final DTOCard card = new DTOCard();
-      card.cardValue = GameCardConstants.CardValue.TWO;
-      card.cardColour = GameCardConstants.CardColour.CLUBS;
-      cards.add(card);
+    for (ClientInfo client : clients) {
+      if(ownInfo.isEqual(client)) {
+        ownInfo.setClientInfo(client);
+      } else {
+        if(!client.containsIsEqual(modelList))
+          listModel.add(0, client);
+      }
     }
-    playerPanel.placeClientCards(cards);
   }
 
-  public void initTest(boolean init) {
-    if(!init) return;
-
-    List<DTOCard> attackCards = new ArrayList<DTOCard>();
-    for (int i = 0; i < 5; i++) {
-      final DTOCard card = new DTOCard();
-      card.cardValue = GameCardConstants.CardValue.ACE;
-      card.cardColour = GameCardConstants.CardColour.HEARTS;
-      attackCards.add(card);
+  public void initialisePlayers(List<ClientInfo> players) {
+    final ClientInfo ownInfo = SetUpFrame.getInstance().getClientInfo();
+    for (ClientInfo player : players) {
+      if(ownInfo.isEqual(player)) {
+        ownInfo.setClientInfo(player);
+        gamePanel.setListenerType(ownInfo.getPlayerType());
+      } else {
+        opponentsPanel.addOpponent(player);
+      }
     }
+  }
 
-    List<DTOCard> defenderCards = new ArrayList<DTOCard>();
-    for (int i = 0; i < 0; i++) {
-      final DTOCard card = new DTOCard();
-      card.cardValue = GameCardConstants.CardValue.ACE;
-      card.cardColour = GameCardConstants.CardColour.SPADES;
-      defenderCards.add(card);
+  public void initialiseStack(Integer size, DTOCard trumpCard) {
+    cardStackPanel.initialiseStack(size, trumpCard);
+  }
+
+  public void placeClientCards(List<DTOCard> clientCards) {
+    gamePanel.placeClientCards(clientCards);
+  }
+
+  public void updateStack(DTOCardStack cardStack) {
+    cardStackPanel.updateStack(cardStack);
+  }
+
+  public void updatePlayers(List<ClientInfo> players) {
+    final ClientInfo ownInfo = SetUpFrame.getInstance().getClientInfo();
+    for (ClientInfo client : players) {
+      if(ownInfo.isEqual(client) && !ownInfo.getPlayerType().equals(client.getPlayerType())) {
+        ownInfo.setClientInfo(client);
+        gamePanel.setListenerType(ownInfo.getPlayerType());
+      }
     }
+    opponentsPanel.updateOpponents(players);
+  }
 
-    playerPanel.placeInGameCards(attackCards, defenderCards);
+  public void updateInGameCards(List<DTOCard> attackerCards, List<DTOCard> defenderCards) {
+    gamePanel.placeInGameCards(attackerCards, defenderCards);
   }
 
   /* Getter and Setter */
@@ -127,14 +148,14 @@ public class ClientFrame extends JFrame implements Observer {
 
     secondPane = new JPanel();
     opponentsPanel = new OpponentsPanel();
-    playerPanel = new GamePanel();
+    gamePanel = new GamePanel();
 
     opponentsPanel.setPreferredSize(new Dimension(0, OPPONENT_PANEL_HEIGHT));
 
     secondPane.setLayout(new BorderLayout());
     secondPane.add(opponentsPanel, BorderLayout.PAGE_START);
     secondPane.add(getStackClientsPanel(), BorderLayout.LINE_START);
-    secondPane.add(playerPanel, BorderLayout.CENTER);
+    secondPane.add(gamePanel, BorderLayout.CENTER);
     secondPane.add(getStatusPanel(), BorderLayout.PAGE_END);
 
     return secondPane;
@@ -184,99 +205,7 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   /* Inner Classes */
-  private class ClientFrameUpdater {
-    private void handleUpdate(MessageObject object) {
-      if(object == null)
-        return;
-
-      final Class<? extends Enum> enumClass = object.getType().getClass();
-      if(enumClass.equals(GUIObserverType.class)) {
-        handleGUIObserverType(object);
-      } else if(enumClass.equals(BroadcastType.class)) {
-        handleBroadcastType(object);
-      } else if(enumClass.equals(GameUpdateType.class)) {
-        handleGameUpdateType(object);
-      } else if(enumClass.equals(MessageType.class)) {
-        handleMessageType(object);
-      }
-    }
-
-    private void handleMessageType(MessageObject object) {
-      if(MessageType.LOGIN_NUMBER.equals(object.getType())) {
-        SetUpFrame.getInstance().updateClientInfo((ClientInfo) object.getSendingObject());
-      }
-    }
-
-    private void handleBroadcastType(MessageObject object) {
-      if(BroadcastType.CHAT_MESSAGE.equals(object.getType())) {
-        ChatFrame.getFrame().addMessage(buildChatAnswer(object));
-      } else if(BroadcastType.LOGIN_LIST.equals(object.getType())) {
-        refreshClients(object);
-      } else if(BroadcastType.SERVER_SHUTDOWN.equals(object.getType())) {
-        disconnectClient();
-        clearGameCards();
-      }
-    }
-
-    private void disconnectClient() {
-      try {
-        GameClient.getClient().disconnect(SetUpFrame.getInstance().getClientInfo());
-      } catch (NotBoundException e) {
-        LOGGER.warning(e.getMessage());
-      } catch (RemoteException e) {
-        LOGGER.warning(e.getMessage());
-      }
-      setStatusBarText(false, "","");
-    }
-
-    private String buildChatAnswer(MessageObject object) {
-      final ChatMessage chatMessage = (ChatMessage) object.getSendingObject();
-      String message = Miscellaneous.getChatMessage(chatMessage.getSender().getName(),
-          chatMessage.getMessage());
-      if(chatMessage.getSender().isEqual(SetUpFrame.getInstance().getClientInfo()))
-        message = Miscellaneous.changeChatMessageInBrackets("ich", message);
-      return message;
-    }
-
-    private void handleGameUpdateType(MessageObject object) {
-      if(GameUpdateType.OPPONENT_CARD_UPDATE.equals(object.getType())) {
-        opponentsPanel.updateOpponents((List<ClientInfo>) object.getSendingObject());
-      } else if(GameUpdateType.STACK_UPDATE.equals(object.getType())) {
-        cardStackPanel.updateStack((DTOCardStack) object.getSendingObject());
-      }
-    }
-
-    private void refreshClients(MessageObject object) {
-      List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
-      DefaultListModel<ClientInfo> listModel = ((DefaultListModel<ClientInfo>) clientsList.getModel());
-      ClientInfo ownClientInfo = SetUpFrame.getInstance().getClientInfo();
-      for (ClientInfo client : clients) {
-        if(!ownClientInfo.toString().equals(client.toString()) && !listModel.contains(client)) {
-          listModel.add(0, client);
-        }
-      }
-    }
-
-    private void handleGUIObserverType(MessageObject object) {
-      if(GUIObserverType.INITIALISE_CARDS.equals(object.getType())) {
-        playerPanel.placeClientCards((List<DTOCard>) object.getSendingObject());
-      } else if(GUIObserverType.INITIALISE_STACK.equals(object.getType())) {
-        DTOCardStack stack = (DTOCardStack) object.getSendingObject();
-        cardStackPanel.initialiseStack(stack.getSize(), stack.getCardStack().getLast());
-      } else if(GUIObserverType.INITIALISE_OPPONENTS.equals(object.getType())) {
-        System.out.println("Initialise Opponents");
-        List<ClientInfo> opponents = (List<ClientInfo>) object.getSendingObject();
-        for (ClientInfo opponent : opponents) {
-          if(!SetUpFrame.getInstance().getClientInfo().isEqual(opponent)) {
-            opponentsPanel.addOpponent(opponent);
-          }
-        }
-      }
-    }
-  }
-
   private class ClientInfoCellRenderer extends DefaultListCellRenderer {
-
     public Component getListCellRendererComponent(
         JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
       Component superComponent = super.getListCellRendererComponent(list,value,index,isSelected,cellHasFocus);
@@ -291,6 +220,100 @@ public class ClientFrame extends JFrame implements Observer {
 
       return this ;
     }
+  }
+}
+
+@SuppressWarnings("unchecked")
+class ClientFrameMessageHandler {
+  private static final Logger LOGGER = Logger.getLogger(ClientFrameMessageHandler.class.getName());
+  private ClientFrame frame;
+
+  ClientFrameMessageHandler(ClientFrame frame) {
+    this.frame = frame;
+  }
+
+  void handleUpdate(MessageObject object) {
+    if(object == null)
+      return;
+
+    final Class<? extends Enum> enumClass = object.getType().getClass();
+    if(enumClass.equals(GUIObserverType.class)) {
+      handleGUIObserverType(object);
+    } else if(enumClass.equals(BroadcastType.class)) {
+      handleBroadcastType(object);
+    } else if(enumClass.equals(GameUpdateType.class)) {
+      handleGameUpdateType(object);
+    } else if(enumClass.equals(MessageType.class)) {
+      handleMessageType(object);
+    }
+  }
+
+  private void handleMessageType(MessageObject object) {
+    if(MessageType.LOGIN_NUMBER.equals(object.getType())) {
+      SetUpFrame.getInstance().getClientInfo().setClientInfo((ClientInfo) object.getSendingObject());
+    }
+  }
+
+  private void handleBroadcastType(MessageObject object) {
+    if(BroadcastType.CHAT_MESSAGE.equals(object.getType())) {
+      ChatFrame.getFrame().addMessage(buildChatAnswer(object));
+    } else if(BroadcastType.LOGIN_LIST.equals(object.getType())) {
+      final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
+      frame.updateClients(clients);
+    } else if(BroadcastType.SERVER_SHUTDOWN.equals(object.getType())) {
+      disconnectClient();
+      frame.clearGameCards();
+    }
+  }
+
+  private void handleGameUpdateType(MessageObject object) {
+    if(GameUpdateType.OPPONENT_CARD_UPDATE.equals(object.getType())) {
+      final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
+      frame.updatePlayers(clients);
+    } else if(GameUpdateType.STACK_UPDATE.equals(object.getType())) {
+      frame.updateStack((DTOCardStack) object.getSendingObject());
+    } else if(GameUpdateType.INGAME_CARDS.equals(object.getType())) {
+      final List<List<DTOCard>> cardLists = (List<List<DTOCard>>) object.getSendingObject();
+      if(cardLists.size() != 2) {
+        JOptionPane.showMessageDialog(frame, "Ein Fehler im Server ist aufgetreten",
+            "Fehler", JOptionPane.ERROR_MESSAGE);
+        LOGGER.severe("Server sends the wrong format for the client!");
+      } else {
+        frame.updateInGameCards(cardLists.get(0), cardLists.get(1));
+      }
+    }
+  }
+
+  private void handleGUIObserverType(MessageObject object) {
+    if(GUIObserverType.INITIALISE_CARDS.equals(object.getType())) {
+      frame.placeClientCards((List<DTOCard>) object.getSendingObject());
+    } else if(GUIObserverType.INITIALISE_STACK.equals(object.getType())) {
+      final DTOCardStack stack = (DTOCardStack) object.getSendingObject();
+      frame.initialiseStack(stack.getSize(), stack.getCardStack().getLast());
+    } else if(GUIObserverType.INITIALISE_PLAYERS.equals(object.getType())) {
+      final List<ClientInfo> players = (List<ClientInfo>) object.getSendingObject();
+      frame.initialisePlayers(players);
+    }
+  }
+
+  private void disconnectClient() {
+    try {
+      GameClient.getClient().disconnect(SetUpFrame.getInstance().getClientInfo());
+    } catch (NotBoundException e) {
+      LOGGER.warning(e.getMessage());
+    } catch (RemoteException e) {
+      LOGGER.warning(e.getMessage());
+    }
+    frame.setStatusBarText(false, "", "");
+  }
+
+  private String buildChatAnswer(MessageObject object) {
+    final ChatMessage chatMessage = (ChatMessage) object.getSendingObject();
+    String message = Miscellaneous.getChatMessage(chatMessage.getSender().getName(),
+        chatMessage.getMessage());
+    if(chatMessage.getSender().isEqual(SetUpFrame.getInstance().getClientInfo()))
+      message = Miscellaneous.changeChatMessageInBrackets("ich", message);
+    return message;
   }
 }
 

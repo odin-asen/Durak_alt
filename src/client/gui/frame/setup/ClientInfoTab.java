@@ -63,7 +63,7 @@ public class ClientInfoTab extends JPanel {
     return clientInfo;
   }
 
-  void setClientInfo(ClientInfo info) {
-    clientInfo = info;
+  public void updateClientInfo(ClientInfo info) {
+    clientInfo.setPlayerType(info.getPlayerType());
   }
 }

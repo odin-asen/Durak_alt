@@ -1,10 +1,8 @@
 package server.business;
 
 import dto.ClientInfo;
-import dto.message.BroadcastType;
-import dto.message.GUIObserverType;
-import dto.message.MessageObject;
-import dto.message.MessageType;
+import dto.DTOCard;
+import dto.message.*;
 import game.GameCardStack;
 import game.GameProcess;
 import rmi.RMIService;
@@ -165,7 +163,10 @@ public class GameServer extends Observable {
   }
 
   public void sendProcessUpdate() {
-
+    final GameProcess process = GameProcess.getInstance();
+    final List<List<DTOCard>> allCards =
+        Converter.toDTO(process.getAttackCards(), process.getDefenseCards());
+    broadcastMessage(GameUpdateType.INGAME_CARDS, allCards);
   }
 
   public void broadcastMessage(Enum<?> type) {
@@ -222,7 +223,13 @@ public class GameServer extends Observable {
     return null;
   }
 
-  public void addClient(ClientInfo client) {
+  /**
+   * Adds a client to the server and returns this client.
+   * @param client ClientInfo object to add to the server
+   * @return Returns the added ClientInfo object or null, if the object wasn't
+   * added.
+   */
+  public ClientInfo addClient(ClientInfo client) {
     final Integer nextNumber = clients.size();
     if(client.getLoginNumber().equals(GameConfigurationConstants.NO_LOGIN_NUMBER) ||
        nextNumber.shortValue() < client.getLoginNumber()) {
@@ -233,15 +240,18 @@ public class GameServer extends Observable {
       sendMessage(client,new MessageObject(MessageType.LOGIN_NUMBER, client));
       broadcastMessage(BroadcastType.LOGIN_LIST, clients);
     }
+
+    return null;
   }
 
   public void removeClient(ClientInfo client) {
     final ClientInfo reference = getRMIReference(client);
-    clients.remove(reference);
-    GameProcess.getInstance().removePlayer(reference.getLoginNumber());
-    refreshClients();
-    setChangedAndNotify(GUIObserverType.REMOVE_CLIENT, client);
-    broadcastMessage(BroadcastType.LOGIN_LIST, clients);
+    if(clients.remove(reference)) {
+      GameProcess.getInstance().removePlayer(reference.getLoginNumber());
+      refreshClients();
+      setChangedAndNotify(GUIObserverType.REMOVE_CLIENT, client);
+      broadcastMessage(BroadcastType.LOGIN_LIST, clients);
+    }
   }
 
   private void refreshClients() {
@@ -310,7 +320,7 @@ public class GameServer extends Observable {
         initialiseClients();
         server.broadcastMessage(GUIObserverType.INITIALISE_STACK, Converter.toDTO(GameCardStack.getInstance()));
         server.broadcastArray(GUIObserverType.INITIALISE_CARDS, process.getPlayerCards());
-        server.broadcastMessage(GUIObserverType.INITIALISE_OPPONENTS, clients);
+        server.broadcastMessage(GUIObserverType.INITIALISE_PLAYERS, clients);
       } catch (GameServerException e) {
         LOGGER.log(Level.SEVERE, e.getMessage());
       }

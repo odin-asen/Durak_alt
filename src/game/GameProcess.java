@@ -12,7 +12,6 @@ import utilities.constants.GameConfigurationConstants;
 import utilities.constants.PlayerConstants;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -127,30 +126,35 @@ public class GameProcess {
       validateAttack(attack);
     } else if(action instanceof DefenseAction) {
       DefenseAction defense = (DefenseAction) action;
-      validateDefend(defense);
+      validateDefense(defense);
     } else throw new IllegalArgumentException("The parameter is neither instanceof\n"+
       AttackAction.class +" nor\n"+DefenseAction.class);
   }
 
-  private void validateDefend(DefenseAction defense) throws RuleException {
+  private void validateDefense(DefenseAction defense) throws RuleException {
     ruleChecker.canDoDefendMove(
         playerList.get(defense.getExecutor().getLoginNumber()), attackCards.isEmpty(),
         Converter.fromDTO(defense.getDefendCard()),
         Converter.fromDTO(defense.getAttackCard()));
-
-    Collections.addAll(defenseCards, Converter.fromDTO(defense.getDefendCard()));
+    defenseCards.add(Converter.fromDTO(defense.getDefendCard()));
   }
 
   private void validateAttack(AttackAction attack) throws RuleException {
-    final List<GameCard> allCards = new ArrayList<GameCard>();
+    final List<GameCard> allCards = new ArrayList<GameCard>(attackCards.size()+defenseCards.size());
     final List<GameCard> cards = Converter.fromDTO(attack.getCards());
-    Collections.addAll(allCards, (GameCard[]) attackCards.toArray());
-    Collections.addAll(allCards, (GameCard[]) defenseCards.toArray());
+    for (GameCard attackCard : attackCards) {
+      allCards.add(attackCard);
+    }
+    for (GameCard defenseCard : defenseCards) {
+      allCards.add(defenseCard);
+    }
 
     ruleChecker.canDoAttackMove(playerList.get(attack.getExecutor().getLoginNumber()),
         cards, allCards);
 
-    Collections.addAll(attackCards, (GameCard[]) cards.toArray());
+    for (GameCard card : cards) {
+      attackCards.add(card);
+    }
   }
 
   /**
@@ -159,7 +163,7 @@ public class GameProcess {
    * when the attackers and the defender pick up new cards.
    */
   public void nextRound() {
-
+    //TODO Spielern die Typen zuweisen
   }
 
   public void addPlayer() {
@@ -192,5 +196,13 @@ public class GameProcess {
     }
 
     return types;
+  }
+
+  public List<GameCard> getAttackCards() {
+    return attackCards;
+  }
+
+  public List<GameCard> getDefenseCards() {
+    return defenseCards;
   }
 }

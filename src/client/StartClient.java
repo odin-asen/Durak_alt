@@ -15,9 +15,10 @@ public class StartClient {
 
   public static void main(String[] args) throws Exception{
     ClientFrame frame = new ClientFrame();
-    frame.initTest(true);
-    frame.placeCardTest(true);
 //    loadLaF(frame);
+    //TODO Buttons für nächste Runde einbauen (Karten nehmen bzw. Karten weglegen)
+    //TODO Nächste Runde im Server organisieren (Aktive Spieler wechseln, Handkarten auffüllen,
+    //TODO Kartenstapel aktualisieren,...)
   }
 
   public static void loadLaF(Component comp)

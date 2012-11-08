@@ -25,7 +25,9 @@ public interface GameAction extends Remote {
   /**
    * This method returns a reason why the doAction returned false. If doAction
    * returns true, this method should return an empty String.
-   * @return Returns a reason for the refusing of the action.
+   * @return Returns a reason for the refusing of the action. If the reason was
+   * already picked and the method will be called a second time before using
+   * doAction, then null will be returned.
    */
   public String getRefusedReason() throws RemoteException;
 }

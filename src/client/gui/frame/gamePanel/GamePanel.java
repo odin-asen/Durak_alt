@@ -4,6 +4,7 @@ import client.gui.frame.ClientGUIConstants;
 import client.gui.widget.card.CardMoveListener;
 import client.gui.widget.card.GameCardWidget;
 import dto.DTOCard;
+import utilities.constants.PlayerConstants;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,13 +45,13 @@ public class GamePanel extends JPanel {
 
   /* Methods */
   /**
-   * Places every card of {@code attackCards} to the panel and lays every card of
+   * Places every card of {@code attackerCards} to the panel and lays every card of
    * {@code defenderCards} with the same index a little shifted over the attacker card.
-   * @param attackCards Cards of the attacker.
+   * @param attackerCards Cards of the attacker.
    * @param defenderCards Cards of the defender.
    */
-  public void placeInGameCards(List<DTOCard> attackCards, List<DTOCard> defenderCards) {
-    inGamePanel.placeCards(attackCards, defenderCards);
+  public void placeInGameCards(List<DTOCard> attackerCards, List<DTOCard> defenderCards) {
+    inGamePanel.placeCards(attackerCards, defenderCards);
   }
 
   public void placeClientCards(List<DTOCard> cards) {
@@ -172,6 +173,23 @@ public class GamePanel extends JPanel {
     return inGamePanel.getBounds();
   }
 
+  public void setListenerType(PlayerConstants.PlayerType type) {
+    if(PlayerConstants.PlayerType.DEFAULT.equals(type)) {
+      cardManager = CardMoveListener.getDefaultInstance(this);
+    } else if (PlayerConstants.PlayerType.DEFENDER.equals(type)) {
+      cardManager = CardMoveListener.getDefenderInstance(this, inGamePanel.getCardPanels());
+    } else {
+      cardManager = CardMoveListener.getAttackerInstance(this, 2.0f*DISTANCE_CARD_Y);
+    }
+    for (GameCardWidget widget : clientWidgets) {
+      widget.setCardMoveListener(cardManager);
+    }
+  }
+
+  public void showRuleException(String ruleException) {
+    JOptionPane.showMessageDialog(this,ruleException, "Regelverletzung", JOptionPane.INFORMATION_MESSAGE);
+    //TODO durch PopupFactory ersetzen
+  }
   /* Getter and Setter */
 
   /* Inner Classes */

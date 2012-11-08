@@ -125,6 +125,16 @@ public class GameClient extends Observable {
     else return false;
   }
 
+
+  public String getActionDeniedReason(ClientInfo info) throws RemoteException {
+    if(info.getPlayerType().equals(PlayerConstants.PlayerType.FIRST_ATTACKER) ||
+        info.getPlayerType().equals(PlayerConstants.PlayerType.SECOND_ATTACKER))
+      return getGameActionAttack().getRefusedReason();
+    else if(info.getPlayerType().equals(PlayerConstants.PlayerType.DEFENDER))
+      return getGameActionDefend().getRefusedReason();
+    else return null;
+  }
+
   /* Getter and Setter */
   public String getSocketAddress() {
     return serverAddress + ":" + port;

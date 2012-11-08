@@ -77,7 +77,6 @@ public class RMIObservableImpl implements RMIObservable {
         observers.get(observerIndex).incomingMessage(notification);
     }
     catch (Exception e) {
-      e.printStackTrace();
       LOGGER.log(Level.SEVERE, "Client " + observers.get(observerIndex)
           + " could not been notified: " + e.getMessage());
       removeObserver(observers.get(observerIndex));

@@ -43,7 +43,9 @@ public class DefenseAction implements GameAction {
   }
 
   public String getRefusedReason() {
-    return reason;
+    final String lastText = reason;
+    reason = null;
+    return lastText;
   }
 
   private boolean setCards(DTOCard[] cards) {
