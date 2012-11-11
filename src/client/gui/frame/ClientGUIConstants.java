@@ -25,16 +25,20 @@ public interface ClientGUIConstants {
   String ACTION_COMMAND_DISCONNECT = "disconnect";
   String ACTION_COMMAND_OKAY = "okay";
   String ACTION_COMMAND_SETUP = "setup";
+  String ACTION_COMMAND_TAKE_CARDS = "takeCards";
+  String ACTION_COMMAND_ROUND_DONE = "roundDone";
 
   /* ClientFrame constants */
   float MAIN_FRAME_SCREEN_SIZE = 0.8f;
+  int OPPONENT_PANEL_HEIGHT = 70;
+  int CARD_STACK_PANEL_WIDTH = 250;
+  int CARD_STACK_PANEL_VERTICAL_INSET = 80;
 
   String APPLICATION_NAME = "Durak, das PC Spiel";
   String TITLE_SEPARATOR = " - ";
   String VERSION = "Version 0.0";
-  int OPPONENT_PANEL_HEIGHT = 70;
-  int CARD_STACK_PANEL_WIDTH = 250;
-  int CARD_STACK_PANEL_VERTICAL_INSET = 80;
+  String BUTTON_TEXT_TAKE_CARDS = "Karten nehmen";
+  String BUTTON_TEXT_ROUND_DONE = "Runde beenden";
 
   /* SetUpFrame constants */
   float SET_UP_FRAME_SCREEN_SIZE_HEIGHT = 0.3f;

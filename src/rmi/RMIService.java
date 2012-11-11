@@ -10,6 +10,7 @@ public enum RMIService {
   OBSERVER("RMIObservation", RMIObservable.class),
   ATTACK_ACTION("AttackAction", GameAction.class),
   DEFENSE_ACTION("DefenseAction", GameAction.class),
+  ROUND_STATE_ACTION("RoundStateAction", GameAction.class),
   CHAT("ChatHandler", ChatHandler.class);
 
   private String serviceName;

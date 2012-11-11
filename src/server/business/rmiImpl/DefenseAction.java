@@ -4,6 +4,7 @@ import dto.ClientInfo;
 import dto.DTOCard;
 import game.GameProcess;
 import game.rules.RuleException;
+import rmi.FinishAction;
 import rmi.GameAction;
 import server.business.GameServer;
 
@@ -22,7 +23,7 @@ public class DefenseAction implements GameAction {
 
   /* Constructors */
   /* Methods */
-  public boolean doAction(ClientInfo client, DTOCard ...cards) throws RemoteException {
+  public boolean doAction(ClientInfo client, FinishAction finish, DTOCard ...cards) throws RemoteException {
     this.executor = client;
     Boolean actionDone = false;
 
@@ -31,7 +32,7 @@ public class DefenseAction implements GameAction {
         GameProcess.getInstance().validateAction(this);
         actionDone = true;
         reason = "";
-        GameServer.getServerInstance().sendProcessUpdate();
+        GameServer.getServerInstance().sendProcessUpdate(false);
       } catch (RuleException e) {
         reason = e.getMessage();
       }

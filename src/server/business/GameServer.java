@@ -44,6 +44,8 @@ public class GameServer extends Observable {
   private Boolean running;
   private String password;
 
+  private GameUpdater gameUpdater;
+
   /* Constructors */
   public static GameServer getServerInstance() {
     if(gameServer == null) {
@@ -63,10 +65,10 @@ public class GameServer extends Observable {
   }
 
   private GameServer() {
-    this.port = Registry.REGISTRY_PORT;
-    this.services = new HashMap<RMIService,Remote>();
-    this.clients = new ArrayList<ClientInfo>();
-    this.running = false;
+    port = Registry.REGISTRY_PORT;
+    services = new HashMap<RMIService,Remote>();
+    clients = new ArrayList<ClientInfo>();
+    running = false;
   }
 
   /* Methods */
@@ -86,6 +88,7 @@ public class GameServer extends Observable {
     registerService(registry, AuthenticatorImpl.class, RMIService.AUTHENTICATION);
     registerService(registry, ChatHandlerImpl.class, RMIService.CHAT);
     registerService(registry, DefenseAction.class, RMIService.DEFENSE_ACTION);
+    registerService(registry, RoundStateAction.class, RMIService.ROUND_STATE_ACTION);
     registerService(registry, RMIObservableImpl.class, RMIService.OBSERVER);
   }
 
@@ -139,7 +142,8 @@ public class GameServer extends Observable {
   }
 
   public void startGame(Integer stackSize) {
-    new GameInitialiser(stackSize, clients).invoke();
+    gameUpdater = new GameUpdater(stackSize, clients);
+    gameUpdater.invoke();
   }
 
   void setChangedAndNotify(Enum<?> type) {
@@ -147,12 +151,12 @@ public class GameServer extends Observable {
   }
 
   void setChangedAndNotify(Enum<?> type, Object sendingObject) {
-    this.setChanged();
-    this.notifyObservers(new MessageObject(type, sendingObject));
+    setChanged();
+    notifyObservers(new MessageObject(type, sendingObject));
   }
 
   public void broadcastMessage(Enum<?> type, Object sendingObject) {
-    RMIObservableImpl observable = getRMIObservable();
+    final RMIObservableImpl observable = getRMIObservable();
     try {
       observable.notifyObservers(new MessageObject(type, sendingObject));
     } catch (RemoteException e) {
@@ -162,11 +166,8 @@ public class GameServer extends Observable {
     }
   }
 
-  public void sendProcessUpdate() {
-    final GameProcess process = GameProcess.getInstance();
-    final List<List<DTOCard>> allCards =
-        Converter.toDTO(process.getAttackCards(), process.getDefenseCards());
-    broadcastMessage(GameUpdateType.INGAME_CARDS, allCards);
+  public void sendProcessUpdate(boolean nextRound) {
+    gameUpdater.updateMove(nextRound);
   }
 
   public void broadcastMessage(Enum<?> type) {
@@ -236,9 +237,12 @@ public class GameServer extends Observable {
       client.setLoginNumber(nextNumber.shortValue());
       clients.add(client);
       GameProcess.getInstance().addPlayer();
+
       setChangedAndNotify(GUIObserverType.ADD_CLIENT, client);
       sendMessage(client,new MessageObject(MessageType.LOGIN_NUMBER, client));
       broadcastMessage(BroadcastType.LOGIN_LIST, clients);
+
+      return client;
     }
 
     return null;
@@ -246,12 +250,24 @@ public class GameServer extends Observable {
 
   public void removeClient(ClientInfo client) {
     final ClientInfo reference = getRMIReference(client);
-    if(clients.remove(reference)) {
-      GameProcess.getInstance().removePlayer(reference.getLoginNumber());
+    if(reference != null) {
+      final GameProcess process = GameProcess.getInstance();
+      process.removePlayer(reference.getLoginNumber());
       refreshClients();
+      resetClientNumber(client);
       setChangedAndNotify(GUIObserverType.REMOVE_CLIENT, client);
       broadcastMessage(BroadcastType.LOGIN_LIST, clients);
+      clients.remove(reference);
+      if(process.isGameInProcess())
+        process.abortGame();
     }
+  }
+
+  private void resetClientNumber(ClientInfo client) {
+    final ClientInfo newLoginNumber = new ClientInfo("", (short) -1);
+    newLoginNumber.setClientInfo(client);
+    newLoginNumber.setLoginNumber(GameConfigurationConstants.NO_LOGIN_NUMBER);
+    sendMessage(client, new MessageObject(MessageType.LOGIN_NUMBER, newLoginNumber));
   }
 
   private void refreshClients() {
@@ -295,13 +311,13 @@ public class GameServer extends Observable {
   }
 
   /* Inner classes */
-  private class GameInitialiser {
+  private class GameUpdater {
     private Integer stackSize;
     private GameProcess process;
     private GameServer server;
     private List<ClientInfo> clients;
 
-    public GameInitialiser(Integer stackSize, List<ClientInfo> clients) {
+    public GameUpdater(Integer stackSize, List<ClientInfo> clients) {
       this.stackSize = stackSize;
       this.clients = clients;
       this.process = GameProcess.getInstance();
@@ -318,11 +334,22 @@ public class GameServer extends Observable {
     private void sendClientInit() {
       try {
         initialiseClients();
-        server.broadcastMessage(GUIObserverType.INITIALISE_STACK, Converter.toDTO(GameCardStack.getInstance()));
-        server.broadcastArray(GUIObserverType.INITIALISE_CARDS, process.getPlayerCards());
-        server.broadcastMessage(GUIObserverType.INITIALISE_PLAYERS, clients);
+        server.broadcastMessage(GameUpdateType.STACK_UPDATE, Converter.toDTO(GameCardStack.getInstance()));
+        server.broadcastArray(GameUpdateType.CLIENT_CARDS, process.getPlayerCards());
+        server.broadcastMessage(GameUpdateType.INITIALISE_PLAYERS, clients);
       } catch (GameServerException e) {
         LOGGER.log(Level.SEVERE, e.getMessage());
+      }
+    }
+
+    private void updateClients() {
+      final List<List<DTOCard>> clientCardCounts =
+          GameProcess.getInstance().getPlayerCards();
+      final List<PlayerConstants.PlayerType> types =
+          GameProcess.getInstance().getPlayerTypes();
+      for (int index = 0; index < clients.size(); index++) {
+        clients.get(index).setCardCount(clientCardCounts.get(index).size());
+        clients.get(index).setPlayerType(types.get(index));
       }
     }
 
@@ -331,6 +358,25 @@ public class GameServer extends Observable {
       for (int index = 0; index < clients.size(); index++) {
         clients.get(index).setCardCount(GameConfigurationConstants.INITIAL_CARD_COUNT);
         clients.get(index).setPlayerType(types.get(index));
+      }
+    }
+
+    private void updateMove(boolean nextRound) {
+      final GameProcess process = GameProcess.getInstance();
+      final List<List<DTOCard>> allCards;
+      updateClients();
+
+      try {
+        if(nextRound) {
+          allCards = null;
+          server.broadcastArray(GameUpdateType.CLIENT_CARDS, process.getPlayerCards());
+          server.broadcastMessage(GameUpdateType.STACK_UPDATE, Converter.toDTO(GameCardStack.getInstance()));
+        } else allCards = Converter.toDTO(process.getAttackCards(), process.getDefenseCards());
+        server.broadcastMessage(GameUpdateType.INGAME_CARDS, allCards);
+        server.broadcastMessage(GameUpdateType.NEXT_ROUND_AVAILABLE, process.nextRoundAvailable());
+        server.broadcastMessage(GameUpdateType.PLAYERS_UPDATE, clients);
+      } catch (GameServerException e) {
+        LOGGER.log(Level.SEVERE, e.getMessage());
       }
     }
   }

@@ -3,10 +3,7 @@ package client.business.client;
 import dto.ClientInfo;
 import dto.DTOCard;
 import dto.message.MessageObject;
-import rmi.Authenticator;
-import rmi.ChatHandler;
-import rmi.GameAction;
-import rmi.RMIService;
+import rmi.*;
 import utilities.constants.PlayerConstants;
 
 import java.rmi.NotBoundException;
@@ -74,6 +71,7 @@ public class GameClient extends Observable {
     lookupServices(registry, RMIService.AUTHENTICATION);
     lookupServices(registry, RMIService.CHAT);
     lookupServices(registry, RMIService.DEFENSE_ACTION);
+    lookupServices(registry, RMIService.ROUND_STATE_ACTION);
     serverObserver = new ServerMessageHandler(registry, RMIService.OBSERVER.getServiceName());
   }
 
@@ -119,12 +117,20 @@ public class GameClient extends Observable {
   public Boolean sendAction(ClientInfo info, DTOCard... cards) throws RemoteException {
     if(info.getPlayerType().equals(PlayerConstants.PlayerType.FIRST_ATTACKER) ||
        info.getPlayerType().equals(PlayerConstants.PlayerType.SECOND_ATTACKER))
-      return getGameActionAttack().doAction(info, cards);
+      return getGameActionAttack().doAction(info, FinishAction.NOT_FINISHING, cards);
     else if(info.getPlayerType().equals(PlayerConstants.PlayerType.DEFENDER))
-      return getGameActionDefend().doAction(info, cards);
+      return getGameActionDefend().doAction(info, FinishAction.NOT_FINISHING, cards);
     else return false;
   }
 
+  public Boolean finishRound(ClientInfo info, Boolean takeCards) throws RemoteException {
+    final FinishAction finish;
+    if(takeCards)
+      finish = FinishAction.TAKE_CARDS;
+    else finish = FinishAction.GO_TO_NEXT_ROUND;
+
+    return getGameActionRound().doAction(info, finish);
+  }
 
   public String getActionDeniedReason(ClientInfo info) throws RemoteException {
     if(info.getPlayerType().equals(PlayerConstants.PlayerType.FIRST_ATTACKER) ||
@@ -168,5 +174,9 @@ public class GameClient extends Observable {
 
   private GameAction getGameActionDefend() {
     return (GameAction) services.get(RMIService.DEFENSE_ACTION);
+  }
+
+  private GameAction getGameActionRound() {
+    return (GameAction) services.get(RMIService.ROUND_STATE_ACTION);
   }
 }

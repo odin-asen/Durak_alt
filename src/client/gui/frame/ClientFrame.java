@@ -8,20 +8,27 @@ import dto.ClientInfo;
 import dto.DTOCard;
 import dto.DTOCardStack;
 import dto.message.*;
+import game.GameCardStack;
 import utilities.Converter;
 import utilities.Miscellaneous;
+import utilities.gui.Constraints;
 import utilities.gui.FramePosition;
+import utilities.gui.WidgetCreator;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Logger;
 
 import static client.gui.frame.ClientGUIConstants.*;
+import static utilities.constants.PlayerConstants.PlayerType;
 
 /**
  * User: Timm Herrmann
@@ -42,6 +49,8 @@ public class ClientFrame extends JFrame implements Observer {
   private JList<ClientInfo> clientsList;
 
   private ClientFrameMessageHandler handler;
+  private JButton roundDoneButton;
+  private JButton takeCardsButton;
 
   /* Constructors */
   public ClientFrame() {
@@ -86,7 +95,7 @@ public class ClientFrame extends JFrame implements Observer {
     cardStackPanel.deleteCards();
   }
 
-  public void updateClients(List<ClientInfo> clients) {
+  public void updateClientList(List<ClientInfo> clients) {
     final DefaultListModel<ClientInfo> listModel =
         ((DefaultListModel<ClientInfo>) clientsList.getModel());
     final List<ClientInfo> modelList = (List<ClientInfo>) Converter.getList(listModel);
@@ -102,23 +111,7 @@ public class ClientFrame extends JFrame implements Observer {
     }
   }
 
-  public void initialisePlayers(List<ClientInfo> players) {
-    final ClientInfo ownInfo = SetUpFrame.getInstance().getClientInfo();
-    for (ClientInfo player : players) {
-      if(ownInfo.isEqual(player)) {
-        ownInfo.setClientInfo(player);
-        gamePanel.setListenerType(ownInfo.getPlayerType());
-      } else {
-        opponentsPanel.addOpponent(player);
-      }
-    }
-  }
-
-  public void initialiseStack(Integer size, DTOCard trumpCard) {
-    cardStackPanel.initialiseStack(size, trumpCard);
-  }
-
-  public void placeClientCards(List<DTOCard> clientCards) {
+  public void updateClientCards(List<DTOCard> clientCards) {
     gamePanel.placeClientCards(clientCards);
   }
 
@@ -126,19 +119,46 @@ public class ClientFrame extends JFrame implements Observer {
     cardStackPanel.updateStack(cardStack);
   }
 
-  public void updatePlayers(List<ClientInfo> players) {
+  public void updatePlayers(List<ClientInfo> clients, boolean initialise) {
     final ClientInfo ownInfo = SetUpFrame.getInstance().getClientInfo();
-    for (ClientInfo client : players) {
-      if(ownInfo.isEqual(client) && !ownInfo.getPlayerType().equals(client.getPlayerType())) {
-        ownInfo.setClientInfo(client);
-        gamePanel.setListenerType(ownInfo.getPlayerType());
+    for (ClientInfo client : clients) {
+      if(ownInfo.isEqual(client)) {
+        if(!ownInfo.getPlayerType().equals(client.getPlayerType())) {
+          ownInfo.setClientInfo(client);
+          gamePanel.setListenerType(ownInfo.getPlayerType());
+        }
+      } else {
+        if(initialise)
+          opponentsPanel.addOpponent(client);
       }
     }
-    opponentsPanel.updateOpponents(players);
+    opponentsPanel.updateOpponents(clients);
   }
 
   public void updateInGameCards(List<DTOCard> attackerCards, List<DTOCard> defenderCards) {
+    if(attackerCards == null || !attackerCards.isEmpty()) {
+      enableButtons(false);
+    }
     gamePanel.placeInGameCards(attackerCards, defenderCards);
+  }
+
+  public void enableButtons(Boolean roundFinished) {
+    final Boolean take;
+    final Boolean round;
+    final PlayerType playerType = SetUpFrame.getInstance().getClientInfo().getPlayerType();
+    if(playerType.equals(PlayerType.FIRST_ATTACKER) ||
+       playerType.equals(PlayerType.SECOND_ATTACKER)) {
+      take = false;
+      round = !roundFinished;
+    } else if (playerType.equals(PlayerType.DEFENDER)) {
+      take = true;
+      round = roundFinished;
+    } else {
+      take = false;
+      round = false;
+    }
+    takeCardsButton.setEnabled(take);
+    roundDoneButton.setEnabled(round);
   }
 
   /* Getter and Setter */
@@ -147,18 +167,29 @@ public class ClientFrame extends JFrame implements Observer {
       return secondPane;
 
     secondPane = new JPanel();
-    opponentsPanel = new OpponentsPanel();
     gamePanel = new GamePanel();
 
-    opponentsPanel.setPreferredSize(new Dimension(0, OPPONENT_PANEL_HEIGHT));
-
     secondPane.setLayout(new BorderLayout());
-    secondPane.add(opponentsPanel, BorderLayout.PAGE_START);
+    secondPane.add(getOpponentButtonPanel(), BorderLayout.PAGE_START);
     secondPane.add(getStackClientsPanel(), BorderLayout.LINE_START);
     secondPane.add(gamePanel, BorderLayout.CENTER);
     secondPane.add(getStatusPanel(), BorderLayout.PAGE_END);
 
     return secondPane;
+  }
+
+  private JPanel getOpponentButtonPanel() {
+    final JPanel panel = new JPanel();
+    final JPanel buttonPanel = getButtonPanel();
+    opponentsPanel = new OpponentsPanel();
+
+    buttonPanel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, OPPONENT_PANEL_HEIGHT));
+    buttonPanel.setMaximumSize(new Dimension(CARD_STACK_PANEL_WIDTH, Integer.MAX_VALUE));
+    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+    panel.add(buttonPanel);
+    panel.add(opponentsPanel);
+
+    return panel;
   }
 
   private DurakStatusBar getStatusPanel() {
@@ -196,12 +227,58 @@ public class ClientFrame extends JFrame implements Observer {
     listPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, listPanel.getPreferredSize().height));
     listPanel.add(listScroll);
 
-    stackClientsPanel.setBackground(Color.WHITE);
-    stackClientsPanel.setLayout(new BoxLayout(stackClientsPanel,BoxLayout.PAGE_AXIS));
+    stackClientsPanel.setLayout(new BoxLayout(stackClientsPanel, BoxLayout.PAGE_AXIS));
     stackClientsPanel.add(cardStackPanel);
     stackClientsPanel.add(listPanel);
 
     return stackClientsPanel;
+  }
+
+  private JPanel getButtonPanel() {
+    final JPanel panel = new JPanel();
+    final ActionListener listener = new GameButtonListener();
+    takeCardsButton = WidgetCreator.makeButton(null, BUTTON_TEXT_TAKE_CARDS,
+        "Karten auf die Hand nehmen", ACTION_COMMAND_TAKE_CARDS, listener);
+    roundDoneButton = WidgetCreator.makeButton(null, BUTTON_TEXT_ROUND_DONE,
+        "Runde beenden", ACTION_COMMAND_ROUND_DONE, listener);
+    takeCardsButton.setEnabled(false);
+    roundDoneButton.setEnabled(false);
+
+    panel.setBackground(GAME_TABLE_COLOUR);
+    panel.setLayout(new GridBagLayout());
+    GridBagConstraints constraints = Constraints.getDefaultFieldConstraintLeft(0,0,1,1);
+    constraints.weighty = 1.0;
+    panel.add(takeCardsButton, constraints);
+    constraints = Constraints.getDefaultFieldConstraintLeft(0,1,1,1);
+    constraints.weighty = 1.0;
+    panel.add(roundDoneButton, constraints);
+
+    return panel;
+  }
+
+  public void initTest() {
+    List<ClientInfo> clients = new ArrayList<ClientInfo>();
+    ClientInfo client = SetUpFrame.getInstance().getClientInfo();
+    client.setCardCount(6);
+    client.setPlayerType(PlayerType.DEFENDER);
+    clients.add(client);
+    client = new ClientInfo("pseudo nym",(short)1);
+    client.setCardCount(6);
+    client.setPlayerType(PlayerType.FIRST_ATTACKER);
+    clients.add(client);
+    updatePlayers(clients, true);
+    GameCardStack gStack = GameCardStack.getInstance();
+    gStack.initialiseStack(7);
+    DTOCardStack stack = Converter.toDTO(gStack);
+    updateStack(stack);
+    List<DTOCard> attacker = new ArrayList<DTOCard>();
+    attacker.add(new DTOCard());
+    attacker.add(new DTOCard());
+    List<DTOCard> defender = new ArrayList<DTOCard>();
+    defender.add(new DTOCard());
+    defender.add(new DTOCard());
+
+    updateInGameCards(attacker, defender);
   }
 
   /* Inner Classes */
@@ -221,6 +298,36 @@ public class ClientFrame extends JFrame implements Observer {
       return this ;
     }
   }
+
+  private class GameButtonListener implements ActionListener {
+    public void actionPerformed(ActionEvent e) {
+      final ClientInfo clientInfo = SetUpFrame.getInstance().getClientInfo();
+      Boolean takeCards = null;
+      if(e.getActionCommand().equals(ACTION_COMMAND_TAKE_CARDS)) {
+        takeCards = true;
+      } else if(e.getActionCommand().equals(ACTION_COMMAND_ROUND_DONE)) {
+        takeCards = false;
+      }
+
+      if(nextRoundRequest(clientInfo, takeCards)) {
+        enableButtons(true);
+        updateInGameCards(null,null);
+      }
+    }
+
+    private Boolean nextRoundRequest(ClientInfo clientInfo, Boolean takeCards) {
+      if(takeCards == null)
+        return false;
+
+      try {
+        return GameClient.getClient().finishRound(clientInfo, takeCards);
+      } catch (RemoteException ex) {
+        JOptionPane.showMessageDialog(null, "Die Verbindung zum Server wurde unterbrochen!");
+      }
+
+      return false;
+    }
+  }
 }
 
 @SuppressWarnings("unchecked")
@@ -237,9 +344,7 @@ class ClientFrameMessageHandler {
       return;
 
     final Class<? extends Enum> enumClass = object.getType().getClass();
-    if(enumClass.equals(GUIObserverType.class)) {
-      handleGUIObserverType(object);
-    } else if(enumClass.equals(BroadcastType.class)) {
+    if(enumClass.equals(BroadcastType.class)) {
       handleBroadcastType(object);
     } else if(enumClass.equals(GameUpdateType.class)) {
       handleGameUpdateType(object);
@@ -259,7 +364,7 @@ class ClientFrameMessageHandler {
       ChatFrame.getFrame().addMessage(buildChatAnswer(object));
     } else if(BroadcastType.LOGIN_LIST.equals(object.getType())) {
       final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
-      frame.updateClients(clients);
+      frame.updateClientList(clients);
     } else if(BroadcastType.SERVER_SHUTDOWN.equals(object.getType())) {
       disconnectClient();
       frame.clearGameCards();
@@ -267,33 +372,40 @@ class ClientFrameMessageHandler {
   }
 
   private void handleGameUpdateType(MessageObject object) {
-    if(GameUpdateType.OPPONENT_CARD_UPDATE.equals(object.getType())) {
+    if(GameUpdateType.INITIALISE_PLAYERS.equals(object.getType())) {
       final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
-      frame.updatePlayers(clients);
+      frame.updatePlayers(clients, true);
+    } else if(GameUpdateType.PLAYERS_UPDATE.equals(object.getType())) {
+      final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
+      frame.updatePlayers(clients, false);
     } else if(GameUpdateType.STACK_UPDATE.equals(object.getType())) {
       frame.updateStack((DTOCardStack) object.getSendingObject());
     } else if(GameUpdateType.INGAME_CARDS.equals(object.getType())) {
       final List<List<DTOCard>> cardLists = (List<List<DTOCard>>) object.getSendingObject();
-      if(cardLists.size() != 2) {
-        JOptionPane.showMessageDialog(frame, "Ein Fehler im Server ist aufgetreten",
-            "Fehler", JOptionPane.ERROR_MESSAGE);
-        LOGGER.severe("Server sends the wrong format for the client!");
-      } else {
-        frame.updateInGameCards(cardLists.get(0), cardLists.get(1));
-      }
+      guiInGameCardsUpdate(cardLists);
+    } else if(GameUpdateType.NEXT_ROUND_AVAILABLE.equals(object.getType())) {
+      frame.enableButtons((Boolean) object.getSendingObject());
+    } else if(GameUpdateType.CLIENT_CARDS.equals(object.getType())) {
+      frame.updateClientCards((List<DTOCard>) object.getSendingObject());
     }
   }
 
-  private void handleGUIObserverType(MessageObject object) {
-    if(GUIObserverType.INITIALISE_CARDS.equals(object.getType())) {
-      frame.placeClientCards((List<DTOCard>) object.getSendingObject());
-    } else if(GUIObserverType.INITIALISE_STACK.equals(object.getType())) {
-      final DTOCardStack stack = (DTOCardStack) object.getSendingObject();
-      frame.initialiseStack(stack.getSize(), stack.getCardStack().getLast());
-    } else if(GUIObserverType.INITIALISE_PLAYERS.equals(object.getType())) {
-      final List<ClientInfo> players = (List<ClientInfo>) object.getSendingObject();
-      frame.initialisePlayers(players);
+  private void guiInGameCardsUpdate(List<List<DTOCard>> cardLists) {
+    List<DTOCard> attackerCards = null;
+    List<DTOCard> defenderCards = null;
+
+    if(cardLists != null) {
+      if (cardLists.size() == 2) {
+        attackerCards = cardLists.get(0);
+        defenderCards = cardLists.get(1);
+      } else {
+        JOptionPane.showMessageDialog(frame, "Ein Fehler im Server ist aufgetreten",
+            "Fehler", JOptionPane.ERROR_MESSAGE);
+        LOGGER.severe("Server sends the wrong format for the client!");
+      }
     }
+
+    frame.updateInGameCards(attackerCards, defenderCards);
   }
 
   private void disconnectClient() {

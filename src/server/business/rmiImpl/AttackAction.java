@@ -4,6 +4,7 @@ import dto.ClientInfo;
 import dto.DTOCard;
 import game.GameProcess;
 import game.rules.RuleException;
+import rmi.FinishAction;
 import rmi.GameAction;
 import server.business.GameServer;
 
@@ -24,7 +25,7 @@ public class AttackAction implements GameAction {
 
   /* Constructors */
   /* Methods */
-  public boolean doAction(ClientInfo client, DTOCard ...cards) throws RemoteException {
+  public boolean doAction(ClientInfo client, FinishAction finish, DTOCard ...cards) throws RemoteException {
     this.cards = new ArrayList<DTOCard>();
     this.executor = client;
     Collections.addAll(this.cards, cards);
@@ -35,7 +36,7 @@ public class AttackAction implements GameAction {
       process.validateAction(this);
       actionDone = true;
       reason = "";
-      GameServer.getServerInstance().sendProcessUpdate();
+      GameServer.getServerInstance().sendProcessUpdate(false);
     } catch (RuleException e) {
       reason = e.getMessage();
     }
@@ -43,13 +44,13 @@ public class AttackAction implements GameAction {
     return actionDone;
   }
 
+  /* Getter and Setter */
   public String getRefusedReason() {
     final String lastText = reason;
     reason = null;
     return lastText;
   }
 
-  /* Getter and Setter */
   public List<DTOCard> getCards() {
     return cards;
   }

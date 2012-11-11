@@ -26,7 +26,7 @@ public class DTOCard implements Serializable {
 
   public String toString() {
     return "DTOCard{" +
-        ", cardValue=" + cardValue +
+        "cardValue=" + cardValue +
         ", cardColour=" + cardColour +
         '}';
   }

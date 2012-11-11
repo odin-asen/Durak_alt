@@ -20,8 +20,8 @@ public class InGamePanel extends JPanel {
     paintCurtain = false;
     grids = new Integer[]{1,1};
     cardPanels = new ArrayList<CombatCardPanel>();
-    this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
-    this.setLayout(new GridLayout(grids[0], grids[1]));
+    setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
+    setLayout(new GridLayout(grids[0], grids[1]));
   }
 
   /* Methods */
@@ -35,23 +35,32 @@ public class InGamePanel extends JPanel {
   public void placeCards(List<DTOCard> attackCards, List<DTOCard> defenderCards) {
     clearField();
 
-    refreshGrids();
+    if(attackCards == null)
+      return;
+
     for (DTOCard card : attackCards) {
       final CombatCardPanel panel = new CombatCardPanel();
       panel.setAttackerCard(new GameCardWidget(card));
       addInGameCards(panel);
     }
 
+    if(defenderCards == null)
+      return;
+
     for (int index = 0; index < defenderCards.size() && index < attackCards.size(); index++) {
-      final CombatCardPanel cardPanel = cardPanels.iterator().next();
-      cardPanel.setDefenderCard(new GameCardWidget(defenderCards.get(index)));
-      cardPanel.placeCards();
+      final CombatCardPanel cardPanel = cardPanels.get(index);
+      if(defenderCards.get(index) != null) {
+        cardPanel.setDefenderCard(new GameCardWidget(defenderCards.get(index)));
+        cardPanel.placeCards();
+      }
     }
+    refreshGrids();
   }
 
   public void clearField() {
     removeAll();
     cardPanels.removeAll(cardPanels);
+    validate();
     repaint();
   }
 
@@ -122,8 +131,8 @@ public class InGamePanel extends JPanel {
   /* Getter and Setter */
   public void setPaintCurtain(Boolean paint) {
     if(paintCurtain != paint) {
-      this.paintCurtain = paint;
-      this.repaint();
+      paintCurtain = paint;
+      repaint();
     }
   }
 

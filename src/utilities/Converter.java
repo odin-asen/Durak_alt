@@ -33,21 +33,27 @@ public class Converter {
   }
 
   public static DTOCard toDTO(GameCard card) {
-    DTOCard dto = new DTOCard();
+    if(card == null)
+      return null;
+
+    final DTOCard dto = new DTOCard();
     dto.cardColour = card.getCardColour();
     dto.cardValue = card.getCardValue();
     return dto;
   }
 
   public static GameCard fromDTO(DTOCard dto) {
-    GameCard card = new GameCard();
+    if(dto == null)
+      return null;
+
+    final GameCard card = new GameCard();
     card.setCardColour(dto.cardColour);
     card.setCardValue(dto.cardValue);
     return card;
   }
 
   public static List<DTOCard> toDTO(List<GameCard> cards) {
-    List<DTOCard> dto = new ArrayList<DTOCard>();
+    final List<DTOCard> dto = new ArrayList<DTOCard>();
     for (GameCard card : cards) {
       dto.add(toDTO(card));
     }
@@ -55,7 +61,7 @@ public class Converter {
   }
 
   public static List<GameCard> fromDTO(List<DTOCard> dtoList) {
-    List<GameCard> cards = new ArrayList<GameCard>();
+    final List<GameCard> cards = new ArrayList<GameCard>();
     for (DTOCard dtoCard : dtoList) {
       cards.add(fromDTO(dtoCard));
     }
@@ -63,7 +69,10 @@ public class Converter {
   }
 
   public static DTOCardStack toDTO(GameCardStack stack) {
-    DTOCardStack dto = new DTOCardStack();
+    if(stack == null)
+      return null;
+
+    final DTOCardStack dto = new DTOCardStack();
     try {
       final Deque<GameCard> cardDeque = stack.getCardStack();
       dto.setCardStack((Deque<DTOCard>) Class.forName(cardDeque.getClass().getName()).newInstance());
@@ -82,7 +91,10 @@ public class Converter {
   }
 
   public static GameCardStack fromDTO(DTOCardStack dto) {
-    GameCardStack stack = GameCardStack.getInstance();
+    if(dto == null)
+      return null;
+
+    final GameCardStack stack = GameCardStack.getInstance();
     try {
       final Deque<GameCard> cardDeque = (Deque<GameCard>) Class.forName(dto.getCardStack().getClass().getName()).newInstance();
       for (DTOCard card  : dto.getCardStack()) {
@@ -117,7 +129,7 @@ public class Converter {
   }
 
   public static List<List<DTOCard>> toDTO(List<GameCard>... cardLists) {
-    final List<List<DTOCard>> dtoLists = new ArrayList<List<DTOCard>>(cardLists.length);
+    final List<List<DTOCard>> dtoLists = new ArrayList<List<DTOCard>>();
     for (List<GameCard> cardList : cardLists) {
       dtoLists.add(Converter.toDTO(cardList));
     }
@@ -126,7 +138,7 @@ public class Converter {
   }
 
   public static List<List<GameCard>> fromDTO(List<DTOCard>... dtoLists) {
-    final List<List<GameCard>> cardLists = new ArrayList<List<GameCard>>(dtoLists.length);
+    final List<List<GameCard>> cardLists = new ArrayList<List<GameCard>>();
     for (List<DTOCard> dtoList : dtoLists) {
       cardLists.add(fromDTO(dtoList));
     }

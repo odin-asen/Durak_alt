@@ -37,8 +37,18 @@ public class Player {
   }
 
   public void useCard(GameCard card) {
-    if(cards.contains(card))
-      cards.remove(card);
+    final GameCard found = getCard(card);
+    if(found != null)
+      cards.remove(found);
+  }
+
+  public GameCard getCard(GameCard card) {
+    for (GameCard gameCard : cards) {
+      if(gameCard.equals(card))
+        return gameCard;
+    }
+
+    return null;
   }
 
   /**

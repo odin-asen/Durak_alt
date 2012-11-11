@@ -19,6 +19,24 @@ public class GameCard {
         '}';
   }
 
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof GameCard)) return false;
+
+    GameCard gameCard = (GameCard) o;
+
+    if (cardColour != gameCard.cardColour) return false;
+    if (cardValue != gameCard.cardValue) return false;
+
+    return true;
+  }
+
+  public int hashCode() {
+    int result = cardValue.hashCode();
+    result = 31 * result + cardColour.hashCode();
+    return result;
+  }
+
   /**
    * Determines if the value of this card is higher than
    * the arguments.

@@ -52,15 +52,15 @@ public class GamePanel extends JPanel {
    */
   public void placeInGameCards(List<DTOCard> attackerCards, List<DTOCard> defenderCards) {
     inGamePanel.placeCards(attackerCards, defenderCards);
+    validate();
+    repaint();
   }
 
   public void placeClientCards(List<DTOCard> cards) {
-    for (GameCardWidget widget : clientWidgets) {
-      removeCard(widget);
-    }
-
+    clearClientCards();
     setClientCards(computeClientCardArea(), cards);
-    this.repaint();
+    validate();
+    repaint();
   }
 
   private void setClientCards(Rectangle region, List<DTOCard> cards) {
@@ -129,21 +129,27 @@ public class GamePanel extends JPanel {
     this.remove(widget);
     clientWidgets.remove(widget);
     replaceCards(computeClientCardArea());
+    this.validate();
   }
 
   public void deleteCards() {
-    for (GameCardWidget widget : clientWidgets) {
-      this.removeCard(widget);
-    }
+    clearClientCards();
     inGamePanel.clearField();
     this.repaint();
+  }
+
+  public void clearClientCards() {
+    for (GameCardWidget widget : clientWidgets) {
+      remove(widget);
+    }
+    clientWidgets.removeAll(clientWidgets);
   }
 
   /* paint-Methode */
   public void paint(Graphics g) {
     super.paint(g);
     final Rectangle area = computeClientCardArea();
-
+    System.out.println("ingame count: "+inGamePanel.getComponentCount());
     g.setColor(Color.WHITE);
     g.drawRect(area.x, area.y + 1, area.width - 1, area.height);
   }

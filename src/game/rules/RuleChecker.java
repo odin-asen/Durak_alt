@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import static utilities.constants.GameCardConstants.CardColour;
 import static utilities.constants.GameCardConstants.CardValue;
 import static utilities.constants.PlayerConstants.PlayerType;
+import static game.rules.RuleMessages.*;
 
 /**
  * User: Timm Herrmann
@@ -19,19 +20,8 @@ import static utilities.constants.PlayerConstants.PlayerType;
  * This class implies the rules of the game and provides methods that clarify,
  * if a move can be done or not.
  */
-public abstract class RuleChecker {
+public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spieler, mehr als 2 Spieler, 2 gegen 2 Spieler
   private static Logger LOGGER = Logger.getLogger(RuleChecker.class.getName());
-  public static final String RULE_MESSAGE_START_ATTACK_DIFFERENT_VALUES =
-      "Da nicht alle Karten den gleichen Wert haben," +
-      "\nkönnen diese Karten auch nicht für den ersten Angriff gelegt werden!";
-  public static final String RULE_MESSAGE_ALREADY_6_CARDS =
-      "Es liegen schon 6 Angriffskarten auf dem Spielfeld!";
-  public static final String RULE_MESSSAGE_FIRST_ATTACK_ONLY_5_CARDS =
-      "Im ersten Angriff darf nur mit maximal 5 Karten angegriffen werden!";
-  public static final String RULE_MESSAGE_NO_DEFAULT_ALLOWED =
-      "Nur Angreifer und Verteidiger dürfen was legen!";
-  public static final String RULE_MESSAGE_START_ATTACK_SECOND_PLAYER =
-      "Der zweite Angreifer darf nicht zuerst eine Angriffskarte spielen!";
 
   private CardColour trumpColour;
   private Player firstAttacker;
@@ -39,7 +29,9 @@ public abstract class RuleChecker {
   private Player defender;
 
   private Boolean initAttack;
+  private RoundStateHandler roundState;
 
+  /* Constructors */
   public RuleChecker() {
     firstAttacker = new Player();
     firstAttacker.setType(PlayerType.FIRST_ATTACKER);
@@ -47,6 +39,7 @@ public abstract class RuleChecker {
     secondAttacker.setType(PlayerType.SECOND_ATTACKER);
     defender = new Player();
     defender.setType(PlayerType.DEFENDER);
+    roundState = new RoundStateHandler();
     initAttack = true;
   }
 
@@ -59,7 +52,7 @@ public abstract class RuleChecker {
    * @throws RuleException Throws this exception with the specified message, if the
    * move can't be done.
    */
-  public void canDoAttackMove(Player attacker, List<GameCard> attackerCards, List<GameCard> currentCards)
+  public void doAttackMove(Player attacker, List<GameCard> attackerCards, List<GameCard> currentCards)
       throws RuleException {
     final StringBuilder nonExistingCards = new StringBuilder();
 
@@ -68,6 +61,33 @@ public abstract class RuleChecker {
 
     if(!allCardsExist(attackerCards, currentCards, nonExistingCards))
       throw new RuleException(getCardsNotOnGamePanelMessage(nonExistingCards.toString()));
+
+    for (GameCard card : attackerCards) {
+      attacker.useCard(card);
+    }
+  }
+
+  /**
+   * Returns true or false whether the defense move can be done or not.
+   * @param defenderCard Card to defend with.
+   * @param attackerCard Card that will be defended.
+   * @throws RuleException Throws this exception with the specified message, if the
+   * move can't be done.
+   */
+  public void doDefenseMove(Player defender, Boolean attackerCardsEmpty,
+                            GameCard defenderCard, GameCard attackerCard)
+      throws RuleException {
+    final String notHigherText = "Der Kartenwert "+defenderCard.getCardValue().getValueName()+
+        " ist vielleicht in einem anderen Universum höher als "+
+        attackerCard.getCardValue().getValueName();
+    final String noTrumpText = "Die Verteidigerkarte "+defenderCard.getColourAndValue()+
+        " ist kein Trumpf!";
+    checkAuthentication(defender);
+    if(attackerCardsEmpty)
+      throw new RuleException("Es liegen noch keine Karten auf dem Feld zum Verteidigen!");
+
+    checkDefense(defenderCard, attackerCard, notHigherText, noTrumpText);
+    defender.useCard(defenderCard);
   }
 
   private String getCardsNotOnGamePanelMessage(String nonExistingCards) {
@@ -97,9 +117,13 @@ public abstract class RuleChecker {
   }
 
   private Boolean cardValueExists(CardValue value, List<GameCard> cards) {
+    if(value == null)
+      return false;
+
     boolean exists = false;
     for (GameCard card : cards) {
-      exists = exists || value.equals(card.getCardValue());
+      if(card != null)
+        exists = exists || value.equals(card.getCardValue());
     }
 
     return exists;
@@ -126,29 +150,6 @@ public abstract class RuleChecker {
   private void checkAuthentication(Player player) throws RuleException {
     if(!player.equals(firstAttacker) && !player.equals(secondAttacker) && !player.equals(defender))
       throw new RuleException(RULE_MESSAGE_NO_DEFAULT_ALLOWED);
-  }
-
-  /**
-   * Returns true or false whether the defense move can be done or not.
-   * @param defenderCard Card to defend with.
-   * @param attackerCard Card that will be defended.
-   * @throws RuleException Throws this exception with the specified message, if the
-   * move can't be done.
-   */
-  public void canDoDefendMove(Player defender, Boolean attackerCardsEmpty,
-                              GameCard defenderCard, GameCard attackerCard)
-    throws RuleException {
-    final String notHigherText = "Der Kartenwert "+defenderCard.getCardValue().getValueName()+
-        " ist vielleicht in einem anderen Universum höher als "+
-        attackerCard.getCardValue().getValue();
-    final String noTrumpText = "Die Verteidigerkarte "+defenderCard.getColourAndValue()+
-        " ist kein Trumpf!";
-
-    checkAuthentication(defender);
-    if(attackerCardsEmpty)
-      throw new RuleException("Es liegen noch keine Karten auf dem Feld zum Verteidigen!");
-
-    checkDefense(defenderCard, attackerCard, notHigherText, noTrumpText);
   }
 
   private void checkDefense(GameCard defenderCard, GameCard attackerCard,
@@ -212,7 +213,19 @@ public abstract class RuleChecker {
     setFirstAttacker(firstAttacker);
     if(!secondAttacker.equals(firstAttacker))
       setSecondAttacker(secondAttacker);
+    else roundState.setSecondAttackerNextRound(true);
     setDefender(defender);
+  }
+
+  public void setAttackerReadyNextRound(PlayerType type) {
+    if(type.equals(PlayerType.FIRST_ATTACKER))
+      roundState.setFirstAttackerNextRound(true);
+    else if(type.equals(PlayerType.SECOND_ATTACKER))
+      roundState.setSecondAttackerNextRound(true);
+  }
+
+  public Boolean readyForNextRound() {
+    return roundState.readyForNextRound();
   }
 
   /* Getter and Setter */
@@ -263,5 +276,32 @@ public abstract class RuleChecker {
 
   public void setTrumpColour(CardColour trumpColour) {
     this.trumpColour = trumpColour;
+  }
+
+  /* Inner Classes */
+  private class RoundStateHandler {
+    private Boolean firstAttackerNextRound;
+    private Boolean secondAttackerNextRound;
+
+    private RoundStateHandler() {
+      initPlayerNextRound();
+    }
+
+    private void initPlayerNextRound() {
+      firstAttackerNextRound = false;
+      secondAttackerNextRound = false;
+    }
+
+    private Boolean readyForNextRound() {
+      return firstAttackerNextRound && secondAttackerNextRound;
+    }
+
+    public void setFirstAttackerNextRound(Boolean readyForNextRound) {
+      firstAttackerNextRound = readyForNextRound;
+    }
+
+    public void setSecondAttackerNextRound(Boolean readyForNextRound) {
+      secondAttackerNextRound = readyForNextRound;
+    }
   }
 }

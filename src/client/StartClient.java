@@ -16,7 +16,6 @@ public class StartClient {
   public static void main(String[] args) throws Exception{
     ClientFrame frame = new ClientFrame();
 //    loadLaF(frame);
-    //TODO Buttons für nächste Runde einbauen (Karten nehmen bzw. Karten weglegen)
     //TODO Nächste Runde im Server organisieren (Aktive Spieler wechseln, Handkarten auffüllen,
     //TODO Kartenstapel aktualisieren,...)
   }

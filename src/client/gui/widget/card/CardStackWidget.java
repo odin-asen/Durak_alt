@@ -1,6 +1,8 @@
 package client.gui.widget.card;
 
+import client.gui.frame.ClientGUIConstants;
 import dto.DTOCard;
+import dto.DTOCardStack;
 import resources.ResourceGetter;
 
 import javax.swing.*;
@@ -36,16 +38,17 @@ public class CardStackWidget extends JComponent {
    * @param heightLimit Limits the height of the back cards in pixel.
    */
   public CardStackWidget(int orientation) {
-    this.cardBack = new ImageIcon();
-    this.cardBack.setDescription("Back");
-    this.trumpCard = new ImageIcon();
-    this.trumpCard.setDescription("Trump");
-    this.trump = new DTOCard();
+    cardBack = ClientGUIConstants.CARD_BACK;
+    cardBack.setDescription("Back");
+    trumpCard = new ImageIcon();
+    trumpCard.setDescription("Trump");
+    trump = new DTOCard();
     this.orientation = orientation;
 
     cardBackTransform = new AffineTransform();
-    this.cardCount = 0;
-    this.setBackground(Color.BLACK);
+    trumpCardTransform = new AffineTransform();
+
+    cardCount = 0;
     updateTooltip();
   }
 
@@ -153,6 +156,12 @@ public class CardStackWidget extends JComponent {
   }
 
   /* Getter and Setter */
+  public void setCardStack(DTOCardStack cardStack) {
+    setCardBack(ClientGUIConstants.CARD_BACK);
+    setTrumpCard(cardStack.getCardStack().getLast());
+    setCardCount(cardStack.getSize());
+  }
+
   public void setCardCount(int cardCount) {
     this.cardCount = cardCount;
     updateTooltip();

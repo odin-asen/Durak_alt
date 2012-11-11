@@ -44,7 +44,7 @@ public class GameCardStack extends Observable {
 
     cardList = getSortedStack(stackSize/CardColour.values().length);
 
-    Collections.shuffle(cardList);
+//    Collections.shuffle(cardList); TODO zu testzwecken auskommentiert
     for (GameCard gameCard : cardList) {
       cardStack.add(gameCard);
     }
