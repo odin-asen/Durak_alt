@@ -7,8 +7,8 @@ package game.rules;
  */
 public interface RuleMessages {
   String RULE_MESSAGE_START_ATTACK_DIFFERENT_VALUES =
-      "Da nicht alle Karten den gleichen Wert haben," +
-          "\nkönnen diese Karten auch nicht für den ersten Angriff gelegt werden!";
+      "<html>Da nicht alle Karten den gleichen Wert haben," +
+          "<p/>können diese Karten auch nicht für den ersten Angriff gelegt werden</html>!";
   String RULE_MESSAGE_ALREADY_6_CARDS =
       "Es liegen schon 6 Angriffskarten auf dem Spielfeld!";
   String RULE_MESSSAGE_FIRST_ATTACK_ONLY_5_CARDS =

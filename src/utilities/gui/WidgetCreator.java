@@ -6,13 +6,8 @@ import resources.ResourceGetter;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.awt.event.InputMethodEvent;
-import java.awt.event.InputMethodListener;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.Vector;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -21,6 +16,7 @@ import java.util.logging.Logger;
  * Time: 01:06
  */
 public class WidgetCreator {
+  @SuppressWarnings("UnusedDeclaration")
   private static final Logger LOGGER = Logger.getLogger(WidgetCreator.class.getName());
 
   public static JComboBox<String> makeComboBox(Vector<String> comboBoxContent, String toolTipText) {
@@ -86,32 +82,5 @@ public class WidgetCreator {
     button.addActionListener(listener);
 
     return button;
-  }
-
-  public static InputMethodListener createTextChangeNotifyListener(
-      final Class<?> objectClass,final String methodName,
-      final Class<?>[] parameterTypes, final Object firstObject,
-      final Object ...parameterObjects) {
-    InputMethodListener listener = new InputMethodListener() {
-      public void inputMethodTextChanged(InputMethodEvent event) {
-        try {
-          System.out.println("blabla");
-          final Method method = objectClass.getMethod(methodName, parameterTypes);
-          method.invoke(firstObject, parameterObjects);
-        } catch (NoSuchMethodException e) {
-          LOGGER.log(Level.SEVERE, "Method "+methodName+" in class "+objectClass+
-              " with parameter list "+parameterTypes.toString()+" not found!");
-        } catch (InvocationTargetException e) {
-          LOGGER.log(Level.SEVERE, e.getMessage());
-        } catch (IllegalAccessException e) {
-          LOGGER.log(Level.SEVERE, e.getMessage());
-        }
-      }
-
-      public void caretPositionChanged(InputMethodEvent event) {
-      }
-    };
-
-    return listener;
   }
 }

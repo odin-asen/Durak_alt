@@ -13,8 +13,8 @@ public enum RMIService {
   ROUND_STATE_ACTION("RoundStateAction", GameAction.class),
   CHAT("ChatHandler", ChatHandler.class);
 
-  private String serviceName;
-  private Class serviceClass;
+  private final String serviceName;
+  private final Class serviceClass;
 
   RMIService(String serviceName, Class serviceClass) {
     this.serviceName = serviceName;

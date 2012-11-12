@@ -148,11 +148,9 @@ public class CardStackWidget extends JComponent {
   public void updateTooltip() {
     if(cardCount == 0)
       this.setToolTipText("");
-    else if(cardCount == 1)
-      this.setToolTipText("Noch 1 Karte auf dem Stapel;\nTrumpf: "+trump.cardColour.getName());
     else
-      this.setToolTipText("Noch "+cardCount+" Karten auf dem Stapel;\nTrumpf: "
-          +trump.cardColour.getName());
+      this.setToolTipText("<html>Anzahl Karten: "+ cardCount+
+          "<p/>Trumpf: "+trump.cardColour.getName()+"</html>");
   }
 
   /* Getter and Setter */

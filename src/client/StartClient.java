@@ -14,10 +14,8 @@ public class StartClient {
   public static final String LOOK_AND_FEEL = "com.jtattoo.plaf.noire.NoireLookAndFeel";
 
   public static void main(String[] args) throws Exception{
-    ClientFrame frame = new ClientFrame();
+    final ClientFrame frame = new ClientFrame();
 //    loadLaF(frame);
-    //TODO Nächste Runde im Server organisieren (Aktive Spieler wechseln, Handkarten auffüllen,
-    //TODO Kartenstapel aktualisieren,...)
   }
 
   public static void loadLaF(Component comp)

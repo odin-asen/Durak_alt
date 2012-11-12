@@ -9,7 +9,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputMethodListener;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
@@ -29,14 +28,9 @@ public class ConnectionInfoTab extends JPanel {
   private JLabel portLabel;
   private JLabel passwordLabel;
 
-  private InputMethodListener inputListener;
-
   ConnectionInfoTab() {
     final int labelIPadX = 5;
     GridBagConstraints constraints;
-
-    inputListener = WidgetCreator.createTextChangeNotifyListener(SetUpFrame.class,
-        "setChanged", new Class<?>[]{Boolean.class}, true);
 
     this.setLayout(new GridBagLayout());
 
@@ -92,7 +86,7 @@ public class ConnectionInfoTab extends JPanel {
 
     comboBoxContent = new Vector<String>();
     addressCombo = WidgetCreator.makeComboBox(comboBoxContent, "IP-Adresse des Servers oder Netzwerkname");
-    addressCombo.addInputMethodListener(inputListener);
+
     try {
       addressCombo.addItem(InetAddress.getLocalHost().getHostName());
     } catch (UnknownHostException e) {
@@ -118,19 +112,17 @@ public class ConnectionInfoTab extends JPanel {
     portLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, portLabel.getPreferredSize().height));
 
     portField = WidgetCreator.makeIntegerTextField("1025", "Portnummer des Servers");
-    portField.addInputMethodListener(inputListener);
 
     passwordLabel = new JLabel("Passwort:");
     passwordLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, passwordLabel.getPreferredSize().height));
 
     passwordField = (JPasswordField) WidgetCreator.makeTextField(JPasswordField.class, ClientGUIConstants.SET_UP_PASSWORD_TOOLTIP);
-    passwordField.addInputMethodListener(inputListener);
+
     plainTextField = WidgetCreator.makeTextField(JTextField.class, ClientGUIConstants.SET_UP_PASSWORD_TOOLTIP);
-    plainTextField.addInputMethodListener(inputListener);
 
     passwordCheckBox = new JCheckBox(ClientGUIConstants.SET_UP_CHECKBOX_PASSWORD_TEXT);
     passwordCheckBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, passwordCheckBox.getPreferredSize().height));
-    passwordCheckBox.addInputMethodListener(inputListener);
+
     passwordCheckBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         if (((AbstractButton) e.getSource()).isSelected()) {

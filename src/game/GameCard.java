@@ -25,10 +25,7 @@ public class GameCard {
 
     GameCard gameCard = (GameCard) o;
 
-    if (cardColour != gameCard.cardColour) return false;
-    if (cardValue != gameCard.cardValue) return false;
-
-    return true;
+    return cardColour == gameCard.cardColour && cardValue == gameCard.cardValue;
   }
 
   public int hashCode() {

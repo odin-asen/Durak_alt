@@ -23,7 +23,7 @@ import static utilities.constants.PlayerConstants.PlayerType;
  * if a move can be done or not.
  */
 public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spieler, mehr als 2 Spieler, 2 gegen 2 Spieler
-  private static Logger LOGGER = Logger.getLogger(RuleChecker.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(RuleChecker.class.getName());
 
   private CardColour trumpColour;
   private Player firstAttacker;
@@ -77,6 +77,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
     for (GameCard card : attackerCards) {
       attacker.useCard(card);
     }
+    initAttack = false;
   }
 
   /**
@@ -103,9 +104,9 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   }
 
   private String getCardsNotOnGamePanelMessage(String nonExistingCards) {
-    return "Der Zug kann nicht gemacht werden, " +
+    return "<html>Der Zug kann nicht gemacht werden, " +
         "weil die Werte der Karten "+nonExistingCards+
-        "\nnicht auf dem Spielfeld liegen!";
+        "<p/>nicht auf dem Spielfeld liegen!</html>";
   }
 
   private Boolean allCardsExist(List<GameCard> attackerCards, List<GameCard> currentCards,
@@ -117,7 +118,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
 
     for (GameCard attackerCard : attackerCards) {
       if(!cardValueExists(attackerCard.getCardValue(), currentCards)) {
-        nonExistingCards.append('\n').append(attackerCard.getColourAndValue()).append(',');
+        nonExistingCards.append("<p/>").append(attackerCard.getColourAndValue()).append(',');
         allCardsExist = false;
       }
     }
@@ -177,8 +178,9 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
           if(defenderCard.getCardValue().compareTo(attackerCard.getCardValue()) <= 0)
             throw new RuleException(notHigherText);
         } else {
-          throw new RuleException("Die Karte "+defenderCard.getColourAndValue()+
-              " ist weder Trumpf noch hat sie die Farbe "+attackerCard.getCardColour().getName());
+          throw new RuleException(
+              "<html>Die Karte "+defenderCard.getColourAndValue()+" ist weder Trumpf" +
+              "<p/>noch hat sie die Farbe "+attackerCard.getCardColour().getName()+"</html>");
         }
       }
     }
@@ -193,6 +195,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   public Player initStartPlayer(List<Player> players) {
     GameCard currentSmallestCard = null;
     Player starter = null;
+    initAttack = true;
 
     for (Player player : players) {
       final GameCard smallestColour = player.getSmallestValue(trumpColour);

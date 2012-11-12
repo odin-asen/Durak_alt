@@ -19,7 +19,7 @@ public class Player {
   private Player leftPlayer;
   private Player rightPlayer;
 
-  private List<GameCard> cards;
+  private final List<GameCard> cards;
   private PlayerType type;
 
   /* Constructors */

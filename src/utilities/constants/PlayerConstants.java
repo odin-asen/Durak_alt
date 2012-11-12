@@ -13,7 +13,7 @@ public interface PlayerConstants {
     SECOND_ATTACKER("Zweiter Angreifer"),
     DEFENDER("Verteidiger");
 
-    private String description;
+    private final String description;
     PlayerType(String description) {
       this.description = description;
     }

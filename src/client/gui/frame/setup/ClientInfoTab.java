@@ -4,11 +4,9 @@ import client.gui.frame.ClientGUIConstants;
 import dto.ClientInfo;
 import utilities.constants.GameConfigurationConstants;
 import utilities.gui.Constraints;
-import utilities.gui.WidgetCreator;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.InputMethodListener;
 
 public class ClientInfoTab extends JPanel {
   private JTextField nameField;
@@ -16,14 +14,9 @@ public class ClientInfoTab extends JPanel {
   private ClientInfo clientInfo;
   private JLabel nameLabel;
 
-  private InputMethodListener inputListener;
-
   /* Constructors */
   ClientInfoTab() {
     final int labelIPadX = 5;
-
-    inputListener = WidgetCreator.createTextChangeNotifyListener(SetUpFrame.class,
-        "setChanged", new Class<?>[]{Boolean.class}, false);
 
     this.setLayout(new GridBagLayout());
     initComponents();
@@ -55,7 +48,6 @@ public class ClientInfoTab extends JPanel {
     nameField = new JTextField(defaultText);
     nameField.setPreferredSize(new Dimension(ClientGUIConstants.PREFERRED_FIELD_WIDTH, nameField.getPreferredSize().height));
     nameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, nameField.getPreferredSize().height));
-    nameField.addInputMethodListener(inputListener);
   }
 
   /* Getter and Setter */

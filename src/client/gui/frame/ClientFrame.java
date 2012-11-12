@@ -33,7 +33,7 @@ import static utilities.constants.PlayerConstants.PlayerType;
  * Date: 29.09.12
  * Time: 22:37
  */
-@SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
+@SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal", "unchecked"})
 public class ClientFrame extends JFrame implements Observer {
   private static final Logger LOGGER = Logger.getLogger(ClientFrame.class.getName());
 
@@ -49,6 +49,7 @@ public class ClientFrame extends JFrame implements Observer {
   private ClientFrameMessageHandler handler;
   private JButton roundDoneButton;
   private JButton takeCardsButton;
+  private static ClientFramePopup rulePopup;
 
   /* Constructors */
   public ClientFrame() {
@@ -56,12 +57,13 @@ public class ClientFrame extends JFrame implements Observer {
         MAIN_FRAME_SCREEN_SIZE, MAIN_FRAME_SCREEN_SIZE);
     GameClient.getClient().addObserver(this);
 
-    this.handler = new ClientFrameMessageHandler(this);
-    this.setTitle(APPLICATION_NAME + TITLE_SEPARATOR + VERSION);
-    this.setBounds(position.getRectangle());
-    this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    rulePopup = new ClientFramePopup();
+    handler = new ClientFrameMessageHandler(this);
+    setTitle(APPLICATION_NAME + TITLE_SEPARATOR + VERSION);
+    setBounds(position.getRectangle());
+    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     initComponents();
-    this.setVisible(true);
+    setVisible(true);
   }
 
   /* Methods */
@@ -69,9 +71,26 @@ public class ClientFrame extends JFrame implements Observer {
     return this;
   }
 
-  public static void showRuleException(Component parent, String ruleException) {
-    JOptionPane.showMessageDialog(parent, ruleException, "Regelverletzung", JOptionPane.INFORMATION_MESSAGE);
-    //TODO durch PopupFactory ersetzen
+  public static void showRuleException(Component parent, final String ruleException) {
+    final ClientFrame frame = (ClientFrame) SwingUtilities.getRoot(parent);
+    Rectangle bounds = frame.getBounds();
+    rulePopup.setText(ruleException);
+    rulePopup.setSize(rulePopup.getPrefferedSize());
+    rulePopup.setLocation(bounds.x + bounds.width - rulePopup.getWidth() - 20,
+        bounds.y + bounds.height - rulePopup.getHeight() - 20);
+    rulePopup.setVisible(true);
+
+    new Thread(new Runnable() {
+      public void run() {
+        try {
+          Thread.sleep(5000L);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+        rulePopup.setVisible(false);
+        rulePopup.dispose();
+      }
+    }).start();
   }
 
   private void initComponents() {

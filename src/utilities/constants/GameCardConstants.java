@@ -13,8 +13,8 @@ public interface GameCardConstants {
     HEARTS(2, "Herz"),
     DIAMONDS(3, "Karo");
 
-    private Integer value;
-    private String name;
+    private final Integer value;
+    private final String name;
     CardColour(Integer value, String name) {
       this.value = value;
       this.name = name;
@@ -52,8 +52,8 @@ public interface GameCardConstants {
     KING(12, "K\u00f6nig"),
     ACE(0, "Ass");
 
-    private Integer value;
-    private String valueName;
+    private final Integer value;
+    private final String valueName;
     CardValue(Integer value, String valueName) {
       this.value = value;
       this.valueName = valueName;

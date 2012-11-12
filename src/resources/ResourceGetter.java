@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  * Time: 19:59
  */
 public class ResourceGetter {
-  private static Logger LOGGER = Logger.getLogger(ResourceGetter.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(ResourceGetter.class.getName());
 
   private static final int CARD_STRIPE_X_AXIS_GAP = 1;
   private static final int MAGIC_X_AXIS_GAP_CONSTANT = 2;
@@ -116,10 +116,10 @@ class SoundPlayer {
     URL url = null;
     /*Für einen neuen Sound soll eine Nummer angelegt werden und in einer if-anweisung
     * abgefragt werden, für den Fall der ersten Nummer wird das erste if verwendet. */
-    if(true) {
-    } else {
-      throw new IllegalArgumentException("Unbekannte Soundnummer übergeben.");
-    }
+//    if(true) {
+//    } else {
+//      throw new IllegalArgumentException("Unbekannte Soundnummer übergeben.");
+//    }
 
     playSoundFile(url);
   }

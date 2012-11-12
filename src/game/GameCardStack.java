@@ -15,14 +15,14 @@ import static utilities.constants.GameCardConstants.*;
  * thus there should be only one card stack in a game session.
  */
 public class GameCardStack extends Observable {
-  private static GameCardStack ourInstance = new GameCardStack();
+  private static final GameCardStack gameCardStack = new GameCardStack();
 
   private Integer stackSize;
 
   private Deque<GameCard> cardStack;
 
   public static GameCardStack getInstance() {
-    return ourInstance;
+    return gameCardStack;
   }
 
   private GameCardStack() {

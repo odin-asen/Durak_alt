@@ -8,11 +8,11 @@ import java.awt.*;
  * Time: 19:44
  */
 public class FramePosition {
-  private int posX;
-  private int posY;
-  private int breite;
-  private int hoehe;
-  private Rectangle rectangle;
+  private final int posX;
+  private final int posY;
+  private final int breite;
+  private final int hoehe;
+  private final Rectangle rectangle;
 
   private FramePosition(Dimension screenSize, float screenSizeFensterBreite, float screenSizeFensterHoehe) {
     if(screenSize == null)
