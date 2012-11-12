@@ -111,7 +111,7 @@ public class CombatCardPanel extends JPanel {
    * @return Returns true or false whether this panel is complete or not.
    */
   public Boolean isComplete() {
-    return hasAttackerCard() && hasAttackerCard();
+    return hasAttackerCard() && hasDefenderCard();
   }
 
   public Boolean hasDefenderCard() {

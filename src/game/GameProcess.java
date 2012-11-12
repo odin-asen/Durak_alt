@@ -146,12 +146,10 @@ public class GameProcess {
   }
 
   private void validateAttack(AttackAction attack) throws RuleException {
-    final List<GameCard> allCards = inGameCardHolder.getFirstElements();
-    allCards.addAll(inGameCardHolder.getSecondElements());
     final List<GameCard> cards = Converter.fromDTO(attack.getCards());
 
     ruleChecker.doAttackMove(playerList.get(attack.getExecutor().getLoginNumber()),
-        cards, allCards);
+        cards, inGameCardHolder.getFirstElements(), inGameCardHolder.getSecondElements());
 
     for (GameCard card : cards) {
       inGameCardHolder.addPair(card, null);
@@ -196,7 +194,7 @@ public class GameProcess {
       goToNextRound(defender.getLeftPlayer());
       result = true;
     } else {
-      if(ruleChecker.readyForNextRound()) {
+      if(ruleChecker.readyForNextRound() && inGameCardHolder.hasNoNullPairs()) {
         goToNextRound(defender);
         result = true;
       }
@@ -206,21 +204,18 @@ public class GameProcess {
   }
 
   private void goToNextRound(Player nextFirstAttacker) {
-    fillPlayerHands();
-    ruleChecker.setActivePlayers(nextFirstAttacker);
-  }
-
-  public void fillPlayerHands() {
     fillPlayerHand(ruleChecker.getFirstAttacker());
     fillPlayerHand(ruleChecker.getSecondAttacker());
     fillPlayerHand(ruleChecker.getDefender());
+    ruleChecker.setActivePlayers(nextFirstAttacker);
   }
 
   private void fillPlayerHand(Player player) {
     if(player == null)
       return;
-    while ((stack.getStackSize() > 0) && (player.getCards().size() < 6))
+    while ((stack.getStackSize() > 0) && (player.getCards().size() < 6)) {
       player.pickUpCard(stack.drawCard());
+    }
   }
 
   public void addPlayer() {
@@ -385,5 +380,16 @@ class ElementPairHolder<T> {
 
   public void clearPairs() {
     elementPairs = new ArrayList<List<T>>();
+  }
+
+  public boolean hasNoNullPairs() {
+    for (List<T> elementPair : elementPairs) {
+      for (T element : elementPair) {
+        if(element == null)
+          return false;
+      }
+    }
+
+    return true;
   }
 }

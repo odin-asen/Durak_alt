@@ -76,7 +76,6 @@ public class SetUpFrame extends JDialog {
   }
 
   public void setChanged(boolean changed) {
-    System.out.println("setChanged");
     JButton button = new JButton();
     for (Component component : buttonPanel.getComponents()) {
       if(((JButton) component).getActionCommand().equals(ClientGUIConstants.ACTION_COMMAND_APPLY))
@@ -86,7 +85,7 @@ public class SetUpFrame extends JDialog {
     button.setEnabled(!changed);
 
     if(changed) {
-      setTitle(ClientGUIConstants.SET_UP_TITLE + "(Daten ver\u00e4ndert");
+      setTitle(ClientGUIConstants.SET_UP_TITLE + "(Daten ver\u00e4ndert)");
     } else {
       setTitle(ClientGUIConstants.SET_UP_TITLE);
     }

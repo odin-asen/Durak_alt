@@ -81,8 +81,8 @@ public class GamePanel extends JPanel {
     /* To ensure the accurate drawing of the cards */
     /* Changing the size calls the CardReplacers
     componentResized method */
-    setSize(getWidth()-1,getHeight()-1);
-    setSize(getWidth()+1,getHeight()+1);
+    setSize(getWidth() - 1, getHeight() - 1);
+    setSize(getWidth() + 1, getHeight() + 1);
   }
 
   private Rectangle getFirstCardBounds(Rectangle region, Float widthToHeight) {
@@ -145,11 +145,28 @@ public class GamePanel extends JPanel {
     clientWidgets.removeAll(clientWidgets);
   }
 
+
+  public Boolean hasInGameCards() {
+    if(inGamePanel.getCardPanels().size()>0)
+      return true;
+    else return false;
+  }
+
+  public Boolean inGameCardsAreCovered() {
+    if(inGamePanel.getCardPanels().size() <= 0)
+      return false;
+
+    for (CombatCardPanel panel : inGamePanel.getCardPanels()) {
+      if(!panel.isComplete())
+        return false;
+    }
+    return true;
+  }
+
   /* paint-Methode */
   public void paint(Graphics g) {
     super.paint(g);
     final Rectangle area = computeClientCardArea();
-    System.out.println("ingame count: "+inGamePanel.getComponentCount());
     g.setColor(Color.WHITE);
     g.drawRect(area.x, area.y + 1, area.width - 1, area.height);
   }
@@ -192,10 +209,6 @@ public class GamePanel extends JPanel {
     }
   }
 
-  public void showRuleException(String ruleException) {
-    JOptionPane.showMessageDialog(this,ruleException, "Regelverletzung", JOptionPane.INFORMATION_MESSAGE);
-    //TODO durch PopupFactory ersetzen
-  }
   /* Getter and Setter */
 
   /* Inner Classes */

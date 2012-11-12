@@ -38,6 +38,5 @@ public class ServerMessageHandler extends UnicastRemoteObject implements RMIObse
     if(notificationObject instanceof MessageObject) {
       GameClient.getClient().sendServerMessage((MessageObject) notificationObject);
     }
-    else System.out.println(notificationObject);
   }
 }

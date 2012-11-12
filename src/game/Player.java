@@ -33,7 +33,8 @@ public class Player {
 
   /* Methods */
   public void pickUpCard(GameCard newCard) {
-    cards.add(newCard);
+    if(newCard != null)
+      cards.add(newCard);
   }
 
   public void useCard(GameCard card) {

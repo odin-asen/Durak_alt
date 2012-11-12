@@ -373,8 +373,8 @@ public class GameServer extends Observable {
           server.broadcastMessage(GameUpdateType.STACK_UPDATE, Converter.toDTO(GameCardStack.getInstance()));
         } else allCards = Converter.toDTO(process.getAttackCards(), process.getDefenseCards());
         server.broadcastMessage(GameUpdateType.INGAME_CARDS, allCards);
-        server.broadcastMessage(GameUpdateType.NEXT_ROUND_AVAILABLE, process.nextRoundAvailable());
         server.broadcastMessage(GameUpdateType.PLAYERS_UPDATE, clients);
+        server.broadcastMessage(GameUpdateType.NEXT_ROUND_AVAILABLE, process.nextRoundAvailable());
       } catch (GameServerException e) {
         LOGGER.log(Level.SEVERE, e.getMessage());
       }

@@ -8,7 +8,6 @@ import dto.ClientInfo;
 import dto.DTOCard;
 import dto.DTOCardStack;
 import dto.message.*;
-import game.GameCardStack;
 import utilities.Converter;
 import utilities.Miscellaneous;
 import utilities.gui.Constraints;
@@ -21,7 +20,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -67,6 +65,15 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   /* Methods */
+  private ClientFrame returnThis() {
+    return this;
+  }
+
+  public static void showRuleException(Component parent, String ruleException) {
+    JOptionPane.showMessageDialog(parent, ruleException, "Regelverletzung", JOptionPane.INFORMATION_MESSAGE);
+    //TODO durch PopupFactory ersetzen
+  }
+
   private void initComponents() {
     toolBar = new DurakToolBar(this);
 
@@ -136,9 +143,6 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   public void updateInGameCards(List<DTOCard> attackerCards, List<DTOCard> defenderCards) {
-    if(attackerCards == null || !attackerCards.isEmpty()) {
-      enableButtons(false);
-    }
     gamePanel.placeInGameCards(attackerCards, defenderCards);
   }
 
@@ -146,19 +150,21 @@ public class ClientFrame extends JFrame implements Observer {
     final Boolean take;
     final Boolean round;
     final PlayerType playerType = SetUpFrame.getInstance().getClientInfo().getPlayerType();
+    final Boolean cardsOnTable = gamePanel.hasInGameCards();
     if(playerType.equals(PlayerType.FIRST_ATTACKER) ||
        playerType.equals(PlayerType.SECOND_ATTACKER)) {
       take = false;
       round = !roundFinished;
     } else if (playerType.equals(PlayerType.DEFENDER)) {
       take = true;
-      round = roundFinished;
+      round = roundFinished && gamePanel.inGameCardsAreCovered();
+      System.out.println(gamePanel.inGameCardsAreCovered());
     } else {
       take = false;
       round = false;
     }
-    takeCardsButton.setEnabled(take);
-    roundDoneButton.setEnabled(round);
+    takeCardsButton.setEnabled(take && cardsOnTable);
+    roundDoneButton.setEnabled(round && cardsOnTable);
   }
 
   /* Getter and Setter */
@@ -256,31 +262,6 @@ public class ClientFrame extends JFrame implements Observer {
     return panel;
   }
 
-  public void initTest() {
-    List<ClientInfo> clients = new ArrayList<ClientInfo>();
-    ClientInfo client = SetUpFrame.getInstance().getClientInfo();
-    client.setCardCount(6);
-    client.setPlayerType(PlayerType.DEFENDER);
-    clients.add(client);
-    client = new ClientInfo("pseudo nym",(short)1);
-    client.setCardCount(6);
-    client.setPlayerType(PlayerType.FIRST_ATTACKER);
-    clients.add(client);
-    updatePlayers(clients, true);
-    GameCardStack gStack = GameCardStack.getInstance();
-    gStack.initialiseStack(7);
-    DTOCardStack stack = Converter.toDTO(gStack);
-    updateStack(stack);
-    List<DTOCard> attacker = new ArrayList<DTOCard>();
-    attacker.add(new DTOCard());
-    attacker.add(new DTOCard());
-    List<DTOCard> defender = new ArrayList<DTOCard>();
-    defender.add(new DTOCard());
-    defender.add(new DTOCard());
-
-    updateInGameCards(attacker, defender);
-  }
-
   /* Inner Classes */
   private class ClientInfoCellRenderer extends DefaultListCellRenderer {
     public Component getListCellRendererComponent(
@@ -310,7 +291,6 @@ public class ClientFrame extends JFrame implements Observer {
       }
 
       if(nextRoundRequest(clientInfo, takeCards)) {
-        enableButtons(true);
         updateInGameCards(null,null);
       }
     }

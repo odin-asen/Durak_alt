@@ -1,6 +1,7 @@
 package client.gui.widget.card;
 
 import client.business.client.GameClient;
+import client.gui.frame.ClientFrame;
 import client.gui.frame.gamePanel.GamePanel;
 import client.gui.frame.setup.SetUpFrame;
 import dto.ClientInfo;
@@ -79,7 +80,7 @@ public class AttackCardMoveListener extends CardMoveListener {
       final String inValidString = moveIsValid(widget);
       if(inValidString != null) {
         if(!inValidString.isEmpty()) {
-          parent.showRuleException(inValidString);
+          ClientFrame.showRuleException(parent, inValidString);
           setWidgetToLastPlace(widget);
         } else removeClientCards(widget);
       } else {

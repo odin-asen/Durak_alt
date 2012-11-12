@@ -1,6 +1,7 @@
 package client.gui.widget.card;
 
 import client.business.client.GameClient;
+import client.gui.frame.ClientFrame;
 import client.gui.frame.gamePanel.CombatCardPanel;
 import client.gui.frame.gamePanel.GamePanel;
 import client.gui.frame.setup.SetUpFrame;
@@ -55,12 +56,12 @@ public class DefenseCardMoveListener extends CardMoveListener {
 
   public void mouseReleased(MouseEvent e) {
     final GameCardWidget widget = (GameCardWidget) e.getComponent();
-    final String inValidString = moveIsValid(widget, curtainPanel);
-    if(inValidString != null) {
-      if(inValidString.isEmpty()) {
+    final String invalidString = moveIsValid(widget, curtainPanel);
+    if(invalidString != null) {
+      if(invalidString.isEmpty()) {
         removeClientCard(widget);
       } else {
-        parent.showRuleException(inValidString);
+        ClientFrame.showRuleException(parent, invalidString);
         setWidgetToLastPlace(widget);
       }
     } else {
@@ -85,7 +86,7 @@ public class DefenseCardMoveListener extends CardMoveListener {
   private String moveIsValid(GameCardWidget widget, CombatCardPanel currentPanel) {
     String result;
     if(currentPanel == null)
-      return "Die Verteidigungskarte sollte schon auf eine andere Karte platziert werden!";
+      return null;
 
     try {
       final ClientInfo clientInfo = SetUpFrame.getInstance().getClientInfo();

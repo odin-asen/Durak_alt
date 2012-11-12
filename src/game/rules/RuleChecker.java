@@ -2,15 +2,17 @@ package game.rules;
 
 import game.GameCard;
 import game.Player;
+import utilities.Miscellaneous;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static game.rules.RuleMessages.*;
 import static utilities.constants.GameCardConstants.CardColour;
 import static utilities.constants.GameCardConstants.CardValue;
 import static utilities.constants.PlayerConstants.PlayerType;
-import static game.rules.RuleMessages.*;
 
 /**
  * User: Timm Herrmann
@@ -52,15 +54,25 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
    * @throws RuleException Throws this exception with the specified message, if the
    * move can't be done.
    */
-  public void doAttackMove(Player attacker, List<GameCard> attackerCards, List<GameCard> currentCards)
+  public void doAttackMove(Player attacker, List<GameCard> attackerCards,
+                           List<GameCard> currentAttackCards, List<GameCard> currentDefenderCards)
       throws RuleException {
     final StringBuilder nonExistingCards = new StringBuilder();
 
     checkAuthentication(attacker);
-    checkAttack(attacker, attackerCards, currentCards);
+    checkAttack(attacker, attackerCards, currentAttackCards);
 
-    if(!allCardsExist(attackerCards, currentCards, nonExistingCards))
+    final List<GameCard> allCards = new ArrayList<GameCard>();
+    Miscellaneous.addAllToCollection(allCards, currentAttackCards);
+    Miscellaneous.addAllToCollection(allCards, currentDefenderCards);
+
+    if(!allCardsExist(attackerCards, allCards, nonExistingCards))
       throw new RuleException(getCardsNotOnGamePanelMessage(nonExistingCards.toString()));
+
+    if(attacker.getType().equals(PlayerType.FIRST_ATTACKER))
+      roundState.setFirstAttackerNextRound(false);
+    else if(attacker.getType().equals(PlayerType.SECOND_ATTACKER))
+      roundState.setSecondAttackerNextRound(false);
 
     for (GameCard card : attackerCards) {
       attacker.useCard(card);
@@ -130,15 +142,15 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   }
 
   private void checkAttack(Player wantsToAttack, List<GameCard> attackCards,
-                           List<GameCard> currentCards)
+                           List<GameCard> currentAttackCards)
     throws RuleException {
-    if(wantsToAttack.equals(secondAttacker) && currentCards.isEmpty())
+    if(wantsToAttack.equals(secondAttacker) && currentAttackCards.isEmpty())
       throw new RuleException(RULE_MESSAGE_START_ATTACK_SECOND_PLAYER);
-    else if(initAttack && (currentCards.size() == 5))
+    else if(initAttack && (currentAttackCards.size() == 5))
       throw new RuleException(RULE_MESSSAGE_FIRST_ATTACK_ONLY_5_CARDS);
-    else if(currentCards.size() == 6)
+    else if(currentAttackCards.size() == 6)
       throw new RuleException(RULE_MESSAGE_ALREADY_6_CARDS);
-    else if(currentCards.isEmpty()) {
+    else if(currentAttackCards.isEmpty()) {
       final CardValue currentValue = attackCards.get(0).getCardValue();
       for (GameCard attackCard : attackCards) {
         if (!currentValue.equals(attackCard.getCardValue()))
@@ -209,11 +221,16 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   public void setActivePlayers(Player firstAttacker) {
     Player defender = firstAttacker.getLeftPlayer();
     Player secondAttacker = defender.getLeftPlayer();
+    roundState.setSecondAttackerNextRound(false);
+    roundState.setFirstAttackerNextRound(false);
 
     setFirstAttacker(firstAttacker);
     if(!secondAttacker.equals(firstAttacker))
       setSecondAttacker(secondAttacker);
-    else roundState.setSecondAttackerNextRound(true);
+    else {
+      setSecondAttacker(null);
+      roundState.setSecondAttackerNextRound(true);
+    }
     setDefender(defender);
   }
 
