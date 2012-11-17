@@ -23,6 +23,8 @@ public class CardStackWidget extends JComponent {
   /* Defines the relative distance to the borders */
   public static final float BORDER_MARGIN = 0.05f;
 
+  private static CardStackWidget stackWidget;
+
   private DTOCard trump;
   private ImageIcon cardBack;
   private ImageIcon trumpCard;
@@ -44,7 +46,6 @@ public class CardStackWidget extends JComponent {
     trumpCard.setDescription("Trump");
     trump = new DTOCard();
     this.orientation = orientation;
-
     cardBackTransform = new AffineTransform();
     trumpCardTransform = new AffineTransform();
 
@@ -59,7 +60,9 @@ public class CardStackWidget extends JComponent {
   }
 
   public static CardStackWidget getInstance() {
-    return new CardStackWidget(CardStackWidget.ORIENTATION_VERTICAL);
+    if(stackWidget == null)
+      stackWidget = new CardStackWidget(CardStackWidget.ORIENTATION_VERTICAL);
+    return stackWidget;
   }
 
   /* Methods */
@@ -146,17 +149,14 @@ public class CardStackWidget extends JComponent {
   }
 
   public void updateTooltip() {
-    if(cardCount == 0)
-      this.setToolTipText("");
-    else
-      this.setToolTipText("<html>Anzahl Karten: "+ cardCount+
-          "<p/>Trumpf: "+trump.cardColour.getName()+"</html>");
+    this.setToolTipText("<html>Anzahl Karten: "+ cardCount+
+        "<p/>Trumpf: "+trump.cardColour.getName()+"</html>");
   }
 
   /* Getter and Setter */
   public void setCardStack(DTOCardStack cardStack) {
-    setCardBack(ClientGUIConstants.CARD_BACK);
-    setTrumpCard(cardStack.getCardStack().getLast());
+    if(cardStack.getSize() > 0)
+      setTrumpCard(cardStack.getCardStack().getLast());
     setCardCount(cardStack.getSize());
   }
 

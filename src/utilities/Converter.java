@@ -26,8 +26,8 @@ public class Converter {
 
   public static ClientInfo toDTO(ClientInfo client, Player player) {
     if(client != null) {
-      client.setCardCount(player.getCards().size());
-      client.setPlayerType(player.getType());
+      client.cardCount = player.getCards().size();
+      client.playerType = player.getType();
     }
     return client;
   }

@@ -7,9 +7,12 @@ import utilities.gui.Constraints;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class ClientInfoTab extends JPanel {
   private JTextField nameField;
+  private JCheckBox spectatorCheckBox;
 
   private ClientInfo clientInfo;
   private JLabel nameLabel;
@@ -24,30 +27,46 @@ public class ClientInfoTab extends JPanel {
 
     constraints = Constraints.getDefaultFieldConstraintLeft(0, 0, 2, 1);
     constraints.ipadx = labelIPadX;
-    this.add(nameLabel, constraints);
+    add(nameLabel, constraints);
     constraints = Constraints.getDefaultFieldConstraintLeft(3, 0, 2, 1);
-    this.add(nameField, constraints);
-
+    add(nameField, constraints);
+    constraints = Constraints.getDefaultFieldConstraintLeft(3, 1, 2, 1);
+    add(spectatorCheckBox, constraints);
     clientInfo = new ClientInfo("", GameConfigurationConstants.NO_LOGIN_NUMBER);
     fillClientInfo();
   }
 
   /* Methods */
   void fillClientInfo() {
-    clientInfo.setName(nameField.getText());
+    clientInfo.name = nameField.getText();
+    clientInfo.spectating = spectatorCheckBox.isSelected();
   }
 
   void initComponents() {
     nameLabel = new JLabel("Spielername:");
-    nameLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, nameLabel.getPreferredSize().height));
+    int preferredHeight = nameLabel.getPreferredSize().height;
+    nameLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, preferredHeight));
 
     String defaultText = System.getProperty("user.name");
     if (defaultText == null)
       defaultText = "anonymus";
 
     nameField = new JTextField(defaultText);
-    nameField.setPreferredSize(new Dimension(ClientGUIConstants.PREFERRED_FIELD_WIDTH, nameField.getPreferredSize().height));
-    nameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, nameField.getPreferredSize().height));
+    preferredHeight = nameField.getPreferredSize().height;
+    nameField.setPreferredSize(new Dimension(ClientGUIConstants.PREFERRED_FIELD_WIDTH,
+        preferredHeight));
+    nameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, preferredHeight));
+    spectatorCheckBox = new JCheckBox("Nur zuschauen");
+    preferredHeight = spectatorCheckBox.getPreferredSize().height;
+    spectatorCheckBox.setPreferredSize(new Dimension(ClientGUIConstants.PREFERRED_FIELD_WIDTH,
+        preferredHeight));
+    spectatorCheckBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, preferredHeight));
+    spectatorCheckBox.setSelected(false);
+    spectatorCheckBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        clientInfo.spectating = spectatorCheckBox.isSelected();
+      }
+    });
   }
 
   /* Getter and Setter */
@@ -56,6 +75,7 @@ public class ClientInfoTab extends JPanel {
   }
 
   public void updateClientInfo(ClientInfo info) {
-    clientInfo.setPlayerType(info.getPlayerType());
+    clientInfo.playerType = info.playerType;
+    clientInfo.spectating = info.spectating;
   }
 }

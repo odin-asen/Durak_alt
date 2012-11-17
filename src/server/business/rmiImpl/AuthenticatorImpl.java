@@ -26,8 +26,7 @@ public class AuthenticatorImpl implements Authenticator {
     if(password.equals(password)) {
       GameServer.getServerInstance().addClient(client);
       return true;
-    }
-    else {
+    } else {
       reason = "Das Passwort ist falsch!";
       return false;
     }

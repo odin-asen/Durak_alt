@@ -44,7 +44,7 @@ public class GameCardStack extends Observable {
 
     cardList = getSortedStack(stackSize/CardColour.values().length);
 
-//    Collections.shuffle(cardList); TODO zu testzwecken auskommentiert
+    Collections.shuffle(cardList);
     for (GameCard gameCard : cardList) {
       cardStack.add(gameCard);
     }
@@ -57,7 +57,7 @@ public class GameCardStack extends Observable {
   public void reshuffleStack() {
     final List<GameCard> cardList;
 
-    cardList = getSortedStack(stackSize);
+    cardList = getSortedStack(stackSize/CardColour.values().length);
     Collections.shuffle(cardList);
     for (GameCard gameCard : cardList) {
       cardStack.add(gameCard);

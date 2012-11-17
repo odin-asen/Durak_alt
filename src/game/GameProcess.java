@@ -30,6 +30,7 @@ public class GameProcess {
   private List<Player> playerList;
   private GameCardStack stack;
   private Boolean gameInProcess;
+  private Boolean initialiseNew;
 
   private RuleChecker ruleChecker;
 
@@ -49,8 +50,8 @@ public class GameProcess {
   private void initialiseInstance() {
     playerList = new ArrayList<Player>();
     inGameCardHolder = new ElementPairHolder<GameCard>();
-    ruleChecker = RuleFactory.getStandardRules();
     gameInProcess = false;
+    initialiseNew = true;
   }
 
   /**
@@ -65,9 +66,10 @@ public class GameProcess {
    */
   public Boolean initialiseNewGame(Integer cardsPerColour) {
     if(playerList.size() > 1) {
+      ruleChecker = RuleFactory.getStandardRules();
       distributeCards(cardsPerColour);
       determineInitialPlayers();
-      setGameInProcess(true);
+      gameInProcess = true;
       return true;
     } else return false;
   }
@@ -77,7 +79,9 @@ public class GameProcess {
    */
   private void determineInitialPlayers() {
     ruleChecker.setTrumpColour(stack.getTrumpCard().getCardColour());
-    ruleChecker.initStartPlayer(playerList);
+    if(initialiseNew)
+      ruleChecker.initStartPlayer(playerList);
+    else ruleChecker.setActivePlayers(determineLoser().getRightPlayer());
   }
 
   /**
@@ -85,7 +89,7 @@ public class GameProcess {
    * and distributes {@link GameConfigurationConstants#INITIAL_CARD_COUNT} cards
    * to each player in the game and sets the players neighbours.
    */
-  public void distributeCards(Integer cardsPerColour) {
+  private void distributeCards(Integer cardsPerColour) {
     initPlayerNeighbours();
     stack = GameCardStack.getInstance();
     stack.initialiseStack(cardsPerColour);
@@ -136,7 +140,7 @@ public class GameProcess {
 
   private void validateDefense(DefenseAction defense) throws RuleException {
     ruleChecker.doDefenseMove(
-        playerList.get(defense.getExecutor().getLoginNumber()),
+        playerList.get(defense.getExecutor().loginNumber),
         inGameCardHolder.getFirstElements().isEmpty(),
         Converter.fromDTO(defense.getDefendCard()),
         Converter.fromDTO(defense.getAttackCard()));
@@ -148,7 +152,7 @@ public class GameProcess {
   private void validateAttack(AttackAction attack) throws RuleException {
     final List<GameCard> cards = Converter.fromDTO(attack.getCards());
 
-    ruleChecker.doAttackMove(playerList.get(attack.getExecutor().getLoginNumber()),
+    ruleChecker.doAttackMove(playerList.get(attack.getExecutor().loginNumber),
         cards, inGameCardHolder.getFirstElements(), inGameCardHolder.getSecondElements());
 
     for (GameCard card : cards) {
@@ -166,10 +170,9 @@ public class GameProcess {
    * @return Returns true, if the next round was initialised, false, if not.
    */
   public Boolean nextRound(PlayerConstants.PlayerType type, Boolean takeCards) {
-    final Player defender = ruleChecker.getDefender();
     Boolean result = false;
     if(PlayerConstants.PlayerType.DEFENDER.equals(type)) {
-      result = defenderRequestNextRound(takeCards, defender);
+      result = defenderRequestNextRound(takeCards, ruleChecker.getDefender());
     } else if(PlayerConstants.PlayerType.FIRST_ATTACKER.equals(type) ||
         PlayerConstants.PlayerType.SECOND_ATTACKER.equals(type)) {
       ruleChecker.setAttackerReadyNextRound(type);
@@ -182,7 +185,7 @@ public class GameProcess {
   }
 
   private Boolean defenderRequestNextRound(Boolean takeCards, Player defender) {
-    Boolean result = false;
+    Boolean result = true;
 
     if(takeCards) {
       final List<List<GameCard>> pairs = inGameCardHolder.getElementPairs();
@@ -191,28 +194,60 @@ public class GameProcess {
           defender.pickUpCard(card);
         }
       }
-      goToNextRound(defender.getLeftPlayer());
-      result = true;
+      prepareForNextRound();
+      nextRoundOrFinish(defender.getLeftPlayer());
     } else {
       if(ruleChecker.readyForNextRound() && inGameCardHolder.hasNoNullPairs()) {
-        goToNextRound(defender);
-        result = true;
-      }
+        prepareForNextRound();
+        nextRoundOrFinish(defender);
+      } else result = false;
     }
 
     return result;
   }
 
-  private void goToNextRound(Player nextFirstAttacker) {
+  private void nextRoundOrFinish(Player firstAttacker) {
+    final Player loser = determineLoser();
+    if(loser != null) {
+      loser.setType(PlayerConstants.PlayerType.LOSER);
+      loser.emptyHand();
+      gameInProcess = false;
+    } else ruleChecker.setActivePlayers(firstAttacker);
+  }
+
+  private void prepareForNextRound() {
     fillPlayerHand(ruleChecker.getFirstAttacker());
     fillPlayerHand(ruleChecker.getSecondAttacker());
     fillPlayerHand(ruleChecker.getDefender());
-    ruleChecker.setActivePlayers(nextFirstAttacker);
+    updateFinishedPlayer(ruleChecker.getFirstAttacker());
+    updateFinishedPlayer(ruleChecker.getSecondAttacker());
+    updateFinishedPlayer(ruleChecker.getDefender());
+  }
+
+  private Player determineLoser() {
+    for (Player player : playerList) {
+      if(player.isAlone())
+        return player;
+    }
+
+    return null;
+  }
+
+  private void updateFinishedPlayer(Player player) {
+    if(player == null)
+      return;
+
+    if(player.getCards().size() == 0) {
+      player.getLeftPlayer().setRightPlayer(player.getRightPlayer());
+      player.getRightPlayer().setLeftPlayer(player.getLeftPlayer());
+      player.setType(PlayerConstants.PlayerType.NOT_LOSER);
+    }
   }
 
   private void fillPlayerHand(Player player) {
     if(player == null)
       return;
+
     while ((stack.getStackSize() > 0) && (player.getCards().size() < 6)) {
       player.pickUpCard(stack.drawCard());
     }
@@ -241,22 +276,23 @@ public class GameProcess {
     return ruleChecker.readyForNextRound();
   }
 
+
+  public Boolean gameHasFinished() {
+    return determineLoser() != null;
+  }
+
   /* Getter and Setter */
   private Player getPlayer(int playerIndex) {
     if(playerIndex >= 0 && playerIndex < playerList.size())
       return playerList.get(playerIndex);
     else return null;
   }
-  public boolean isGameInProcess() {
+  public Boolean isGameInProcess() {
     return gameInProcess;
   }
 
-  private void setGameInProcess(boolean gameInProcess) {
-    this.gameInProcess = gameInProcess;
-  }
-
   public List<PlayerConstants.PlayerType> getPlayerTypes() {
-    List<PlayerConstants.PlayerType> types = new ArrayList<PlayerConstants.PlayerType>();
+    final List<PlayerConstants.PlayerType> types = new ArrayList<PlayerConstants.PlayerType>();
     for (Player player : playerList) {
       types.add(player.getType());
     }

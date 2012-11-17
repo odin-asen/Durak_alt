@@ -197,13 +197,15 @@ public class GamePanel extends JPanel {
   }
 
   public void setListenerType(PlayerConstants.PlayerType type) {
-    if(PlayerConstants.PlayerType.DEFAULT.equals(type)) {
-      cardManager = CardMoveListener.getDefaultInstance(this);
+    if (PlayerConstants.PlayerType.FIRST_ATTACKER.equals(type) ||
+        PlayerConstants.PlayerType.SECOND_ATTACKER.equals(type)) {
+      cardManager = CardMoveListener.getAttackerInstance(this, 2.0f*DISTANCE_CARD_Y);
     } else if (PlayerConstants.PlayerType.DEFENDER.equals(type)) {
       cardManager = CardMoveListener.getDefenderInstance(this, inGamePanel.getCardPanels());
     } else {
-      cardManager = CardMoveListener.getAttackerInstance(this, 2.0f*DISTANCE_CARD_Y);
+      cardManager = CardMoveListener.getDefaultInstance(this);
     }
+
     for (GameCardWidget widget : clientWidgets) {
       widget.setCardMoveListener(cardManager);
     }

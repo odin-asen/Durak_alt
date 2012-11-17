@@ -75,7 +75,7 @@ public class GameClient extends Observable {
     serverObserver = new ServerMessageHandler(registry, RMIService.OBSERVER.getServiceName());
   }
 
-  public void sendServerMessage(MessageObject object) {
+  public void receiveServerMessage(MessageObject object) {
     this.setChanged();
     this.notifyObservers(object);
   }
@@ -85,14 +85,17 @@ public class GameClient extends Observable {
     this.notifyObservers(object);
   }
 
-  public void connect()
+  public boolean connect(ClientInfo info, String password)
       throws RemoteException, NotBoundException, ServerNotActiveException {
     if (!isConnected()) {
       Registry registry = LocateRegistry.getRegistry(serverAddress, port);
       initServices(registry);
       getRMIObserver().getServer().registerInterest(getRMIObserver());
       connected = true;
+      return getAuthenticator().login(info, password);
     }
+
+    return false;
   }
 
   public void disconnect(ClientInfo info) throws NotBoundException, RemoteException {
@@ -115,10 +118,10 @@ public class GameClient extends Observable {
    * @throws RemoteException
    */
   public Boolean sendAction(ClientInfo info, DTOCard... cards) throws RemoteException {
-    if(info.getPlayerType().equals(PlayerConstants.PlayerType.FIRST_ATTACKER) ||
-       info.getPlayerType().equals(PlayerConstants.PlayerType.SECOND_ATTACKER))
+    if(info.playerType.equals(PlayerConstants.PlayerType.FIRST_ATTACKER) ||
+       info.playerType.equals(PlayerConstants.PlayerType.SECOND_ATTACKER))
       return getGameActionAttack().doAction(info, FinishAction.NOT_FINISHING, cards);
-    else if(info.getPlayerType().equals(PlayerConstants.PlayerType.DEFENDER))
+    else if(info.playerType.equals(PlayerConstants.PlayerType.DEFENDER))
       return getGameActionDefend().doAction(info, FinishAction.NOT_FINISHING, cards);
     else return false;
   }
@@ -133,10 +136,10 @@ public class GameClient extends Observable {
   }
 
   public String getActionDeniedReason(ClientInfo info) throws RemoteException {
-    if(info.getPlayerType().equals(PlayerConstants.PlayerType.FIRST_ATTACKER) ||
-        info.getPlayerType().equals(PlayerConstants.PlayerType.SECOND_ATTACKER))
+    if(info.playerType.equals(PlayerConstants.PlayerType.FIRST_ATTACKER) ||
+        info.playerType.equals(PlayerConstants.PlayerType.SECOND_ATTACKER))
       return getGameActionAttack().getRefusedReason();
-    else if(info.getPlayerType().equals(PlayerConstants.PlayerType.DEFENDER))
+    else if(info.playerType.equals(PlayerConstants.PlayerType.DEFENDER))
       return getGameActionDefend().getRefusedReason();
     else return null;
   }

@@ -2,6 +2,8 @@ package dto;
 
 import utilities.constants.PlayerConstants;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.List;
 
@@ -11,17 +13,19 @@ import java.util.List;
  * Time: 17:12
  */
 public class ClientInfo implements Serializable {
-  private Short loginNumber;
-  private String name;
-  private int cardCount;
-  private PlayerConstants.PlayerType type;
+  public Short loginNumber;
+  public String name;
+  public int cardCount;
+  public boolean spectating;
+  public PlayerConstants.PlayerType playerType;
 
   /* Constructors */
   public ClientInfo(String name, Short loginNumber) {
     this.name = name;
     this.cardCount = 0;
     this.loginNumber = loginNumber;
-    this.type = PlayerConstants.PlayerType.DEFAULT;
+    this.playerType = PlayerConstants.PlayerType.DEFAULT;
+    this.spectating = false;
   }
 
   /* Methods */
@@ -34,50 +38,20 @@ public class ClientInfo implements Serializable {
   }
 
   public void setClientInfo(ClientInfo info) {
-    this.cardCount = info.cardCount;
-    this.name = info.name;
-    this.type = info.type;
-    this.loginNumber = info.loginNumber;
+    cardCount = info.cardCount;
+    name = info.name;
+    playerType = info.playerType;
+    loginNumber = info.loginNumber;
+    spectating = info.spectating;
   }
 
-  /* Getter and Setter */
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public int getCardCount() {
-    return cardCount;
-  }
-
-  public void setCardCount(int cardCount) {
-    this.cardCount = cardCount;
-  }
-
-  public PlayerConstants.PlayerType getPlayerType() {
-    return type;
-  }
-
-  public void setPlayerType(PlayerConstants.PlayerType type) {
-    this.type = type;
-  }
-
-  public void setLoginNumber(Short loginNumber) {
-    this.loginNumber = loginNumber;
-  }
-
-  public Short getLoginNumber() {
-    return loginNumber;
-  }
-
-  public void printInfo() {
-    System.out.println("Name: "+name);
-    System.out.println("Login number: "+loginNumber);
-    System.out.println("Player type: "+type);
-    System.out.println("Card count: "+cardCount);
+  public void printInfo(OutputStream output) {
+    final PrintStream out = new PrintStream(output, true);
+    out.println("Name: " + name);
+    out.println("Login number: "+loginNumber);
+    out.println("Player playerType: "+ playerType);
+    out.println("Card count: "+cardCount);
+    out.println("Spectator: "+spectating);
   }
 
   /**

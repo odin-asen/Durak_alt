@@ -10,6 +10,7 @@ import dto.DTOCardStack;
 import dto.message.*;
 import utilities.Converter;
 import utilities.Miscellaneous;
+import utilities.constants.GameConfigurationConstants;
 import utilities.gui.Constraints;
 import utilities.gui.FramePosition;
 import utilities.gui.WidgetCreator;
@@ -20,6 +21,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.server.ServerNotActiveException;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -71,7 +73,17 @@ public class ClientFrame extends JFrame implements Observer {
     return this;
   }
 
-  public static void showRuleException(Component parent, final String ruleException) {
+  public void showGameOverMessage() {
+    final ClientInfo ownClient = SetUpFrame.getInstance().getClientInfo();
+    final ClientFrame frame = this;
+    new Thread(new Runnable() {
+      public void run() {
+        new UserMessageDistributor(frame).gameOverMessage(ownClient.playerType);
+      }
+    }).start();
+  }
+
+  public static void showRuleException(Component parent, String ruleException) {
     final ClientFrame frame = (ClientFrame) SwingUtilities.getRoot(parent);
     Rectangle bounds = frame.getBounds();
     rulePopup.setText(ruleException);
@@ -149,9 +161,9 @@ public class ClientFrame extends JFrame implements Observer {
     final ClientInfo ownInfo = SetUpFrame.getInstance().getClientInfo();
     for (ClientInfo client : clients) {
       if(ownInfo.isEqual(client)) {
-        if(!ownInfo.getPlayerType().equals(client.getPlayerType())) {
+        if(!ownInfo.playerType.equals(client.playerType)) {
           ownInfo.setClientInfo(client);
-          gamePanel.setListenerType(ownInfo.getPlayerType());
+          gamePanel.setListenerType(ownInfo.playerType);
         }
       } else {
         if(initialise)
@@ -168,7 +180,7 @@ public class ClientFrame extends JFrame implements Observer {
   public void enableButtons(Boolean roundFinished) {
     final Boolean take;
     final Boolean round;
-    final PlayerType playerType = SetUpFrame.getInstance().getClientInfo().getPlayerType();
+    final PlayerType playerType = SetUpFrame.getInstance().getClientInfo().playerType;
     final Boolean cardsOnTable = gamePanel.hasInGameCards();
     if(playerType.equals(PlayerType.FIRST_ATTACKER) ||
        playerType.equals(PlayerType.SECOND_ATTACKER)) {
@@ -177,7 +189,6 @@ public class ClientFrame extends JFrame implements Observer {
     } else if (playerType.equals(PlayerType.DEFENDER)) {
       take = true;
       round = roundFinished && gamePanel.inGameCardsAreCovered();
-      System.out.println(gamePanel.inGameCardsAreCovered());
     } else {
       take = false;
       round = false;
@@ -291,9 +302,17 @@ public class ClientFrame extends JFrame implements Observer {
         return this;
 
       final ClientInfo client = (ClientInfo) value;
-      this.setText(client.getName());
+      final Color foreground;
+      if(client.loginNumber >= GameConfigurationConstants.SPECTATOR_START_NUMBER) {
+        foreground = new Color(164, 164, 164);
+        this.setToolTipText("Zuschauer");
+      } else {
+        foreground = superComponent.getForeground();
+        this.setToolTipText(null);
+      }
+      this.setText(client.name);
       this.setBackground(superComponent.getBackground());
-      this.setForeground(superComponent.getForeground());
+      this.setForeground(foreground);
 
       return this ;
     }
@@ -386,6 +405,8 @@ class ClientFrameMessageHandler {
       frame.enableButtons((Boolean) object.getSendingObject());
     } else if(GameUpdateType.CLIENT_CARDS.equals(object.getType())) {
       frame.updateClientCards((List<DTOCard>) object.getSendingObject());
+    } else if(GameUpdateType.GAME_FINISHED.equals(object.getType())) {
+      frame.showGameOverMessage();
     }
   }
 
@@ -420,7 +441,7 @@ class ClientFrameMessageHandler {
 
   private String buildChatAnswer(MessageObject object) {
     final ChatMessage chatMessage = (ChatMessage) object.getSendingObject();
-    String message = Miscellaneous.getChatMessage(chatMessage.getSender().getName(),
+    String message = Miscellaneous.getChatMessage(chatMessage.getSender().name,
         chatMessage.getMessage());
     if(chatMessage.getSender().isEqual(SetUpFrame.getInstance().getClientInfo()))
       message = Miscellaneous.changeChatMessageInBrackets("ich", message);
@@ -428,3 +449,76 @@ class ClientFrameMessageHandler {
   }
 }
 
+class UserMessageDistributor {
+  private static final Logger LOGGER = Logger.getLogger(UserMessageDistributor.class.getName());
+  private JFrame frame;
+
+  UserMessageDistributor(JFrame frame) {
+    this.frame = frame;
+  }
+
+  void gameOverMessage(PlayerType type) {
+    if(type.equals(PlayerType.NOT_LOSER)) {
+      showNotLoserOption();
+    } else if(type.equals(PlayerType.LOSER)) {
+      showLoserOption();
+    } else {
+      showNoPlayerOption();
+    }
+  }
+
+  private void showNotLoserOption() {
+    final String message = "<html>Sooo, das Spiel ist zu Ende! Wie siehts aus?" +
+        "<p/>M\u00f6chtest du den anderen weiterhin zeigen,<p/>wie man dieses Spiel spielt?</html>";
+    final Object[] strings =
+        new Object[]{"<html>Ja klar,<p/>denen zeig ichs!</html>", "Nein, danke!"};
+    int option = JOptionPane.showOptionDialog(frame, message, "Das Spiel ist vorbei",
+        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[0]);
+    if(option != 0) {
+      reconnect(true);
+    }
+  }
+
+  private void showLoserOption() {
+    final String message = "<html>Sooo, das Spiel ist zu Ende! Wie siehts aus?" +
+        "<p/>M\u00f6chtest du den anderen beweisen," +
+        "<p/>wer hier der wahre Durak ist?</html>";
+    final Object[] strings =
+        new Object[]{"<html>Wie hast du mich genannt?<p/>Revanche!</html>", "<html>Nein, ich bin ein kleines," +
+        "<p/>\u00e4ngstliches Kind und will meinen<p/>Teletubbie wieder haben!</html>"};
+    int option = JOptionPane.showOptionDialog(frame, message, "Das Spiel ist vorbei",
+        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[0]);
+    if(option != 0) {
+      reconnect(true);
+    }
+  }
+
+  private void showNoPlayerOption() {
+    final String message = "<html>Soooo, das Spiel ist nun zu Ende! Wie siehts aus?" +
+        "<p/>M\u00f6chtest du diesmal nicht nur zuschauen," +
+        "<p/>sondern auch mitspielen?</html>";
+    final Object[] strings =
+        new Object[]{"<html>Ja,<p/>ich m\u00f6chte mitspielen!</html>", "<html>Nein,<p/>ich m\u00f6chte nur beobachten!</html>"};
+    int option = JOptionPane.showOptionDialog(frame, message, "Das Spiel ist vorbei",
+        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[1]);
+    if(option == 0) {
+      reconnect(false);
+    }
+  }
+
+  private void reconnect(boolean spectate) {
+    try {
+      final ClientInfo info = SetUpFrame.getInstance().getClientInfo();
+      info.spectating = spectate;
+      final GameClient client = GameClient.getClient();
+      client.disconnect(info);
+      client.connect(info, "");
+    } catch (RemoteException e) {
+      LOGGER.severe(e.getMessage());
+    } catch (NotBoundException e) {
+      LOGGER.severe(e.getMessage());
+    } catch (ServerNotActiveException e) {
+      LOGGER.severe(e.getMessage());
+    }
+  }
+}

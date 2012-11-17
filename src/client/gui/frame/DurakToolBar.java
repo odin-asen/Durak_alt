@@ -140,10 +140,9 @@ public class DurakToolBar extends JToolBar {
       client.setServerAddress(SetUpFrame.getInstance().getConnectionInfo().getIpAddress());
 
       try {
-        client.connect();
-        SetUpFrame setup = SetUpFrame.getInstance();
+        final SetUpFrame setup = SetUpFrame.getInstance();
         setup.setConnectionEnabled(false);
-        if(client.getAuthenticator().login(setup.getClientInfo(), "")) {
+        if(client.connect(setup.getClientInfo(), "")) {
           parent.setStatusBarText(true, STATUS_CONNECTED,
               setup.getConnectionInfo().getIpAddress());
         } else {

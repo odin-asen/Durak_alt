@@ -8,13 +8,16 @@ package game.rules;
 public interface RuleMessages {
   String RULE_MESSAGE_START_ATTACK_DIFFERENT_VALUES =
       "<html>Da nicht alle Karten den gleichen Wert haben," +
-          "<p/>können diese Karten auch nicht für den ersten Angriff gelegt werden</html>!";
+          "<p/>k\u00f6nnen diese Karten auch nicht f\u00fcr den ersten Angriff gelegt werden!</html>";
   String RULE_MESSAGE_ALREADY_6_CARDS =
-      "Es liegen schon 6 Angriffskarten auf dem Spielfeld!";
+      "Es d\u00fcrfen nicht mehr als 6 Angriffskarten auf dem Spieltisch liegen!";
   String RULE_MESSSAGE_FIRST_ATTACK_ONLY_5_CARDS =
-      "Im ersten Angriff darf nur mit maximal 5 Karten angegriffen werden!";
+      "Im ersten Angriff d\u00fcrfen nur maximal 5 Angriffskarten auf dem Spieltisch liegen!";
   String RULE_MESSAGE_NO_DEFAULT_ALLOWED =
-      "Nur Angreifer und Verteidiger dürfen was legen!";
+      "Nur Angreifer und Verteidiger d\u00fcrfen was legen!";
   String RULE_MESSAGE_START_ATTACK_SECOND_PLAYER =
       "Der zweite Angreifer darf nicht zuerst eine Angriffskarte spielen!";
+  String RULE_MESSAGE_DEFENDER_NOT_ENOUGH_CARDS =
+      "<html>Der Verteidiger hat zu wenig Karten," +
+          "<p/>um diese Anzahl an Karten zu verteidigen</html>";
 }

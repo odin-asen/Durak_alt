@@ -91,7 +91,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
                             GameCard defenderCard, GameCard attackerCard)
       throws RuleException {
     final String notHigherText = "Der Kartenwert "+defenderCard.getCardValue().getValueName()+
-        " ist vielleicht in einem anderen Universum höher als "+
+        " ist vielleicht in einem anderen Universum h\u00f6her als "+
         attackerCard.getCardValue().getValueName();
     final String noTrumpText = "Die Verteidigerkarte "+defenderCard.getColourAndValue()+
         " ist kein Trumpf!";
@@ -145,12 +145,15 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   private void checkAttack(Player wantsToAttack, List<GameCard> attackCards,
                            List<GameCard> currentAttackCards)
     throws RuleException {
+    final int newAttackCardsCount = currentAttackCards.size() + attackCards.size();
     if(wantsToAttack.equals(secondAttacker) && currentAttackCards.isEmpty())
       throw new RuleException(RULE_MESSAGE_START_ATTACK_SECOND_PLAYER);
-    else if(initAttack && (currentAttackCards.size() == 5))
+    else if(initAttack && (newAttackCardsCount > 5))
       throw new RuleException(RULE_MESSSAGE_FIRST_ATTACK_ONLY_5_CARDS);
-    else if(currentAttackCards.size() == 6)
+    else if(newAttackCardsCount > 6)
       throw new RuleException(RULE_MESSAGE_ALREADY_6_CARDS);
+    else if(attackCards.size() > defender.getCards().size())
+      throw new RuleException(RULE_MESSAGE_DEFENDER_NOT_ENOUGH_CARDS);
     else if(currentAttackCards.isEmpty()) {
       final CardValue currentValue = attackCards.get(0).getCardValue();
       for (GameCard attackCard : attackCards) {
@@ -218,23 +221,47 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
 
   /**
    * Sets the first attacker in the round and therefore the defender and
-   * the second attacker.
-   * @param firstAttacker The player who is the first attacker
+   * the second attacker. If {@code nextPlayer}s player type is
+   * {@link utilities.constants.PlayerConstants.PlayerType#NOT_LOSER}
+   * the next player who has not this type will be chosen as first attacker.
+   * The method returns the player who became the first attacker.
+   * @param nextPlayer The player who should be the first attacker
+   * @return Returns the player who became the first attacker. If no
+   * attacker could be found, null will be returned.
    */
-  public void setActivePlayers(Player firstAttacker) {
-    Player defender = firstAttacker.getLeftPlayer();
-    Player secondAttacker = defender.getLeftPlayer();
+  public Player setActivePlayers(Player nextPlayer) {
+    final Player firstAttacker = determineFirstAttacker(nextPlayer);
     roundState.setSecondAttackerNextRound(false);
     roundState.setFirstAttackerNextRound(false);
 
-    setFirstAttacker(firstAttacker);
-    if(!secondAttacker.equals(firstAttacker))
-      setSecondAttacker(secondAttacker);
-    else {
-      setSecondAttacker(null);
-      roundState.setSecondAttackerNextRound(true);
+    if(firstAttacker != null) {
+      final Player defender = firstAttacker.getLeftPlayer();
+      final Player secondAttacker = defender.getLeftPlayer();
+
+      setFirstAttacker(firstAttacker);
+      if(!secondAttacker.equals(firstAttacker))
+        setSecondAttacker(secondAttacker);
+      else {
+        setSecondAttacker(null);
+        roundState.setSecondAttackerNextRound(true);
+      }
+      setDefender(defender);
     }
-    setDefender(defender);
+
+    return firstAttacker;
+  }
+
+  private Player determineFirstAttacker(Player player) {
+    Player firstAttacker = player;
+    if(player.isAlone())
+      return null;
+
+    while (firstAttacker.getType().equals(PlayerType.NOT_LOSER)) {
+      firstAttacker = firstAttacker.getLeftPlayer();
+      if(player.equals(firstAttacker))
+        return null;
+    }
+    return firstAttacker;
   }
 
   public void setAttackerReadyNextRound(PlayerType type) {

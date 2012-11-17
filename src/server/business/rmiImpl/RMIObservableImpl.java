@@ -55,31 +55,28 @@ public class RMIObservableImpl implements RMIObservable {
         adding = false;
     }
     if(adding) {
-      System.out.println("Adding "+socket);
       observers.add(observer);
     }
   }
 
   public void notifyObservers(Serializable notification)
       throws RemoteException, ServerNotActiveException {
-    for (int index = 0; index < observers.size(); index++) {
-      notifyObserver(index, notification);
-    }
+    for (RMIObserver observer : observers)
+      notifyObserver(observer, notification);
   }
 
   public void removeObserver(RMIObserver observer) {
     observers.remove(observer);
   }
 
-  public void notifyObserver(Integer observerIndex, Serializable notification) {
+  public void notifyObserver(RMIObserver observer, Serializable notification) {
     try {
-      if(observerIndex < observers.size())
-        observers.get(observerIndex).incomingMessage(notification);
+      observer.incomingMessage(notification);
     }
     catch (Exception e) {
-      LOGGER.log(Level.SEVERE, "Client " + observers.get(observerIndex)
+      LOGGER.log(Level.SEVERE, "Client " + observer
           + " could not been notified: " + e.getMessage());
-      removeObserver(observers.get(observerIndex));
+      removeObserver(observer);
     }
   }
 

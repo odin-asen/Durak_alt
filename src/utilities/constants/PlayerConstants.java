@@ -11,7 +11,9 @@ public interface PlayerConstants {
     DEFAULT(""),
     FIRST_ATTACKER("Erster Angreifer"),
     SECOND_ATTACKER("Zweiter Angreifer"),
-    DEFENDER("Verteidiger");
+    DEFENDER("Verteidiger"),
+    NOT_LOSER("Raus aus dem Spiel"),
+    LOSER("Durak");
 
     private final String description;
     PlayerType(String description) {

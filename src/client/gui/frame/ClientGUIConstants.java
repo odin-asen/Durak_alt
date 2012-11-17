@@ -15,6 +15,7 @@ public interface ClientGUIConstants {
   Color GAME_TABLE_COLOUR = new Color(13, 153, 0);
   Color CURTAIN_COLOUR = new Color(0, 0, 255, 109);
   ImageIcon CARD_BACK = ResourceGetter.getBackCard();
+  Font OPPONENT_FONT = new Font(Font.SANS_SERIF, Font.BOLD,17);
 
   /* Action commands for Buttons and MenuItems */
   String ACTION_COMMAND_APPLY = "apply";

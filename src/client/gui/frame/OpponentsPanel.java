@@ -2,11 +2,13 @@ package client.gui.frame;
 
 import client.gui.widget.card.OpponentHandWidget;
 import dto.ClientInfo;
+import resources.ResourceGetter;
+import resources.ResourceList;
+import utilities.constants.PlayerConstants;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -24,7 +26,8 @@ public class OpponentsPanel extends JPanel {
 
   /* Methods */
   public void addOpponent(ClientInfo opponent) {
-    OpponentHandWidget oHWidget = new OpponentHandWidget(ClientGUIConstants.CARD_BACK, opponent);
+    OpponentHandWidget oHWidget = new OpponentHandWidget(
+        ClientGUIConstants.OPPONENT_FONT, ClientGUIConstants.CARD_BACK, opponent);
     this.add(oHWidget);
   }
 
@@ -48,12 +51,29 @@ public class OpponentsPanel extends JPanel {
     for (ClientInfo opponent : opponents) {
       final OpponentHandWidget widget = findOpponentHandWidget(opponent);
       if(widget != null) {
-        widget.getOpponent().setCardCount(opponent.getCardCount());
-        widget.setStatusIcon(opponent.getPlayerType());
+        widget.getOpponent().cardCount = opponent.cardCount;
+        setOpponentStatusIcon(widget, opponent.playerType);
       }
-      else LOGGER.log(Level.INFO, opponent+" konnte nicht gefunden werden!");
     }
     repaint();
+  }
+
+  public void setOpponentStatusIcon(OpponentHandWidget widget, PlayerConstants.PlayerType type) {
+    final String text = type.getDescription();
+    final ImageIcon statusIcon;
+    if (PlayerConstants.PlayerType.FIRST_ATTACKER.equals(type))
+      statusIcon = ResourceGetter.getImage(ResourceList.IMAGE_STAR_GREEN, text);
+    else if (PlayerConstants.PlayerType.SECOND_ATTACKER.equals(type))
+      statusIcon = ResourceGetter.getImage(ResourceList.IMAGE_STAR_RED, text);
+    else if (PlayerConstants.PlayerType.DEFENDER.equals(type))
+      statusIcon = ResourceGetter.getImage(ResourceList.IMAGE_DEFENDER, text);
+    else if (PlayerConstants.PlayerType.NOT_LOSER.equals(type))
+      statusIcon = ResourceGetter.getImage(ResourceList.IMAGE_CROWN, text);
+    else if (PlayerConstants.PlayerType.LOSER.equals(type))
+      statusIcon = ResourceGetter.getImage(ResourceList.IMAGE_RED_CROSS, text);
+    else statusIcon = null;
+
+    widget.setStatusIcon(statusIcon, text);
   }
 
   public void deleteCards() {

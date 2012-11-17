@@ -6,6 +6,7 @@ package utilities.constants;
  * Time: 20:05
  */
 public interface GameConfigurationConstants {
+  Short SPECTATOR_START_NUMBER = 100;
   Short NO_LOGIN_NUMBER = -1;
   Integer MAXIMUM_COLOUR_CARD_COUNT = 13;
   Integer DEFAULT_COLOUR_CARD_COUNT = 9;

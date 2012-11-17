@@ -68,6 +68,10 @@ public class Player {
     return card;
   }
 
+  public boolean isAlone() {
+    return this.equals(leftPlayer) && this.equals(rightPlayer);
+  }
+
   /* Getter and Setter */
   public Player getLeftPlayer() {
     return leftPlayer;
@@ -95,5 +99,9 @@ public class Player {
 
   public void setType(PlayerType type) {
     this.type = type;
+  }
+
+  public void emptyHand() {
+    cards.removeAll(cards);
   }
 }

@@ -34,9 +34,9 @@ public class RoundStateAction implements GameAction {
     final Boolean goToNextRound;
 
     if(finish.equals(FinishAction.GO_TO_NEXT_ROUND)) {
-      goToNextRound = GameProcess.getInstance().nextRound(client.getPlayerType(), false);
+      goToNextRound = GameProcess.getInstance().nextRound(client.playerType, false);
     } else if(finish.equals(FinishAction.TAKE_CARDS)) {
-      goToNextRound = GameProcess.getInstance().nextRound(client.getPlayerType(), true);
+      goToNextRound = GameProcess.getInstance().nextRound(client.playerType, true);
     } else goToNextRound = false;
 
     return goToNextRound;
