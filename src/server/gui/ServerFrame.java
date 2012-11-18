@@ -18,6 +18,7 @@ import java.awt.event.KeyEvent;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Logger;
@@ -74,11 +75,15 @@ public class ServerFrame extends JFrame implements Observer {
     handleUpdate(object);
   }
 
+  public void refreshClientList(List<ClientInfo> newClients) {
+    listModel.clear();
+    for (ClientInfo client : newClients)
+      listModel.add(listModel.size(), client);
+  }
+
   private void handleUpdate(MessageObject object) {
-    if (GUIObserverType.ADD_CLIENT.equals(object.getType())) {
-      listModel.addElement((ClientInfo) object.getSendingObject());
-    } else if (GUIObserverType.REMOVE_CLIENT.equals(object.getType())) {
-      removeClient((ClientInfo) object.getSendingObject());
+    if (GUIObserverType.REFRESH_CLIENT_LIST.equals(object.getType())) {
+      refreshClientList(GameServer.getServerInstance().getClients());
     } else if (GUIObserverType.SERVER_FAIL.equals(object.getType())) {
       setStatusBarText("Keine Berechtigung f\u00dcr Port "+portField.getText()+" oder schon belegt.");
     }

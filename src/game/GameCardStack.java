@@ -20,6 +20,7 @@ public class GameCardStack extends Observable {
   private Integer stackSize;
 
   private Deque<GameCard> cardStack;
+  private GameCard trumpCard;
 
   public static GameCardStack getInstance() {
     return gameCardStack;
@@ -27,6 +28,7 @@ public class GameCardStack extends Observable {
 
   private GameCardStack() {
     cardStack = new ArrayDeque<GameCard>();
+    trumpCard = null;
   }
 
   /**
@@ -44,10 +46,11 @@ public class GameCardStack extends Observable {
 
     cardList = getSortedStack(stackSize/CardColour.values().length);
 
-    Collections.shuffle(cardList);
+//    Collections.shuffle(cardList);
     for (GameCard gameCard : cardList) {
       cardStack.add(gameCard);
     }
+    trumpCard = cardStack.getLast();
   }
 
   /**
@@ -81,6 +84,7 @@ public class GameCardStack extends Observable {
   }
 
   private List<GameCard> getSortedStack(Integer cardsPerColour) {
+    cardsPerColour = 3;
     final List<GameCard> list = new ArrayList<GameCard>(cardsPerColour*CardColour.values().length);
     final CardValue[] values = CardValue.values(cardsPerColour);
 
@@ -108,7 +112,7 @@ public class GameCardStack extends Observable {
   }
 
   public GameCard getTrumpCard() {
-    return cardStack.getLast();
+    return trumpCard;
   }
 
   public String toString() {

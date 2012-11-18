@@ -27,7 +27,7 @@ public class SetUpFrame extends JDialog {
 
   private ButtonListener buttonListener;
 
-  private ClientInfoTab clientInfoPanel;
+  private ClientInfoTab clientInfoTab;
   private ConnectionInfoTab connectionInfoTab;
 
   public static void main(String[] args) {
@@ -129,12 +129,12 @@ public class SetUpFrame extends JDialog {
   }
 
   private JPanel getClientInfoTab() {
-    if(clientInfoPanel != null)
-      return clientInfoPanel;
+    if(clientInfoTab != null)
+      return clientInfoTab;
 
-    clientInfoPanel = new ClientInfoTab();
+    clientInfoTab = new ClientInfoTab();
 
-    return clientInfoPanel;
+    return clientInfoTab;
   }
 
   private JPanel getConnectionTab() {
@@ -147,23 +147,27 @@ public class SetUpFrame extends JDialog {
   }
 
   public ClientInfo getClientInfo() {
-    return clientInfoPanel.getClientInfo();
+    return clientInfoTab.getClientInfo();
   }
 
   public ConnectionInfo getConnectionInfo() {
     return connectionInfoTab.getConnectionInfo();
   }
 
+  public void updateClientInfo() {
+    clientInfoTab.updateGUISettings();
+  }
+
   /* Inner Classes */
   private class ButtonListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
       if(e.getActionCommand().equals(ClientGUIConstants.ACTION_COMMAND_APPLY)) {
-        clientInfoPanel.fillClientInfo();
+        clientInfoTab.fillClientInfo();
         connectionInfoTab.fillConnectionInfo();
       } else if(e.getActionCommand().equals(ClientGUIConstants.ACTION_COMMAND_CANCEL)) {
         SetUpFrame.getInstance().dispose();
       } else if(e.getActionCommand().equals(ClientGUIConstants.ACTION_COMMAND_OKAY)) {
-        clientInfoPanel.fillClientInfo();
+        clientInfoTab.fillClientInfo();
         connectionInfoTab.fillConnectionInfo();
         SetUpFrame.getInstance().dispose();
       }

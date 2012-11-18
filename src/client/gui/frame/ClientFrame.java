@@ -139,13 +139,12 @@ public class ClientFrame extends JFrame implements Observer {
     final List<ClientInfo> modelList = (List<ClientInfo>) Converter.getList(listModel);
     final ClientInfo ownInfo = SetUpFrame.getInstance().getClientInfo();
 
+    listModel.clear();
+
     for (ClientInfo client : clients) {
-      if(ownInfo.isEqual(client)) {
+      if(ownInfo.isEqual(client))
         ownInfo.setClientInfo(client);
-      } else {
-        if(!client.containsIsEqual(modelList))
-          listModel.add(0, client);
-      }
+      else listModel.add(listModel.size(), client);
     }
   }
 
@@ -157,17 +156,26 @@ public class ClientFrame extends JFrame implements Observer {
     cardStackPanel.updateStack(cardStack);
   }
 
-  public void updatePlayers(List<ClientInfo> clients, boolean initialise) {
+  public void updatePlayers(List<ClientInfo> clients) {
     final ClientInfo ownInfo = SetUpFrame.getInstance().getClientInfo();
     for (ClientInfo client : clients) {
-      if(ownInfo.isEqual(client)) {
-        if(!ownInfo.playerType.equals(client.playerType)) {
-          ownInfo.setClientInfo(client);
-          gamePanel.setListenerType(ownInfo.playerType);
-        }
-      } else {
-        if(initialise)
-          opponentsPanel.addOpponent(client);
+      if (ownInfo.isEqual(client) && !ownInfo.playerType.equals(client.playerType)) {
+        ownInfo.setClientInfo(client);
+        gamePanel.setListenerType(ownInfo.playerType);
+      }
+    }
+    opponentsPanel.updateOpponents(clients);
+  }
+
+  public void initialisePlayers(List<ClientInfo> clients) {
+    opponentsPanel.removeAll();
+    final ClientInfo ownInfo = SetUpFrame.getInstance().getClientInfo();
+    for (ClientInfo client : clients) {
+      if(!ownInfo.isEqual(client))
+        opponentsPanel.addOpponent(client);
+      else {
+        ownInfo.setClientInfo(client);
+        gamePanel.setListenerType(ownInfo.playerType);
       }
     }
     opponentsPanel.updateOpponents(clients);
@@ -310,7 +318,7 @@ public class ClientFrame extends JFrame implements Observer {
         foreground = superComponent.getForeground();
         this.setToolTipText(null);
       }
-      this.setText(client.name);
+      this.setText(client.toString());
       this.setBackground(superComponent.getBackground());
       this.setForeground(foreground);
 
@@ -392,10 +400,10 @@ class ClientFrameMessageHandler {
   private void handleGameUpdateType(MessageObject object) {
     if(GameUpdateType.INITIALISE_PLAYERS.equals(object.getType())) {
       final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
-      frame.updatePlayers(clients, true);
+      frame.initialisePlayers(clients);
     } else if(GameUpdateType.PLAYERS_UPDATE.equals(object.getType())) {
       final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
-      frame.updatePlayers(clients, false);
+      frame.updatePlayers(clients);
     } else if(GameUpdateType.STACK_UPDATE.equals(object.getType())) {
       frame.updateStack((DTOCardStack) object.getSendingObject());
     } else if(GameUpdateType.INGAME_CARDS.equals(object.getType())) {
@@ -508,11 +516,13 @@ class UserMessageDistributor {
 
   private void reconnect(boolean spectate) {
     try {
-      final ClientInfo info = SetUpFrame.getInstance().getClientInfo();
-      info.spectating = spectate;
+      final SetUpFrame setup = SetUpFrame.getInstance();
       final GameClient client = GameClient.getClient();
+      final ClientInfo info = setup.getClientInfo();
+      info.spectating = spectate;
+      setup.updateClientInfo();
       client.disconnect(info);
-      client.connect(info, "");
+      client.connect(info, setup.getConnectionInfo().getPassword());
     } catch (RemoteException e) {
       LOGGER.severe(e.getMessage());
     } catch (NotBoundException e) {

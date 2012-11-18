@@ -195,8 +195,8 @@ public class GameServer extends Observable {
     if(sendingObjects.size() != rmiClients.size())
       throw new GameServerException("The number of server threads and sending objects is not equal!");
     for (int i = 0; i < sendingObjects.size(); i++) {
-      getRMIObservable().notifyObserver(rmiClients.get(i).rmiObserver,
-          new MessageObject(type, sendingObjects.get(i)));
+        getRMIObservable().notifyObserver(rmiClients.get(i).rmiObserver,
+            new MessageObject(type, sendingObjects.get(i)));
     }
   }
 
@@ -205,23 +205,23 @@ public class GameServer extends Observable {
     final RMIObserver lastObserver = getRMIObservable().getObservers().lastElement();
     final Boolean inProcess = GameProcess.getInstance().isGameInProcess();
 
-    if(inProcess || client.spectating) {
+    if(inProcess || client.spectating) { //TODO testen, ob nach einem Neustart des Spiels, ein Spieler, der sich für Zuschauen entschiden hat, auch hier rein kommt
       addedClient = clientHolder.addSpectator(new RMIClient(lastObserver, client));
-      if(addedClient != null) {
-        setChangedAndNotify(GUIObserverType.ADD_CLIENT, addedClient.clientInfo);
-        sendMessage(addedClient, new MessageObject(MessageType.LOGIN_NUMBER, addedClient.clientInfo));
-        broadcastMessage(BroadcastType.LOGIN_LIST, clientHolder.getAllClientInfo());
-      }
+      if(addedClient != null)
+        notifyClientLists(addedClient);
     } else {
       addedClient = clientHolder.addInGameClient(new RMIClient(lastObserver, client));
-
       if(addedClient != null) {
         GameProcess.getInstance().addPlayer();
-        setChangedAndNotify(GUIObserverType.ADD_CLIENT, addedClient.clientInfo);
-        sendMessage(addedClient, new MessageObject(MessageType.LOGIN_NUMBER, addedClient.clientInfo));
-        broadcastMessage(BroadcastType.LOGIN_LIST, clientHolder.getAllClientInfo());
+        notifyClientLists(addedClient);
       }
     }
+  }
+
+  private void notifyClientLists(RMIClient addedClient) {
+    setChangedAndNotify(GUIObserverType.REFRESH_CLIENT_LIST, addedClient.clientInfo);
+    sendMessage(addedClient, new MessageObject(MessageType.LOGIN_NUMBER, addedClient.clientInfo));
+    broadcastMessage(BroadcastType.LOGIN_LIST, clientHolder.getAllClientInfo());
   }
 
   public void removeClient(ClientInfo toRemove) {
@@ -237,16 +237,19 @@ public class GameServer extends Observable {
   }
 
   private void removeAndUpdateClients(List<RMIClient> clientList, RMIClient toRemove) {
-    setChangedAndNotify(GUIObserverType.REMOVE_CLIENT, toRemove.clientInfo);
-    resetClientNumber(toRemove);
-    final List<ClientInfo> clientInfoList = new ArrayList<ClientInfo>();
-    for (RMIClient rmiClient : clientList)
-      clientInfoList.add(rmiClient.clientInfo);
-    broadcastMessage(BroadcastType.LOGIN_LIST, clientInfoList);
+    sendResetClientNumber(toRemove);
     clientHolder.removeClient(toRemove);
-
-    for (RMIClient client : clientList)
-      sendMessage(client, new MessageObject(MessageType.LOGIN_NUMBER, client));
+    getRMIObservable().removeObserver(toRemove.rmiObserver);
+    setChangedAndNotify(GUIObserverType.REFRESH_CLIENT_LIST, toRemove.clientInfo);
+    try {
+      final List<ClientInfo> clientInfoList = new ArrayList<ClientInfo>();
+      for (RMIClient client : clientList)
+        clientInfoList.add(client.clientInfo);
+      broadcastArray(MessageType.LOGIN_NUMBER, clientList, clientInfoList);
+      broadcastMessage(BroadcastType.LOGIN_LIST, clientInfoList);
+    } catch (GameServerException e) {
+      LOGGER.severe(e.getMessage());
+    }
   }
 
   private void deletePlayer(RMIClient rmiClient) {
@@ -256,7 +259,7 @@ public class GameServer extends Observable {
       process.abortGame();
   }
 
-  private void resetClientNumber(RMIClient client) {
+  private void sendResetClientNumber(RMIClient client) {
     final ClientInfo newLoginNumber = new ClientInfo("", (short) -1);
     newLoginNumber.setClientInfo(client.clientInfo);
     newLoginNumber.loginNumber = GameConfigurationConstants.NO_LOGIN_NUMBER;
@@ -264,6 +267,10 @@ public class GameServer extends Observable {
   }
 
   /* Getter and Setter */
+  public List<ClientInfo> getClients() {
+    return clientHolder.getAllInGameClientInfo();
+  }
+
   private RMIObservableImpl getRMIObservable() {
     return (RMIObservableImpl) services.get(RMIService.OBSERVER);
   }
@@ -401,9 +408,9 @@ class ServerClientHolder {
   }
 
   public void removeClient(RMIClient rmiClient) {
-    refreshAllClients();
     inGameClients.remove(rmiClient);
     spectators.remove(rmiClient);
+    refreshAllClients();
   }
 
   private void refreshAllClients() {

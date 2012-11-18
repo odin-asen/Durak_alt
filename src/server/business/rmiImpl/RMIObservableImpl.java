@@ -72,8 +72,8 @@ public class RMIObservableImpl implements RMIObservable {
   public void notifyObserver(RMIObserver observer, Serializable notification) {
     try {
       observer.incomingMessage(notification);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
+      e.printStackTrace();
       LOGGER.log(Level.SEVERE, "Client " + observer
           + " could not been notified: " + e.getMessage());
       removeObserver(observer);

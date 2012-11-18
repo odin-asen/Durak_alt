@@ -74,8 +74,8 @@ public class ClientInfoTab extends JPanel {
     return clientInfo;
   }
 
-  public void updateClientInfo(ClientInfo info) {
-    clientInfo.playerType = info.playerType;
-    clientInfo.spectating = info.spectating;
+  public void updateGUISettings() {
+    nameField.setText(clientInfo.name);
+    spectatorCheckBox.setSelected(clientInfo.spectating);
   }
 }
