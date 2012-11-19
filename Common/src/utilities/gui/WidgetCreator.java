@@ -4,6 +4,8 @@ import client.gui.frame.ClientGUIConstants;
 import resources.ResourceGetter;
 
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
@@ -82,5 +84,10 @@ public class WidgetCreator {
     button.addActionListener(listener);
 
     return button;
+  }
+
+  public static Border createStatusBorder() {
+    final Border lowered = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
+    return lowered;
   }
 }

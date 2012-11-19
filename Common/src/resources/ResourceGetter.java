@@ -2,12 +2,16 @@ package resources;
 
 import utilities.constants.GameCardConstants;
 import utilities.constants.GameConfigurationConstants;
+import utilities.constants.PlayerConstants;
+import utilities.gui.Compute;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -107,6 +111,33 @@ public class ResourceGetter {
 
   public static ImageIcon getBackCard() {
     return getImage("cards/"+ ResourceList.CARD_BACK, "Back");
+  }
+
+  public static ImageIcon getPlayerTypeIcon(PlayerConstants.PlayerType type, Integer height) {
+    final String text = type.getDescription();
+    final ImageIcon statusIcon;
+    if (PlayerConstants.PlayerType.FIRST_ATTACKER.equals(type))
+      statusIcon = getImage(ResourceList.IMAGE_STAR_GREEN, text);
+    else if (PlayerConstants.PlayerType.SECOND_ATTACKER.equals(type))
+      statusIcon = getImage(ResourceList.IMAGE_STAR_RED, text);
+    else if (PlayerConstants.PlayerType.DEFENDER.equals(type))
+      statusIcon = getImage(ResourceList.IMAGE_DEFENDER, text);
+    else if (PlayerConstants.PlayerType.NOT_LOSER.equals(type))
+      statusIcon = getImage(ResourceList.IMAGE_CROWN, text);
+    else if (PlayerConstants.PlayerType.LOSER.equals(type))
+      statusIcon = getImage(ResourceList.IMAGE_RED_CROSS, text);
+    else statusIcon = null;
+
+    if(statusIcon != null) {
+      final int width = (int) (height*(float)statusIcon.getIconWidth()/statusIcon.getIconWidth());
+      return Compute.getScaledImage(statusIcon, width, height);
+    }
+    else return null;
+  }
+
+  public static List<? extends Image> getApplicationIcons() {
+    //TODO liste mit verschiedenen Programm Icons zurück geben
+    return null;
   }
 }
 
