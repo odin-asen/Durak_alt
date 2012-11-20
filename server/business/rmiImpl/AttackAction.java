@@ -33,7 +33,7 @@ public class AttackAction implements GameAction {
     final GameProcess process = GameProcess.getInstance();
 
     try {
-      process.validateAction(this);
+      process.validateAction(GameProcess.ValidationAction.ATTACK, this);
       actionDone = true;
       reason = "";
       GameServer.getServerInstance().sendProcessUpdate(false);
@@ -51,8 +51,14 @@ public class AttackAction implements GameAction {
     return lastText;
   }
 
-  public List<DTOCard> getCards() {
-    return cards;
+  /**
+   * Returns one list with the attacker cards.
+   * @return Returns a list of lists with the cards related to this action.
+   */
+  public List<List<DTOCard>> getCardLists() {
+    final List<List<DTOCard>> cardsList = new ArrayList<List<DTOCard>>();
+    cardsList.add(cards);
+    return cardsList;
   }
 
   public ClientInfo getExecutor() {

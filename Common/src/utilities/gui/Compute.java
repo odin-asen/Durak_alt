@@ -64,15 +64,19 @@ public class Compute {
         ((parentBounds.y) <= componentLocation.y);
   }
 
-  public static ImageIcon getScaledImage(ImageIcon srcImg, Integer w, Integer h){
+  public static ImageIcon getScaledImage(ImageIcon srcImg, Integer width, Integer height){
     if(srcImg == null) return null;
-    if(w == null) w = srcImg.getIconWidth();
-    if(h == null) h = srcImg.getIconHeight();
+    if(width == null && height == null) return srcImg;
 
-    BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+    if(width == null)
+      width = (int) (height*(float)srcImg.getIconWidth()/srcImg.getIconHeight());
+    else if(height == null)
+      height = (int) (width*(float)srcImg.getIconHeight()/srcImg.getIconWidth());
+
+    BufferedImage resizedImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     Graphics2D g2 = resizedImg.createGraphics();
     g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-    g2.drawImage(srcImg.getImage(), 0, 0, w, h, null);
+    g2.drawImage(srcImg.getImage(), 0, 0, width, height, null);
     g2.dispose();
 
     return new ImageIcon(resizedImg);

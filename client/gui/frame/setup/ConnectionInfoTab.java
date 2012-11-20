@@ -85,7 +85,8 @@ public class ConnectionInfoTab extends JPanel {
     addressLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, addressLabel.getPreferredSize().height));
 
     comboBoxContent = new Vector<String>();
-    addressCombo = WidgetCreator.makeComboBox(comboBoxContent, "IP-Adresse des Servers oder Netzwerkname");
+    addressCombo = WidgetCreator.makeComboBox(comboBoxContent,
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH, "IP-Adresse des Servers oder Netzwerkname");
 
     try {
       addressCombo.addItem(InetAddress.getLocalHost().getHostName());
@@ -111,14 +112,17 @@ public class ConnectionInfoTab extends JPanel {
     portLabel = new JLabel("Port:");
     portLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, portLabel.getPreferredSize().height));
 
-    portField = WidgetCreator.makeIntegerTextField("1025", "Portnummer des Servers");
+    portField = WidgetCreator.makeIntegerTextField("1025", ClientGUIConstants.PREFERRED_FIELD_WIDTH,
+        "Portnummer des Servers");
 
     passwordLabel = new JLabel("Passwort:");
     passwordLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, passwordLabel.getPreferredSize().height));
 
-    passwordField = (JPasswordField) WidgetCreator.makeTextField(JPasswordField.class, ClientGUIConstants.SET_UP_PASSWORD_TOOLTIP);
+    passwordField = (JPasswordField) WidgetCreator.makeTextField(JPasswordField.class,
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH, ClientGUIConstants.SET_UP_PASSWORD_TOOLTIP);
 
-    plainTextField = WidgetCreator.makeTextField(JTextField.class, ClientGUIConstants.SET_UP_PASSWORD_TOOLTIP);
+    plainTextField = WidgetCreator.makeTextField(JTextField.class,
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH, ClientGUIConstants.SET_UP_PASSWORD_TOOLTIP);
 
     passwordCheckBox = new JCheckBox(ClientGUIConstants.SET_UP_CHECKBOX_PASSWORD_TEXT);
     passwordCheckBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, passwordCheckBox.getPreferredSize().height));

@@ -129,10 +129,8 @@ public class ResourceGetter {
     else statusIcon = null;
 
     if(statusIcon != null) {
-      final int width = (int) (height*(float)statusIcon.getIconWidth()/statusIcon.getIconWidth());
-      return Compute.getScaledImage(statusIcon, width, height);
-    }
-    else return null;
+      return Compute.getScaledImage(statusIcon, null, height);
+    } else return null;
   }
 
   public static List<? extends Image> getApplicationIcons() {

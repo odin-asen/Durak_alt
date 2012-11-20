@@ -1,6 +1,5 @@
 package utilities.gui;
 
-import client.gui.frame.ClientGUIConstants;
 import resources.ResourceGetter;
 
 import javax.swing.*;
@@ -21,28 +20,28 @@ public class WidgetCreator {
   @SuppressWarnings("UnusedDeclaration")
   private static final Logger LOGGER = Logger.getLogger(WidgetCreator.class.getName());
 
-  public static JComboBox<String> makeComboBox(Vector<String> comboBoxContent, String toolTipText) {
+  public static JComboBox<String> makeComboBox(Vector<String> comboBoxContent, int preferredWidth, String toolTipText) {
     final JComboBox<String> comboBox = new JComboBox<String>(comboBoxContent);
 
     comboBox.setEditable(true);
     comboBox.setToolTipText(toolTipText);
-    comboBox.setPreferredSize(new Dimension(ClientGUIConstants.PREFERRED_FIELD_WIDTH, comboBox.getPreferredSize().height));
+    comboBox.setPreferredSize(new Dimension(preferredWidth, comboBox.getPreferredSize().height));
     comboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, comboBox.getPreferredSize().height));
 
     return comboBox;
   }
 
-  public static JTextField makeTextField(Class<? extends JTextField> fieldClass, String toolTipText)
+  public static JTextField makeTextField(Class<? extends JTextField> fieldClass, int preferredWidth, String toolTipText)
       throws IllegalAccessException, InstantiationException {
     JTextField field = fieldClass.newInstance();
-    field.setPreferredSize(new Dimension(ClientGUIConstants.PREFERRED_FIELD_WIDTH, field.getPreferredSize().height));
+    field.setPreferredSize(new Dimension(preferredWidth, field.getPreferredSize().height));
     field.setMaximumSize(new Dimension(Integer.MAX_VALUE, field.getPreferredSize().height));
     field.setToolTipText(toolTipText);
 
     return field;
   }
 
-  public static JTextField makeIntegerTextField(String text, String toolTipText) {
+  public static JTextField makeIntegerTextField(String text, int preferredWidth, String toolTipText) {
     final NumberFormat format = NumberFormat.getNumberInstance();
     final JTextField field = new JFormattedTextField(format);
 
@@ -51,7 +50,7 @@ public class WidgetCreator {
 
     field.setText(text);
     field.setToolTipText(toolTipText);
-    field.setPreferredSize(new Dimension(ClientGUIConstants.PREFERRED_FIELD_WIDTH, field.getPreferredSize().height));
+    field.setPreferredSize(new Dimension(preferredWidth, field.getPreferredSize().height));
     field.setMaximumSize(new Dimension(Integer.MAX_VALUE, field.getPreferredSize().height));
 
     return field;

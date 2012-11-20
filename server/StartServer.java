@@ -3,7 +3,6 @@ package server;
 import server.gui.ServerFrame;
 
 import javax.swing.*;
-import java.awt.*;
 
 /**
  * User: Timm Herrmann
@@ -11,21 +10,15 @@ import java.awt.*;
  * Time: 22:46
  */
 public class StartServer {
-  public static final String LOOK_AND_FEEL = "";
-
   public static void main(String[] args) {
-    new ServerFrame();
+    loadLaF();
+    final ServerFrame frame = new ServerFrame();
+    frame.setVisible(true);
   }
 
-  public static void loadLaF(Component comp)
-  {
+  public static void loadLaF() {
     try {
-      UIManager.setLookAndFeel(LOOK_AND_FEEL);
-      SwingUtilities.updateComponentTreeUI(comp);
-    }
-    catch(ClassNotFoundException e){e.printStackTrace();}
-    catch(InstantiationException e){e.printStackTrace();}
-    catch(IllegalAccessException e){e.printStackTrace();}
-    catch(UnsupportedLookAndFeelException e){e.printStackTrace();}
+      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    } catch(Exception e){}
   }
 }

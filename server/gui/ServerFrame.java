@@ -53,7 +53,6 @@ public class ServerFrame extends JFrame implements Observer {
 
     GameServer.getServerInstance().addObserver(this);
     this.setTitle(APPLICATION_NAME+TITLE_SEPARATOR+VERSION);
-    this.setVisible(true);
     this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
   }
 

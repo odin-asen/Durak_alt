@@ -5,6 +5,7 @@ import dto.DTOCard;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.List;
 
 /**
  * User: Timm Herrmann
@@ -30,4 +31,16 @@ public interface GameAction extends Remote {
    * doAction, then null will be returned.
    */
   public String getRefusedReason() throws RemoteException;
+
+  /**
+   * Should return the cards that are necessary in the action.
+   * @return A List-object with lists of DTOCard objects.
+   */
+  public List<List<DTOCard>> getCardLists() throws RemoteException;
+
+  /**
+   *  Should return the client who caused the action.
+   *  @return Returns a ClientInfo-object that represents the client.
+   */
+  public ClientInfo getExecutor() throws RemoteException;
 }

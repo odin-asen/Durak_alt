@@ -257,8 +257,8 @@ public class ClientFrame extends JFrame implements Observer {
     cardStackPanel = new CardStackPanel();
 
     clientsList = new JList<ClientInfo>(new DefaultListModel<ClientInfo>());
-    JPanel listPanel = new JPanel();
-    JScrollPane listScroll = new JScrollPane(clientsList);
+    final JPanel listPanel = new JPanel();
+    final JScrollPane listScroll = new JScrollPane(clientsList);
 
     cardStackPanel.setLayout(new BorderLayout());
     cardStackPanel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, cardStackPanel.getPreferredSize().height));

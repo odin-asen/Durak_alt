@@ -5,12 +5,11 @@ import game.rules.RuleChecker;
 import game.rules.RuleException;
 import game.rules.RuleFactory;
 import rmi.GameAction;
-import server.business.rmiImpl.AttackAction;
-import server.business.rmiImpl.DefenseAction;
 import utilities.Converter;
 import utilities.constants.GameConfigurationConstants;
 import utilities.constants.PlayerConstants;
 
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -127,37 +126,34 @@ public class GameProcess {
    * @throws IllegalArgumentException If {@code action} is not instanceof
    * {@link server.business.rmiImpl.AttackAction} or {@link server.business.rmiImpl.DefenseAction}
    */
-  public void validateAction(GameAction action) throws RuleException {
-    if(action instanceof AttackAction) {
-      final AttackAction attack = (AttackAction) action;
-      validateAttack(attack);
-    } else if(action instanceof DefenseAction) {
-      DefenseAction defense = (DefenseAction) action;
-      validateDefense(defense);
-    } else throw new IllegalArgumentException("The parameter is neither instanceof\n"+
-      AttackAction.class +" nor\n"+DefenseAction.class);
+  public void validateAction(ValidationAction validation, GameAction action)
+      throws RuleException, RemoteException {
+    if(validation.equals(ValidationAction.ATTACK)) {
+      validateAttack(action);
+    } else if(validation.equals(ValidationAction.DEFENSE)) {
+      validateDefense(action);
+    } else throw new IllegalArgumentException("The parameter is neither \n"+
+      ValidationAction.ATTACK +" nor\n"+ValidationAction.DEFENSE);
   }
 
-  private void validateDefense(DefenseAction defense) throws RuleException {
+  private void validateDefense(GameAction defense) throws RuleException, RemoteException {
     ruleChecker.doDefenseMove(
         playerList.get(defense.getExecutor().loginNumber),
         inGameCardHolder.getFirstElements().isEmpty(),
-        Converter.fromDTO(defense.getDefendCard()),
-        Converter.fromDTO(defense.getAttackCard()));
+        Converter.fromDTO(defense.getCardLists().get(1).get(0)),
+        Converter.fromDTO(defense.getCardLists().get(0).get(0)));
     inGameCardHolder.joinElements(
-        Converter.fromDTO(defense.getAttackCard()),
-        Converter.fromDTO(defense.getDefendCard()));
+        Converter.fromDTO(defense.getCardLists().get(0).get(0)),
+        Converter.fromDTO(defense.getCardLists().get(1).get(0)));
   }
 
-  private void validateAttack(AttackAction attack) throws RuleException {
-    final List<GameCard> cards = Converter.fromDTO(attack.getCards());
-
+  private void validateAttack(GameAction attack) throws RuleException, RemoteException {
+    List<GameCard> cards = Converter.fromDTO(attack.getCardLists().get(0));
     ruleChecker.doAttackMove(playerList.get(attack.getExecutor().loginNumber),
         cards, inGameCardHolder.getFirstElements(), inGameCardHolder.getSecondElements());
 
-    for (GameCard card : cards) {
+    for (GameCard card : cards)
       inGameCardHolder.addPair(card, null);
-    }
   }
 
   /**
@@ -306,6 +302,11 @@ public class GameProcess {
 
   public List<GameCard> getDefenseCards() {
     return inGameCardHolder.getSecondElements();
+  }
+
+  /* Inner Classes */
+  public static enum ValidationAction {
+    ATTACK, DEFENSE
   }
 }
 
