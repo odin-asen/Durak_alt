@@ -3,6 +3,7 @@ package client.gui.widget.card;
 import client.gui.frame.ClientGUIConstants;
 import dto.DTOCard;
 import dto.DTOCardStack;
+import resources.I18nSupport;
 import resources.ResourceGetter;
 
 import javax.swing.*;
@@ -15,6 +16,7 @@ import java.awt.geom.AffineTransform;
  * Time: 03:57
  */
 public class CardStackWidget extends JComponent {
+  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
   public static final int ORIENTATION_HORIZONTAL = 0;
   public static final int ORIENTATION_VERTICAL = 1;
   public static final float ALIGNMENT_CARD_HEIGHT = 0.9f;
@@ -41,9 +43,9 @@ public class CardStackWidget extends JComponent {
    */
   public CardStackWidget(int orientation) {
     cardBack = ClientGUIConstants.CARD_BACK;
-    cardBack.setDescription("Back");
+    cardBack.setDescription(I18nSupport.getValue(BUNDLE_NAME,"image.description.card.back"));
     trumpCard = new ImageIcon();
-    trumpCard.setDescription("Trump");
+    trumpCard.setDescription(I18nSupport.getValue(BUNDLE_NAME,"image.description.card.trump"));
     trump = new DTOCard();
     this.orientation = orientation;
     cardBackTransform = new AffineTransform();
@@ -149,8 +151,8 @@ public class CardStackWidget extends JComponent {
   }
 
   public void updateTooltip() {
-    this.setToolTipText("<html>Anzahl Karten:" + cardCount+
-        "<p/>Trumpf: "+trump.cardColour.getName()+"</html>");
+    this.setToolTipText(I18nSupport.getValue(BUNDLE_NAME,"html.card.number.0.trump.colour.1",
+        cardCount, trump.cardColour.getName()));
   }
 
   /* Getter and Setter */

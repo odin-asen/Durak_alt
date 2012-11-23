@@ -22,6 +22,7 @@ public class DTOCardStack implements Serializable {
     return cardStack.size();
   }
 
+  @SuppressWarnings("HardCodedStringLiteral")
   public String toString() {
     String string = "DTOCardStack {\ncardStack=";
     for (DTOCard dtoCard : cardStack) {

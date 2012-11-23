@@ -1,8 +1,9 @@
 package client.gui.frame.chat;
 
 import client.business.client.GameClient;
-import client.gui.frame.setup.SetUpFrame;
+import client.gui.frame.setup.SetupFrame;
 import dto.ClientInfo;
+import resources.I18nSupport;
 import utilities.gui.FramePosition;
 
 import javax.swing.*;
@@ -20,9 +21,10 @@ import static client.gui.frame.ClientGUIConstants.*;
  * Time: 01:02
  */
 public class ChatFrame extends JDialog {
-  private static ChatFrame chatFrame;
+  private static String BUNDLE_NAME = "client.client"; //NON-NLS
+  private static String ACTION_COMMAND_SEND = "send"; //NON-NLS
+  private static ChatFrame CHAT_FRAME;
 
-  private JToolBar toolBar;
   private JPanel centrePanel;
   private JPanel buttonPanel;
   private JButton sendButton;
@@ -45,22 +47,21 @@ public class ChatFrame extends JDialog {
     initComponents();
 
     this.setBounds(position.getRectangle());
-    this.setTitle(CHAT_TITLE);
+    this.setTitle(I18nSupport.getValue(BUNDLE_NAME,"frame.title.chat"));
     this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
   }
 
   public static ChatFrame getFrame() {
-    if(chatFrame == null) {
-      chatFrame = new ChatFrame();
+    if(CHAT_FRAME == null) {
+      CHAT_FRAME = new ChatFrame();
     }
 
-    return chatFrame;
+    return CHAT_FRAME;
   }
 
   /* Methods */
   private void initComponents() {
     getContentPane().setLayout(new BorderLayout());
-//    getContentPane().add(getToolBar(), BorderLayout.PAGE_START);
     getContentPane().add(getCentrePanel(), BorderLayout.CENTER);
   }
 
@@ -81,7 +82,6 @@ public class ChatFrame extends JDialog {
 
     scrollPaneRead = new JScrollPane();
     scrollPaneRead.setViewportView(chatReadArea);
-    scrollPaneRead.setName(SCROLL_READ_NAME);
 
     return scrollPaneRead;
   }
@@ -101,7 +101,6 @@ public class ChatFrame extends JDialog {
         CHAT_WRITE_AREA_HEIGHT));
     scrollPaneWrite.setMaximumSize(new Dimension(Integer.MAX_VALUE,
         scrollPaneWrite.getPreferredSize().height));
-    scrollPaneWrite.setName(SCROLL_WRITE_NAME);
 
     return scrollPaneWrite;
   }
@@ -125,33 +124,22 @@ public class ChatFrame extends JDialog {
 
     buttonPanel = new JPanel();
 
-    sendButton = new JButton(BUTTON_NAME_SEND);
-    sendButton.setActionCommand(BUTTON_NAME_SEND);
+    sendButton = new JButton(I18nSupport.getValue(BUNDLE_NAME,"button.text.send"));
+    sendButton.setActionCommand(ACTION_COMMAND_SEND);
     sendButton.addActionListener(buttonListener);
 
-    buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+    buttonPanel.setLayout(new FlowLayout(FlowLayout.TRAILING));
     buttonPanel.add(sendButton);
     buttonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE,
-        sendButton.getPreferredSize().height+10));
-    buttonPanel.setName(BUTTON_PANEL_NAME);
+        sendButton.getPreferredSize().height + 10));
 
     return buttonPanel;
-  }
-
-  private JToolBar getToolBar() {
-    if(toolBar != null)
-      return toolBar;
-
-    toolBar = new JToolBar();
-    toolBar.setFloatable(true);
-    toolBar.setBorderPainted(false);
-    return toolBar;
   }
 
   /* Inner Classes */
   private class ButtonListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
-      if(e.getActionCommand().equals(BUTTON_NAME_SEND)) {
+      if(e.getActionCommand().equals(ACTION_COMMAND_SEND)) {
         new Thread(new Runnable() {
           public void run() {
             String text = chatWriteArea.getText();
@@ -179,22 +167,22 @@ public class ChatFrame extends JDialog {
   }
 
   private class ChatMessageHandler {
+    private static final char NEWLINE = '\n';
+
     public void addMessage(String text) {
-      chatReadArea.append(text + '\n');
-      scrollPaneRead.getVerticalScrollBar().setValue(chatFrame.getScrollPaneRead().getVerticalScrollBar().getMaximum());
+      chatReadArea.append(text + NEWLINE);
+      scrollPaneRead.getVerticalScrollBar().setValue(CHAT_FRAME.getScrollPaneRead().getVerticalScrollBar().getMaximum());
     }
 
     public void sendChatMessage(String text) {
       if (!text.isEmpty()) {
-        ClientInfo info = SetUpFrame.getInstance().getClientInfo();
+        ClientInfo info = SetupFrame.getInstance().getClientInfo();
         try {
           GameClient.getClient().getChatHandler().sendMessage(info, text);
           chatWriteArea.setText("");
         } catch (Exception e) {
-          JOptionPane.showMessageDialog(
-              chatFrame, "Die Nachricht konnte nicht gesendet werden!" +
-              "\nM\u00f6glicherweise besteht keine Verbindung zum Server!",
-              "Error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(CHAT_FRAME, I18nSupport.getValue(BUNDLE_NAME,"dialog.text.error.chat.message.not.send"),
+              I18nSupport.getValue(BUNDLE_NAME,"dialog.title.error"), JOptionPane.ERROR_MESSAGE);
         }
       }
     }

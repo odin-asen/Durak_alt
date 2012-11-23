@@ -5,6 +5,7 @@ package resources;
  * Date: 29.10.12
  * Time: 17:17
  */
+@SuppressWarnings("HardCodedStringLiteral")
 public interface ResourceList {
   String RESOURCES_ROOT = "";
   String PICTURES_ROOT = RESOURCES_ROOT + "icons/";

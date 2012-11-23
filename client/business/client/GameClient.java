@@ -24,7 +24,7 @@ import java.util.Observable;
 public class GameClient extends Observable {
   private static GameClient client;
 
-  public static final String DEFAULT_SERVER_ADDRESS = "localhost";
+  public static final String DEFAULT_SERVER_ADDRESS = "localhost"; //NON-NLS
   public static final Integer DEFAULT_SERVER_PORT = Registry.REGISTRY_PORT;
 
   private Map<RMIService,Remote> services;
@@ -121,9 +121,9 @@ public class GameClient extends Observable {
     if(info.playerType.equals(PlayerConstants.PlayerType.FIRST_ATTACKER) ||
        info.playerType.equals(PlayerConstants.PlayerType.SECOND_ATTACKER))
       return getGameActionAttack().doAction(info, FinishAction.NOT_FINISHING, cards);
-    else if(info.playerType.equals(PlayerConstants.PlayerType.DEFENDER))
-      return getGameActionDefend().doAction(info, FinishAction.NOT_FINISHING, cards);
-    else return false;
+    else
+      return info.playerType.equals(PlayerConstants.PlayerType.DEFENDER) &&
+          getGameActionDefend().doAction(info, FinishAction.NOT_FINISHING, cards);
   }
 
   public Boolean finishRound(ClientInfo info, Boolean takeCards) throws RemoteException {

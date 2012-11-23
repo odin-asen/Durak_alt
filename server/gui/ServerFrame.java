@@ -3,6 +3,7 @@ package server.gui;
 import dto.ClientInfo;
 import dto.message.GUIObserverType;
 import dto.message.MessageObject;
+import resources.I18nSupport;
 import resources.ResourceGetter;
 import resources.ResourceList;
 import server.business.GameServer;
@@ -17,6 +18,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Observable;
@@ -31,6 +33,15 @@ import static server.gui.ServerGUIConstants.*;
  * Time: 19:33
  */
 public class ServerFrame extends JFrame implements Observer {
+  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
+  private static Logger LOGGER = Logger.getLogger(ServerFrame.class.getName());
+
+  private static final String VERSION_NUMBER = "0.1";
+  private static final String ACTION_COMMAND_START = "start"; //NON-NLS
+  private static final String ACTION_COMMAND_STOP = "stop"; //NON-NLS
+  private static final String ACTION_COMMAND_CLOSE = "close"; //NON-NLS
+  private static final String ACTION_COMMAND_START_GAME = "gameStart"; //NON-NLS
+
   private JToolBar toolBar;
   private JScrollPane settingsPanel;
   private JFormattedTextField portField;
@@ -48,12 +59,13 @@ public class ServerFrame extends JFrame implements Observer {
     FramePosition position = FramePosition.createFensterPositionen(
         MAIN_FRAME_SCREEN_SIZE, MAIN_FRAME_SCREEN_SIZE);
 
-    this.setBounds(position.getRectangle());
+    setBounds(position.getRectangle());
     initComponents();
 
     GameServer.getServerInstance().addObserver(this);
-    this.setTitle(APPLICATION_NAME+TITLE_SEPARATOR+VERSION);
-    this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    setTitle(MessageFormat.format("{0} - {1} {2}", I18nSupport.getValue(BUNDLE_NAME,"application.title"),
+        I18nSupport.getValue(BUNDLE_NAME,"version"), VERSION_NUMBER));
+    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
   }
 
   /* Methods */
@@ -84,7 +96,7 @@ public class ServerFrame extends JFrame implements Observer {
     if (GUIObserverType.REFRESH_CLIENT_LIST.equals(object.getType())) {
       refreshClientList(GameServer.getServerInstance().getClients());
     } else if (GUIObserverType.SERVER_FAIL.equals(object.getType())) {
-      setStatusBarText("Port " +portField.getText()+" oder schon belegt.");
+      setStatusBarText(I18nSupport.getValue(BUNDLE_NAME,"port.0.used", portField.getText()));
     }
   }
 
@@ -118,7 +130,7 @@ public class ServerFrame extends JFrame implements Observer {
     statusPanel = new JPanel();
     statusBar = new JLabel();
 
-    statusBar.setText(STATUS_SERVER_INACTIVE);
+    statusBar.setText(I18nSupport.getValue(BUNDLE_NAME,"server.inactive"));
     statusPanel.setPreferredSize(new Dimension(0, 16));
 
     statusPanel.setLayout(new BorderLayout());
@@ -133,13 +145,16 @@ public class ServerFrame extends JFrame implements Observer {
       return toolBar;
 
     toolBar = new JToolBar();
-    ToolBarComponentAL listener = new ToolBarComponentAL(this);
-    JButton startStopButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_PLAY, TOOLTIP_START,
-        ACTION_COMMAND_START, ALTERNATIVE_START, listener, KeyEvent.VK_G);
-    JButton gameStartButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_GAME_START, TOOLTIP_GAME_START,
-        ACTION_COMMAND_GAME_START, ALTERNATIVE_GAME_START, listener, KeyEvent.VK_S);
-    JButton closeButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_CLOSE, TOOLTIP_CLOSE,
-        ACTION_COMMAND_CLOSE, ALTERNATIVE_CLOSE, listener, KeyEvent.VK_Q);
+    final ToolBarComponentAL listener = new ToolBarComponentAL();
+    JButton startStopButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_PLAY,
+        I18nSupport.getValue(BUNDLE_NAME,"button.tooltip.start.server"), ACTION_COMMAND_START,
+        I18nSupport.getValue(BUNDLE_NAME,"image.description.start.server"), listener, KeyEvent.VK_G);
+    JButton gameStartButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_GAME_START,
+        I18nSupport.getValue(BUNDLE_NAME,"button.tooltip.start.game"), ACTION_COMMAND_START_GAME,
+        I18nSupport.getValue(BUNDLE_NAME,"image.description.start.game"), listener, KeyEvent.VK_S);
+    JButton closeButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_CLOSE,
+        I18nSupport.getValue(BUNDLE_NAME,"button.tooltip.close"), ACTION_COMMAND_CLOSE,
+        I18nSupport.getValue(BUNDLE_NAME,"image.description.close"), listener, KeyEvent.VK_Q);
 
     toolBar.setMargin(new Insets(5, 5, 5, 5));
     toolBar.setRollover(true);
@@ -184,7 +199,7 @@ public class ServerFrame extends JFrame implements Observer {
     portField.setPreferredSize(new Dimension(PREFERRED_FIELD_WIDTH, portField.getPreferredSize().height));
     portField.setMaximumSize(new Dimension(Integer.MAX_VALUE, portField.getPreferredSize().height));
 
-    panel.setBorder(BorderFactory.createTitledBorder(LABEL_PORT));
+    panel.setBorder(BorderFactory.createTitledBorder(I18nSupport.getValue(BUNDLE_NAME,"border.title.port")));
 
     GridBagConstraints constraints = new GridBagConstraints();
     panel.add(portField, constraints);
@@ -213,13 +228,14 @@ public class ServerFrame extends JFrame implements Observer {
 
     gameSettingsPanel = new JPanel();
     stackSizeCombo = new JComboBox<Integer>(new Integer[]{36,40,44,48,52});
-    JLabel stackSizeLabel = new JLabel("Anzahl Karten:");
+    JLabel stackSizeLabel = new JLabel(I18nSupport.getValue(BUNDLE_NAME,"number.of.cards"));
 
     stackSizeCombo.setEditable(false);
-    stackSizeCombo.setToolTipText("Gesamte Anzahl der Karten im Spiel");
+    stackSizeCombo.setToolTipText(I18nSupport.getValue(BUNDLE_NAME,"combo.box.tooltip.card.number"));
     stackSizeCombo.setMaximumSize(stackSizeCombo.getPreferredSize());
     gameSettingsPanel.setLayout(new GridLayout(0,2,2,0));
-    gameSettingsPanel.setBorder(BorderFactory.createTitledBorder("Spieleinstellungen"));
+    gameSettingsPanel.setBorder(BorderFactory.createTitledBorder(
+        I18nSupport.getValue(BUNDLE_NAME,"border.title.game.settings")));
     gameSettingsPanel.add(stackSizeLabel);
     gameSettingsPanel.add(stackSizeCombo);
 
@@ -231,83 +247,74 @@ public class ServerFrame extends JFrame implements Observer {
   }
 
   /* Inner Classes */
-}
-
-class ToolBarComponentAL implements ActionListener {
-  private static final Logger LOGGER = Logger.getLogger(ToolBarComponentAL.class.getName());
-
-  private ServerFrame frame;
-
-  ToolBarComponentAL(ServerFrame frame) {
-    this.frame = frame;
-  }
-
-  public void actionPerformed(ActionEvent e) {
-    if (ACTION_COMMAND_CLOSE.equals(e.getActionCommand())) {
-      closeFrame(e);
-    } else if (ACTION_COMMAND_START.equals(e.getActionCommand())) {
-      startGameServer();
-      changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_STOP_PLAYER,
-          ACTION_COMMAND_STOP, TOOLTIP_STOP, ALTERNATIVE_STOP);
-    } else if (ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
-      stopGameServer();
-      changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_PLAY,
-          ACTION_COMMAND_START, TOOLTIP_START, ALTERNATIVE_START);
-    } else if (ACTION_COMMAND_GAME_START.equals(e.getActionCommand())) {
-      startGame();
+  private class ToolBarComponentAL implements ActionListener {
+    public void actionPerformed(ActionEvent e) {
+      if (ACTION_COMMAND_CLOSE.equals(e.getActionCommand())) {
+        closeFrame(e);
+      } else if (ACTION_COMMAND_START.equals(e.getActionCommand())) {
+        startGameServer();
+        changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_STOP_PLAYER,
+            ACTION_COMMAND_STOP, I18nSupport.getValue(BUNDLE_NAME,"button.tooltip.stop.server"),
+            I18nSupport.getValue(BUNDLE_NAME,"image.description.stop.server"));
+      } else if (ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
+        stopGameServer();
+        changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_PLAY,
+            ACTION_COMMAND_START, I18nSupport.getValue(BUNDLE_NAME,"button.tooltipl.start.server"),
+            I18nSupport.getValue(BUNDLE_NAME,"image.description.start.server"));
+      } else if (ACTION_COMMAND_START_GAME.equals(e.getActionCommand())) {
+        startGame();
+      }
     }
-  }
 
-  private void changeButton(JButton button, String pictureName, String actionCommand,
-                            String toolTipText, String alternativeText) {
-    button.setActionCommand(actionCommand);
-    if(pictureName != null) {
-      ImageIcon icon = ResourceGetter.getImage(pictureName, alternativeText);
-      button.setIcon(icon);
+    private void changeButton(JButton button, String pictureName, String actionCommand,
+                              String toolTipText, String alternativeText) {
+      button.setActionCommand(actionCommand);
+      if(pictureName != null) {
+        ImageIcon icon = ResourceGetter.getImage(pictureName, alternativeText);
+        button.setIcon(icon);
+      }
+      button.setToolTipText(toolTipText);
     }
-    button.setToolTipText(toolTipText);
-  }
 
-  private void startGame() {
-    GameServer.getServerInstance().startGame(frame.getStackSize());
-  }
-
-  private void stopGameServer() {
-    closeServer();
-    frame.setStatusBarText(STATUS_SERVER_INACTIVE);
-  }
-
-  private void closeServer() {
-    try {
-      GameServer.getServerInstance().shutdownServer();
-    } catch (NotBoundException e) {
-      LOGGER.info(e.getMessage());
-    } catch (RemoteException e) {
-      LOGGER.info(e.getMessage());
+    private void startGame() {
+      GameServer.getServerInstance().startGame(getStackSize());
     }
-  }
 
-  private void closeFrame(ActionEvent e) {
-    JFrame frame = (JFrame) SwingUtilities.getRoot((Component) e.getSource());
-    closeServer();
-    frame.setVisible(false);
-    frame.dispose();
-    System.exit(0);
-  }
+    private void stopGameServer() {
+      closeServer();
+      setStatusBarText(I18nSupport.getValue(BUNDLE_NAME,"server.inactive"));
+    }
 
-  private void startGameServer() {
-    final GameServer gameServer = GameServer.getServerInstance(frame.getPortValue(), "");
+    private void closeServer() {
+      try {
+        GameServer.getServerInstance().shutdownServer();
+      } catch (NotBoundException e) {
+        LOGGER.info(e.getMessage());
+      } catch (RemoteException e) {
+        LOGGER.info(e.getMessage());
+      }
+    }
 
-    try {
-      gameServer.startServer();
-      frame.setStatusBarText(STATUS_SERVER_ACTIVE);
-    } catch (IllegalAccessException e) {
-      LOGGER.severe(e.getClass()+" "+e.getMessage());
-    } catch (InstantiationException e) {
-      LOGGER.severe(e.getClass()+" "+e.getMessage());
-    } catch (RemoteException e) {
-      LOGGER.severe(e.getClass()+ " Could not register services");
-      e.printStackTrace();
+    private void closeFrame(ActionEvent e) {
+      closeServer();
+      setVisible(false);
+      dispose();
+      System.exit(0);
+    }
+
+    private void startGameServer() {
+      final GameServer gameServer = GameServer.getServerInstance(getPortValue(), "");
+
+      try {
+        gameServer.startServer();
+        setStatusBarText(I18nSupport.getValue(BUNDLE_NAME,"server.running"));
+      } catch (IllegalAccessException e) {
+        LOGGER.severe(e.getClass()+" "+e.getMessage());
+      } catch (InstantiationException e) {
+        LOGGER.severe(e.getClass()+" "+e.getMessage());
+      } catch (RemoteException e) {
+        LOGGER.severe(e.getClass() + " Could not register services");
+      }
     }
   }
 }

@@ -2,6 +2,7 @@ package client.gui.frame.setup;
 
 import client.gui.frame.ClientGUIConstants;
 import dto.ClientInfo;
+import resources.I18nSupport;
 import utilities.constants.GameConfigurationConstants;
 import utilities.gui.Constraints;
 
@@ -11,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class ClientInfoTab extends JPanel {
+  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
   private JTextField nameField;
   private JCheckBox spectatorCheckBox;
 
@@ -43,20 +45,20 @@ public class ClientInfoTab extends JPanel {
   }
 
   void initComponents() {
-    nameLabel = new JLabel("Spielername:");
+    nameLabel = new JLabel(I18nSupport.getValue(BUNDLE_NAME,"label.player.name"));
     int preferredHeight = nameLabel.getPreferredSize().height;
     nameLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, preferredHeight));
 
     String defaultText = System.getProperty("user.name");
     if (defaultText == null)
-      defaultText = "anonymus";
+      defaultText = I18nSupport.getValue(BUNDLE_NAME,"default.player.name");
 
     nameField = new JTextField(defaultText);
     preferredHeight = nameField.getPreferredSize().height;
     nameField.setPreferredSize(new Dimension(ClientGUIConstants.PREFERRED_FIELD_WIDTH,
         preferredHeight));
     nameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, preferredHeight));
-    spectatorCheckBox = new JCheckBox("Nur zuschauen");
+    spectatorCheckBox = new JCheckBox(I18nSupport.getValue(BUNDLE_NAME,"check.box.spectator"));
     preferredHeight = spectatorCheckBox.getPreferredSize().height;
     spectatorCheckBox.setPreferredSize(new Dimension(ClientGUIConstants.PREFERRED_FIELD_WIDTH,
         preferredHeight));

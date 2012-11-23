@@ -100,17 +100,17 @@ public class ResourceGetter {
           try {
             SoundPlayer.playSound(nummer);
           } catch (Exception e) {
-            System.err.println("Fehler beim Abspielen des Sounds: " + e.getMessage());
+            LOGGER.warning("Fehler beim Abspielen des Sounds: " + e.getMessage());
           }
         }
       }).start();
     } catch (Exception e) {
-      System.err.println("Fehler beim Starten des Soundthreads: " + e.getMessage());
+      LOGGER.warning("Fehler beim Starten des Soundthreads: " + e.getMessage());
     }
   }
 
   public static ImageIcon getBackCard() {
-    return getImage("cards/"+ ResourceList.CARD_BACK, "Back");
+    return getImage("cards/"+ ResourceList.CARD_BACK, "Back"); //NON-NLS NON-NLS
   }
 
   public static ImageIcon getPlayerTypeIcon(PlayerConstants.PlayerType type, Integer height) {

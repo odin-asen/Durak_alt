@@ -2,6 +2,7 @@ package client.gui.frame.gamePanel;
 
 import client.gui.frame.ClientGUIConstants;
 import client.gui.widget.card.GameCardWidget;
+import resources.I18nSupport;
 
 import javax.swing.*;
 import java.awt.*;
@@ -101,8 +102,8 @@ public class CombatCardPanel extends JPanel {
   private String createToolTipText() {
     if(attackerCard != null) {
       if(defenderCard == null)
-        return attackerCard.getToolTipText()+ " ist zu schlagen";
-      else return defenderCard.getToolTipText()+ " schl\u00e4gt " +attackerCard.getToolTipText();
+        return I18nSupport.getValue("0.has.to.be.beaten", attackerCard.getToolTipText());
+      else return I18nSupport.getValue("0.beats.1", defenderCard.getToolTipText(), attackerCard.getToolTipText());
     } else return "";
   }
 

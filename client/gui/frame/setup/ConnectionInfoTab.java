@@ -2,6 +2,8 @@ package client.gui.frame.setup;
 
 import client.business.ConnectionInfo;
 import client.gui.frame.ClientGUIConstants;
+import resources.I18nSupport;
+import utilities.constants.GameConfigurationConstants;
 import utilities.gui.Constraints;
 import utilities.gui.WidgetCreator;
 
@@ -16,7 +18,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ConnectionInfoTab extends JPanel {
-  private static Logger LOGGER = Logger.getLogger(ConnectionInfoTab.class.getName());
+  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
+  private static final Logger LOGGER = Logger.getLogger(ConnectionInfoTab.class.getName());
 
   private JComboBox<String> addressCombo;
   private JTextField portField;
@@ -81,12 +84,12 @@ public class ConnectionInfoTab extends JPanel {
   void initComponents() throws InstantiationException, IllegalAccessException {
     final Vector<String> comboBoxContent;
 
-    addressLabel = new JLabel("Serveradresse:");
+    addressLabel = new JLabel(I18nSupport.getValue(BUNDLE_NAME,"label.server.address"));
     addressLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, addressLabel.getPreferredSize().height));
 
     comboBoxContent = new Vector<String>();
     addressCombo = WidgetCreator.makeComboBox(comboBoxContent,
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH, "IP-Adresse des Servers oder Netzwerkname");
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH, I18nSupport.getValue(BUNDLE_NAME,"combo.box.tooltip.address"));
 
     try {
       addressCombo.addItem(InetAddress.getLocalHost().getHostName());
@@ -109,22 +112,22 @@ public class ConnectionInfoTab extends JPanel {
       }
     });
 
-    portLabel = new JLabel("Port:");
+    portLabel = new JLabel(I18nSupport.getValue(BUNDLE_NAME,"label.port"));
     portLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, portLabel.getPreferredSize().height));
 
-    portField = WidgetCreator.makeIntegerTextField("1025", ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-        "Portnummer des Servers");
+    portField = WidgetCreator.makeIntegerTextField(GameConfigurationConstants.DEFAULT_PORT_STRING,
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH, I18nSupport.getValue(BUNDLE_NAME,"field.tooltip.port"));
 
-    passwordLabel = new JLabel("Passwort:");
+    passwordLabel = new JLabel(I18nSupport.getValue(BUNDLE_NAME,"label.password"));
     passwordLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, passwordLabel.getPreferredSize().height));
 
     passwordField = (JPasswordField) WidgetCreator.makeTextField(JPasswordField.class,
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH, ClientGUIConstants.SET_UP_PASSWORD_TOOLTIP);
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH, I18nSupport.getValue(BUNDLE_NAME,"check.box.tooltip.show.password"));
 
     plainTextField = WidgetCreator.makeTextField(JTextField.class,
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH, ClientGUIConstants.SET_UP_PASSWORD_TOOLTIP);
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH, I18nSupport.getValue(BUNDLE_NAME,"check.box.tooltip.show.password"));
 
-    passwordCheckBox = new JCheckBox(ClientGUIConstants.SET_UP_CHECKBOX_PASSWORD_TEXT);
+    passwordCheckBox = new JCheckBox(I18nSupport.getValue(BUNDLE_NAME,"check.box.show.password"));
     passwordCheckBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, passwordCheckBox.getPreferredSize().height));
 
     passwordCheckBox.addActionListener(new ActionListener() {

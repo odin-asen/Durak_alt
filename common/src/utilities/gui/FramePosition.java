@@ -46,6 +46,7 @@ public class FramePosition {
     return hoehe;
   }
 
+  @SuppressWarnings("HardCodedStringLiteral")
   public String toString() {
     return "PosX: "+posX+"; "+
         "PosY: "+posY+"; "+

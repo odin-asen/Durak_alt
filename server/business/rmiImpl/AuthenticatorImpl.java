@@ -1,6 +1,7 @@
 package server.business.rmiImpl;
 
 import dto.ClientInfo;
+import resources.I18nSupport;
 import rmi.Authenticator;
 import server.business.GameServer;
 
@@ -12,22 +13,23 @@ import java.rmi.RemoteException;
  * Time: 23:22
  */
 public class AuthenticatorImpl implements Authenticator {
-  private String password;
+  private static final String BUNDLE_NAME = "user.messages"; //NON-NLS
+  private String password;  //NON-NLS
   private String reason;
 
   /* Constructors */
-  public AuthenticatorImpl() {
-    password = "";
+  public AuthenticatorImpl(String password) {
+    this.password = password;
     reason = "";
   }
 
   /* Methods */
   public boolean login(ClientInfo client, String password) throws RemoteException {
-    if(password.equals(password)) {
+    if(this.password.equals(password)) {
       GameServer.getServerInstance().addClient(client);
       return true;
     } else {
-      reason = "Das Passwort ist falsch!";
+      reason = I18nSupport.getValue(BUNDLE_NAME,"wrong.password");
       return false;
     }
   }

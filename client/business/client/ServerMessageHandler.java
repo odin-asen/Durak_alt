@@ -8,7 +8,6 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -26,7 +25,7 @@ public class ServerMessageHandler extends UnicastRemoteObject implements RMIObse
       this.server = (RMIObservable) serverRegistry.lookup(service);
     }
     catch (Exception exception) {
-      LOGGER.log(Level.SEVERE, "Unable to connect and register with server!");
+      LOGGER.severe("Unable to connect and register with server!");
     }
   }
 

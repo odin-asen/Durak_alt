@@ -3,24 +3,27 @@ package client.gui.frame.setup;
 import client.business.ConnectionInfo;
 import client.gui.frame.ClientGUIConstants;
 import dto.ClientInfo;
+import resources.I18nSupport;
 import utilities.gui.FramePosition;
 import utilities.gui.WidgetCreator;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.util.logging.Logger;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  * User: Timm Herrmann
  * Date: 30.09.12
  * Time: 21:13
  */
-public class SetUpFrame extends JDialog {
-  @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(SetUpFrame.class.getName());
+public class SetupFrame extends JDialog {
+  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
+  private static final String ACTION_COMMAND_APPLY = "apply";  //NON-NLS
+  private static final String ACTION_COMMAND_OKAY = "okay"; //NON-NLS
+  private static final String ACTION_COMMAND_CANCEL = "cancel";  //NON-NLS
 
-  private static SetUpFrame setUpFrame;
+  private static SetupFrame SETUP_FRAME;
 
   private JTabbedPane superPane;
   private JPanel buttonPanel;
@@ -31,17 +34,17 @@ public class SetUpFrame extends JDialog {
   private ConnectionInfoTab connectionInfoTab;
 
   public static void main(String[] args) {
-    SetUpFrame.getInstance().setVisible(true);
+    SetupFrame.getInstance().setVisible(true);
   }
 
   /* Constructors */
-  private SetUpFrame() {
+  private SetupFrame() {
     final FramePosition position = FramePosition.createFensterPositionen(
-        ClientGUIConstants.SET_UP_FRAME_SCREEN_SIZE_WIDTH, ClientGUIConstants.SET_UP_FRAME_SCREEN_SIZE_HEIGHT);
+        ClientGUIConstants.SETUP_FRAME_SCREEN_SIZE_WIDTH, ClientGUIConstants.SETUP_FRAME_SCREEN_SIZE_HEIGHT);
     buttonListener = new ButtonListener();
 
     this.setBounds(position.getRectangle());
-    this.setTitle(ClientGUIConstants.SET_UP_TITLE);
+    this.setTitle(I18nSupport.getValue(BUNDLE_NAME,"frame.title.setup"));
     this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
     getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
@@ -49,17 +52,17 @@ public class SetUpFrame extends JDialog {
     getContentPane().add(getButtonPane());
 
     for (Component component : getButtonPane().getComponents()) {
-      if(((JButton) component).getActionCommand().equals(ClientGUIConstants.ACTION_COMMAND_APPLY))
+      if(((JButton) component).getActionCommand().equals(ACTION_COMMAND_APPLY))
         component.setEnabled(false);
     }
   }
 
-  public static SetUpFrame getInstance() {
-    if(setUpFrame == null) {
-      setUpFrame = new SetUpFrame();
+  public static SetupFrame getInstance() {
+    if(SETUP_FRAME == null) {
+      SETUP_FRAME = new SetupFrame();
     }
 
-    return setUpFrame;
+    return SETUP_FRAME;
   }
 
   /* Methods */
@@ -78,16 +81,16 @@ public class SetUpFrame extends JDialog {
   public void setChanged(boolean changed) {
     JButton button = new JButton();
     for (Component component : buttonPanel.getComponents()) {
-      if(((JButton) component).getActionCommand().equals(ClientGUIConstants.ACTION_COMMAND_APPLY))
+      if(((JButton) component).getActionCommand().equals(ACTION_COMMAND_APPLY))
         button = (JButton) component;
     }
 
     button.setEnabled(!changed);
 
     if(changed) {
-      setTitle(ClientGUIConstants.SET_UP_TITLE + "dert)");
+      setTitle(I18nSupport.getValue(BUNDLE_NAME,"0.title.changed", I18nSupport.getValue(BUNDLE_NAME,"frame.title.setup")));
     } else {
-      setTitle(ClientGUIConstants.SET_UP_TITLE);
+      setTitle(I18nSupport.getValue(BUNDLE_NAME,"frame.title.setup"));
     }
   }
 
@@ -99,15 +102,15 @@ public class SetUpFrame extends JDialog {
     buttonPanel = new JPanel();
 
     buttonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, buttonPanel.getPreferredSize().height));
-    buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-    buttonPanel.add(WidgetCreator.makeButton(null, ClientGUIConstants.SET_UP_OKAY_TEXT,
-        ClientGUIConstants.SET_UP_OKAY_TOOLTIP, ClientGUIConstants.ACTION_COMMAND_OKAY,
+    buttonPanel.setLayout(new FlowLayout(FlowLayout.TRAILING));
+    buttonPanel.add(WidgetCreator.makeButton(null, I18nSupport.getValue(BUNDLE_NAME,"button.text.okay"),
+        I18nSupport.getValue(BUNDLE_NAME,"button.tooltip.okay"), ACTION_COMMAND_OKAY,
         buttonListener));
-    buttonPanel.add(WidgetCreator.makeButton(null, ClientGUIConstants.SET_UP_CANCEL_TEXT,
-        ClientGUIConstants.SET_UP_CANCEL_TOOLTIP, ClientGUIConstants.ACTION_COMMAND_CANCEL,
+    buttonPanel.add(WidgetCreator.makeButton(null, I18nSupport.getValue(BUNDLE_NAME,"button.text.cancel"),
+        I18nSupport.getValue(BUNDLE_NAME,"button.tooltip.cancel"), ACTION_COMMAND_CANCEL,
         buttonListener));
-    buttonPanel.add(WidgetCreator.makeButton(null, ClientGUIConstants.SET_UP_APPLY_TEXT,
-        ClientGUIConstants.SET_UP_APPLY_TOOLTIP, ClientGUIConstants.ACTION_COMMAND_APPLY,
+    buttonPanel.add(WidgetCreator.makeButton(null, I18nSupport.getValue(BUNDLE_NAME,"button.text.apply"),
+        I18nSupport.getValue(BUNDLE_NAME,"button.tooltip.apply"), ACTION_COMMAND_APPLY,
         buttonListener));
 
     return buttonPanel;
@@ -120,10 +123,10 @@ public class SetUpFrame extends JDialog {
     superPane = new JTabbedPane();
     JScrollPane scroll = new JScrollPane();
     scroll.setViewportView(getConnectionTab());
-    superPane.addTab(ClientGUIConstants.TITLE_CONNECTION, scroll);
+    superPane.addTab(I18nSupport.getValue(BUNDLE_NAME,"tab.title.connection"), scroll);
     scroll = new JScrollPane();
     scroll.setViewportView(getClientInfoTab());
-    superPane.addTab(ClientGUIConstants.TITLE_INFORMATION, scroll);
+    superPane.addTab(I18nSupport.getValue(BUNDLE_NAME,"tab.title.client"), scroll);
 
     return superPane;
   }
@@ -161,15 +164,15 @@ public class SetUpFrame extends JDialog {
   /* Inner Classes */
   private class ButtonListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
-      if(e.getActionCommand().equals(ClientGUIConstants.ACTION_COMMAND_APPLY)) {
+      if(e.getActionCommand().equals(ACTION_COMMAND_APPLY)) {
         clientInfoTab.fillClientInfo();
         connectionInfoTab.fillConnectionInfo();
-      } else if(e.getActionCommand().equals(ClientGUIConstants.ACTION_COMMAND_CANCEL)) {
-        SetUpFrame.getInstance().dispose();
-      } else if(e.getActionCommand().equals(ClientGUIConstants.ACTION_COMMAND_OKAY)) {
+      } else if(e.getActionCommand().equals(ACTION_COMMAND_CANCEL)) {
+        SetupFrame.getInstance().dispose();
+      } else if(e.getActionCommand().equals(ACTION_COMMAND_OKAY)) {
         clientInfoTab.fillClientInfo();
         connectionInfoTab.fillConnectionInfo();
-        SetUpFrame.getInstance().dispose();
+        SetupFrame.getInstance().dispose();
       }
     }
   }

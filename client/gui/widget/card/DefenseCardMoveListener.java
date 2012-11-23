@@ -4,8 +4,9 @@ import client.business.client.GameClient;
 import client.gui.frame.ClientFrame;
 import client.gui.frame.gamePanel.CombatCardPanel;
 import client.gui.frame.gamePanel.GamePanel;
-import client.gui.frame.setup.SetUpFrame;
+import client.gui.frame.setup.SetupFrame;
 import dto.ClientInfo;
+import resources.I18nSupport;
 import utilities.Converter;
 import utilities.gui.Compute;
 
@@ -20,6 +21,7 @@ import java.util.List;
  * Time: 00:52
  */
 public class DefenseCardMoveListener extends CardMoveListener {
+  private static final String BUNDLE_NAME = "user.messages"; //NON-NLS
   private CombatCardPanel curtainPanel;
   private List<CombatCardPanel> combatPanels;
 
@@ -89,13 +91,13 @@ public class DefenseCardMoveListener extends CardMoveListener {
       return null;
 
     try {
-      final ClientInfo clientInfo = SetUpFrame.getInstance().getClientInfo();
+      final ClientInfo clientInfo = SetupFrame.getInstance().getClientInfo();
       GameClient.getClient().sendAction(clientInfo, Converter.toDTO(widget.getCardInfo()),
          Converter.toDTO(currentPanel.getAttackerCard().getCardInfo()));
       result = GameClient.getClient().getActionDeniedReason(clientInfo);
     } catch (RemoteException e) {
       e.printStackTrace();
-      result = "Fehler mit dem Netzwerk!";
+      result = I18nSupport.getValue(BUNDLE_NAME,"network.error");
     }
 
     return result;

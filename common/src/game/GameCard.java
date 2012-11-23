@@ -12,6 +12,7 @@ public class GameCard {
   private CardColour cardColour;
 
   /* Methods */
+  @SuppressWarnings("HardCodedStringLiteral")
   public String toString() {
     return "GameCard{" +
         " cardValue=" + cardValue +

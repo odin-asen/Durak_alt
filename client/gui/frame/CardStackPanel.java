@@ -25,6 +25,7 @@ public class CardStackPanel extends JPanel {
    * @param cards Number of cards that will be shown on the stack. One of the stack is
    *              the trump card.
    */
+  @SuppressWarnings("UnusedDeclaration")
   private void setStack(DTOCardStack stack) {
     setStack(stack, null);
   }

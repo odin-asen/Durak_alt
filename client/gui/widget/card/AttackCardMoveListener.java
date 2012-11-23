@@ -3,9 +3,10 @@ package client.gui.widget.card;
 import client.business.client.GameClient;
 import client.gui.frame.ClientFrame;
 import client.gui.frame.gamePanel.GamePanel;
-import client.gui.frame.setup.SetUpFrame;
+import client.gui.frame.setup.SetupFrame;
 import dto.ClientInfo;
 import dto.DTOCard;
+import resources.I18nSupport;
 import utilities.Converter;
 
 import javax.swing.*;
@@ -22,6 +23,7 @@ import java.util.List;
  * Time: 00:52
  */
 public class AttackCardMoveListener extends CardMoveListener {
+  private static final String BUNDLE_NAME = "user.messages"; //NON-NLS
   private final PointedCardContainer pointedWidgets;
   private Float relativePointHeight;
 
@@ -132,12 +134,12 @@ public class AttackCardMoveListener extends CardMoveListener {
         cards[index] = Converter.toDTO(pointedWidgets.widgets.get(index).getCardInfo());
       }
 
-      final ClientInfo clientInfo = SetUpFrame.getInstance().getClientInfo();
+      final ClientInfo clientInfo = SetupFrame.getInstance().getClientInfo();
       GameClient.getClient().sendAction(clientInfo, cards);
       result = GameClient.getClient().getActionDeniedReason(clientInfo);
     } catch (RemoteException e) {
       e.printStackTrace();
-      result = "Fehler mit dem Netzwerk!";
+      result = I18nSupport.getValue(BUNDLE_NAME,"network.error");
     }
 
     return result;

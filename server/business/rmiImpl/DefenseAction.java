@@ -18,6 +18,9 @@ import java.util.List;
  * Time: 23:16
  */
 public class DefenseAction implements GameAction {
+  private static final String DEBUG_MESSAGE_WRONG_FORMAT = "Wrong format of the cards. " + //NON-NLS
+      "First card is the defense card, the second the attacker card." + //NON-NLS
+      "\nPlease debug!"; //NON-NLS
   private ClientInfo executor;
   private DTOCard defenseCard;
   private DTOCard attackCard;
@@ -38,9 +41,7 @@ public class DefenseAction implements GameAction {
       } catch (RuleException e) {
         reason = e.getMessage();
       }
-    } else reason = "Wrong format of the cards. " +
-        "First card is the defense card, the second the attacker card." +
-        "\nPlease debug!";
+    } else reason = DEBUG_MESSAGE_WRONG_FORMAT;
 
     return actionDone;
   }

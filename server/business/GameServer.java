@@ -36,7 +36,7 @@ public class GameServer extends Observable {
   private static Logger LOGGER = Logger.getLogger(GameServer.class.getName());
 
   private static GameServer gameServer;
-  public static final String SERVER_PING_ANSWER = "Hello! Is it me you're looking for?";
+  public static final String SERVER_PING_ANSWER = "Hello! Is it me you're looking for?"; //NON-NLS
 
   private Map<RMIService,Remote> services;
   private Registry registry;

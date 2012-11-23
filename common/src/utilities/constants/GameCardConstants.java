@@ -1,17 +1,21 @@
 package utilities.constants;
 
+import resources.I18nSupport;
+
 /**
  * User: Timm Herrmann
  * Date: 07.10.12
  * Time: 14:27
  */
 public interface GameCardConstants {
+  String BUNDLE_NAME = "general.cards"; //NON-NLS
+
   /* Card Color */
   public static enum CardColour {
-    SPADES(0, "Pik"),
-    CLUBS(1, "Kreuz"),
-    HEARTS(2, "Herz"),
-    DIAMONDS(3, "Karo");
+    SPADES(0, I18nSupport.getValue(BUNDLE_NAME,"colour.spades")),
+    CLUBS(1, I18nSupport.getValue(BUNDLE_NAME,"colour.clubs")),
+    HEARTS(2, I18nSupport.getValue(BUNDLE_NAME,"colour.hearts")),
+    DIAMONDS(3, I18nSupport.getValue(BUNDLE_NAME,"colour.diamonds"));
 
     private final Integer value;
     private final String name;
@@ -28,6 +32,7 @@ public interface GameCardConstants {
       return name;
     }
 
+    @SuppressWarnings("ALL")
     public String toString() {
       return "CardColour{" +
           "name='" + name + '\'' +
@@ -47,10 +52,10 @@ public interface GameCardConstants {
     EIGHT(7, "8"),
     NINE(8, "9"),
     TEN(9, "10"),
-    JACK(10, "Bube"),
-    QUEEN(11, "Dame"),
-    KING(12, "K\u00f6nig"),
-    ACE(0, "Ass");
+    JACK(10, I18nSupport.getValue(BUNDLE_NAME,"value.jack")),
+    QUEEN(11, I18nSupport.getValue(BUNDLE_NAME,"value.queen")),
+    KING(12, I18nSupport.getValue(BUNDLE_NAME,"value.king")),
+    ACE(0, I18nSupport.getValue(BUNDLE_NAME,"value.ace"));
 
     private final Integer value;
     private final String valueName;
@@ -67,6 +72,7 @@ public interface GameCardConstants {
       return valueName;
     }
 
+    @SuppressWarnings("ALL")
     public String toString() {
       return "CardValue{" +
           "value=" + value +
@@ -97,9 +103,4 @@ public interface GameCardConstants {
       return values;
     }
   }
-
-  /* Observer information */
-  public static final String BECAME_MOVABLE = "movable";
-  public static final String BECAME_NOT_MOVABLE = "not movable";
-
 }

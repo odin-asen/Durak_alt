@@ -24,6 +24,7 @@ public class DTOCard implements Serializable {
     return cardColour.getName()+" "+cardValue.getValueName();
   }
 
+  @SuppressWarnings("HardCodedStringLiteral")
   public String toString() {
     return "DTOCard{" +
         "cardValue=" + cardValue +

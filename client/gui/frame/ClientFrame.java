@@ -3,11 +3,12 @@ package client.gui.frame;
 import client.business.client.GameClient;
 import client.gui.frame.chat.ChatFrame;
 import client.gui.frame.gamePanel.GamePanel;
-import client.gui.frame.setup.SetUpFrame;
+import client.gui.frame.setup.SetupFrame;
 import dto.ClientInfo;
 import dto.DTOCard;
 import dto.DTOCardStack;
 import dto.message.*;
+import resources.I18nSupport;
 import resources.ResourceGetter;
 import utilities.Miscellaneous;
 import utilities.constants.GameConfigurationConstants;
@@ -22,6 +23,7 @@ import java.awt.event.ActionListener;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.ServerNotActiveException;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -35,16 +37,18 @@ import static utilities.constants.PlayerConstants.PlayerType;
  * Date: 29.09.12
  * Time: 22:37
  */
-@SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal", "unchecked"})
 public class ClientFrame extends JFrame implements Observer {
-  private static final Logger LOGGER = Logger.getLogger(ClientFrame.class.getName());
+  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
+  
+  private static final String VERSION_NUMBER = "0.1";
+  private static final String ACTION_COMMAND_TAKE_CARDS = "takeCards"; //NON-NLS
+  private static final String ACTION_COMMAND_ROUND_DONE = "roundDone"; //NON-NLS
 
   private JPanel secondPane;
   private OpponentsPanel opponentsPanel;
   private CardStackPanel cardStackPanel;
   private GamePanel gamePanel;
   private DurakStatusBar statusBar;
-  private DurakToolBar toolBar;
   private JPanel stackClientsPanel;
   private JList<ClientInfo> clientsList;
 
@@ -62,7 +66,8 @@ public class ClientFrame extends JFrame implements Observer {
     rulePopup = new ClientFramePopup();
     handler = new ClientFrameMessageHandler(this);
     setIconImages(ResourceGetter.getApplicationIcons());
-    setTitle(APPLICATION_NAME + TITLE_SEPARATOR + VERSION);
+    setTitle(MessageFormat.format("{0} - {1} {2}", I18nSupport.getValue(BUNDLE_NAME,"application.title"),
+        I18nSupport.getValue(BUNDLE_NAME,"version"), VERSION_NUMBER));
     setBounds(position.getRectangle());
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     initComponents();
@@ -71,7 +76,7 @@ public class ClientFrame extends JFrame implements Observer {
 
   /* Methods */
   public void showGameOverMessage() {
-    final ClientInfo ownClient = SetUpFrame.getInstance().getClientInfo();
+    final ClientInfo ownClient = SetupFrame.getInstance().getClientInfo();
     final ClientFrame frame = this;
     new Thread(new Runnable() {
       public void run() {
@@ -103,7 +108,7 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   private void initComponents() {
-    toolBar = new DurakToolBar(this);
+    DurakToolBar toolBar = new DurakToolBar(this);
 
     getContentPane().setLayout(new BorderLayout());
     getContentPane().add(toolBar, BorderLayout.PAGE_START);
@@ -113,13 +118,13 @@ public class ClientFrame extends JFrame implements Observer {
   public void setStatusBarText(String mainText, Boolean connected, String serverAddress) {
     statusBar.setConnected(connected, serverAddress);
     statusBar.setText(mainText);
-    statusBar.setPlayerType(SetUpFrame.getInstance().getClientInfo().playerType);
+    statusBar.setPlayerType(SetupFrame.getInstance().getClientInfo().playerType);
   }
 
   public void updateStatusBar() {
     statusBar.setConnected(GameClient.getClient().isConnected());
     statusBar.setText("");
-    statusBar.setPlayerType(SetUpFrame.getInstance().getClientInfo().playerType);
+    statusBar.setPlayerType(SetupFrame.getInstance().getClientInfo().playerType);
   }
 
   public void update(Observable o, Object arg) {
@@ -140,7 +145,7 @@ public class ClientFrame extends JFrame implements Observer {
   public void updateClientList(List<ClientInfo> clients) {
     final DefaultListModel<ClientInfo> listModel =
         ((DefaultListModel<ClientInfo>) clientsList.getModel());
-    final ClientInfo ownInfo = SetUpFrame.getInstance().getClientInfo();
+    final ClientInfo ownInfo = SetupFrame.getInstance().getClientInfo();
 
     listModel.clear();
 
@@ -160,7 +165,7 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   public void updatePlayers(List<ClientInfo> clients) {
-    final ClientInfo ownInfo = SetUpFrame.getInstance().getClientInfo();
+    final ClientInfo ownInfo = SetupFrame.getInstance().getClientInfo();
     for (ClientInfo client : clients) {
       if (ownInfo.isEqual(client) && !ownInfo.playerType.equals(client.playerType)) {
         ownInfo.setClientInfo(client);
@@ -172,7 +177,7 @@ public class ClientFrame extends JFrame implements Observer {
 
   public void initialisePlayers(List<ClientInfo> clients) {
     opponentsPanel.removeAll();
-    final ClientInfo ownInfo = SetUpFrame.getInstance().getClientInfo();
+    final ClientInfo ownInfo = SetupFrame.getInstance().getClientInfo();
     for (ClientInfo client : clients) {
       if(!ownInfo.isEqual(client))
         opponentsPanel.addOpponent(client);
@@ -191,7 +196,7 @@ public class ClientFrame extends JFrame implements Observer {
   public void enableButtons(Boolean roundFinished) {
     final Boolean take;
     final Boolean round;
-    final PlayerType playerType = SetUpFrame.getInstance().getClientInfo().playerType;
+    final PlayerType playerType = SetupFrame.getInstance().getClientInfo().playerType;
     final Boolean cardsOnTable = gamePanel.hasInGameCards();
     if(playerType.equals(PlayerType.FIRST_ATTACKER) ||
        playerType.equals(PlayerType.SECOND_ATTACKER)) {
@@ -269,7 +274,7 @@ public class ClientFrame extends JFrame implements Observer {
     clientsList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
     clientsList.setCellRenderer(new ClientInfoCellRenderer());
     listPanel.setLayout(new GridLayout());
-    listPanel.setBorder(BorderFactory.createTitledBorder("Mitspieler"));
+    listPanel.setBorder(BorderFactory.createTitledBorder(I18nSupport.getValue(BUNDLE_NAME,"opponents")));
     listPanel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, 100));
     listPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, listPanel.getPreferredSize().height));
     listPanel.add(listScroll);
@@ -284,10 +289,12 @@ public class ClientFrame extends JFrame implements Observer {
   private JPanel getButtonPanel() {
     final JPanel panel = new JPanel();
     final ActionListener listener = new GameButtonListener();
-    takeCardsButton = WidgetCreator.makeButton(null, BUTTON_TEXT_TAKE_CARDS,
-        "Karten nehmen", ACTION_COMMAND_TAKE_CARDS, listener);
-    roundDoneButton = WidgetCreator.makeButton(null, BUTTON_TEXT_ROUND_DONE,
-        "Runde beenden", ACTION_COMMAND_ROUND_DONE, listener);
+    takeCardsButton = WidgetCreator.makeButton(null, I18nSupport.getValue(BUNDLE_NAME,"button.text.take.cards"),
+        I18nSupport.getValue(BUNDLE_NAME,"button.tooltip.take.cards"), ACTION_COMMAND_TAKE_CARDS,
+        listener);
+    roundDoneButton = WidgetCreator.makeButton(null, I18nSupport.getValue(BUNDLE_NAME,"button.text.finish.round"),
+        I18nSupport.getValue(BUNDLE_NAME,"button.tooltip.finish.round"), ACTION_COMMAND_ROUND_DONE,
+        listener);
     takeCardsButton.setEnabled(false);
     roundDoneButton.setEnabled(false);
 
@@ -316,7 +323,7 @@ public class ClientFrame extends JFrame implements Observer {
       final Color foreground;
       if(client.loginNumber >= GameConfigurationConstants.SPECTATOR_START_NUMBER) {
         foreground = new Color(164, 164, 164);
-        this.setToolTipText("Zuschauer");
+        this.setToolTipText(I18nSupport.getValue(BUNDLE_NAME,"list.tooltip.audience"));
       } else {
         foreground = superComponent.getForeground();
         this.setToolTipText(null);
@@ -331,7 +338,7 @@ public class ClientFrame extends JFrame implements Observer {
 
   private class GameButtonListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
-      final ClientInfo clientInfo = SetUpFrame.getInstance().getClientInfo();
+      final ClientInfo clientInfo = SetupFrame.getInstance().getClientInfo();
       Boolean takeCards = null;
       if(e.getActionCommand().equals(ACTION_COMMAND_TAKE_CARDS)) {
         takeCards = true;
@@ -351,7 +358,7 @@ public class ClientFrame extends JFrame implements Observer {
       try {
         return GameClient.getClient().finishRound(clientInfo, takeCards);
       } catch (RemoteException ex) {
-        JOptionPane.showMessageDialog(null, "Die Verbindung zum Server wurde unterbrochen!");
+        JOptionPane.showMessageDialog(null, I18nSupport.getValue(BUNDLE_NAME,"dialog.text.error.lost.connection"));
       }
 
       return false;
@@ -361,7 +368,9 @@ public class ClientFrame extends JFrame implements Observer {
 
 @SuppressWarnings("unchecked")
 class ClientFrameMessageHandler {
+  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
   private static final Logger LOGGER = Logger.getLogger(ClientFrameMessageHandler.class.getName());
+  
   private ClientFrame frame;
 
   ClientFrameMessageHandler(ClientFrame frame) {
@@ -384,7 +393,7 @@ class ClientFrameMessageHandler {
 
   private void handleMessageType(MessageObject object) {
     if(MessageType.LOGIN_NUMBER.equals(object.getType())) {
-      SetUpFrame.getInstance().getClientInfo().setClientInfo((ClientInfo) object.getSendingObject());
+      SetupFrame.getInstance().getClientInfo().setClientInfo((ClientInfo) object.getSendingObject());
     }
   }
 
@@ -432,8 +441,8 @@ class ClientFrameMessageHandler {
         attackerCards = cardLists.get(0);
         defenderCards = cardLists.get(1);
       } else {
-        JOptionPane.showMessageDialog(frame, "Ein Fehler im Server ist aufgetreten",
-            "Fehler", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(frame, I18nSupport.getValue(BUNDLE_NAME,"dialog.text.error.server.error"),
+            I18nSupport.getValue(BUNDLE_NAME,"dialog.title.error"), JOptionPane.ERROR_MESSAGE);
         LOGGER.severe("Server sends the wrong format for the client!");
       }
     }
@@ -443,7 +452,7 @@ class ClientFrameMessageHandler {
 
   private void disconnectClient() {
     try {
-      GameClient.getClient().disconnect(SetUpFrame.getInstance().getClientInfo());
+      GameClient.getClient().disconnect(SetupFrame.getInstance().getClientInfo());
     } catch (NotBoundException e) {
       LOGGER.warning(e.getMessage());
     } catch (RemoteException e) {
@@ -456,14 +465,16 @@ class ClientFrameMessageHandler {
     final ChatMessage chatMessage = (ChatMessage) object.getSendingObject();
     String message = Miscellaneous.getChatMessage(chatMessage.getSender().name,
         chatMessage.getMessage());
-    if(chatMessage.getSender().isEqual(SetUpFrame.getInstance().getClientInfo()))
-      message = Miscellaneous.changeChatMessageInBrackets("ich", message);
+    if(chatMessage.getSender().isEqual(SetupFrame.getInstance().getClientInfo()))
+      message = Miscellaneous.changeChatMessageInBrackets(I18nSupport.getValue(BUNDLE_NAME,"chat.indicator.me"), message);
     return message;
   }
 }
 
 class UserMessageDistributor {
+  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
   private static final Logger LOGGER = Logger.getLogger(UserMessageDistributor.class.getName());
+
   private JFrame frame;
 
   UserMessageDistributor(JFrame frame) {
@@ -481,11 +492,10 @@ class UserMessageDistributor {
   }
 
   private void showNotLoserOption() {
-    final String message = "<html>Sooo, das Spiel ist zu Ende! Wie siehts aus?" +
-        "<p/>M\u00f6chtest du den anderen weiterhin zeigen,<p/>wie man dieses Spiel spielt?</html>";
+    final String message = I18nSupport.getValue(BUNDLE_NAME,"dialog.text.game.finished.not.loser");
     final Object[] strings =
-        new Object[]{"<html>Ja klar,<p/>denen zeig ichs!</html>", "Nein, danke!"};
-    int option = JOptionPane.showOptionDialog(frame, message, "Das Spiel ist vorbei",
+        new Object[]{I18nSupport.getValue(BUNDLE_NAME,"dialog.button.play.again"), I18nSupport.getValue(BUNDLE_NAME,"dialog.button.option.no")};
+    int option = JOptionPane.showOptionDialog(frame, message, I18nSupport.getValue(BUNDLE_NAME,"dialog.title.game.finished"),
         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[0]);
     if(option != 0) {
       reconnect(true);
@@ -493,13 +503,10 @@ class UserMessageDistributor {
   }
 
   private void showLoserOption() {
-    final String message = "<html>Sooo, das Spiel ist zu Ende! Wie siehts aus?" +
-        "<p/>M\u00f6chtest du den anderen beweisen," +
-        "<p/>wer hier der wahre Durak ist?</html>";
+    final String message = I18nSupport.getValue(BUNDLE_NAME,"dialog.text.game.finished.loser");
     final Object[] strings =
-        new Object[]{"<html>Wie hast du mich genannt?<p/>Revanche!</html>", "<html>Nein, ich bin ein kleines," +
-        "<p/>\u00e4ngstliches Kind und will meinen<p/>Teletubbie wieder haben!</html>"};
-    int option = JOptionPane.showOptionDialog(frame, message, "Das Spiel ist vorbei",
+        new Object[]{I18nSupport.getValue(BUNDLE_NAME,"dialog.button.play.again.revenge"), I18nSupport.getValue(BUNDLE_NAME,"dialog.button.option.no")};
+    int option = JOptionPane.showOptionDialog(frame, message, I18nSupport.getValue(BUNDLE_NAME,"dialog.title.game.finished"),
         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[0]);
     if(option != 0) {
       reconnect(true);
@@ -507,12 +514,10 @@ class UserMessageDistributor {
   }
 
   private void showNoPlayerOption() {
-    final String message = "<html>Soooo, das Spiel ist nun zu Ende! Wie siehts aus?" +
-        "<p/>M\u00f6chtest du diesmal nicht nur zuschauen," +
-        "<p/>sondern auch mitspielen?</html>";
+    final String message = I18nSupport.getValue(BUNDLE_NAME,"dialog.text.game.finished.no.player");
     final Object[] strings =
-        new Object[]{"<html>Ja,<p/>ich m\u00f6chte mitspielen!</html>", "<html>Nein,<p/>ich m\u00f6chte nur beobachten!</html>"};
-    int option = JOptionPane.showOptionDialog(frame, message, "Das Spiel ist vorbei",
+        new Object[]{I18nSupport.getValue(BUNDLE_NAME,"dialog.button.join.game"), I18nSupport.getValue(BUNDLE_NAME,"dialog.button.option.no")};
+    int option = JOptionPane.showOptionDialog(frame, message, I18nSupport.getValue(BUNDLE_NAME,"dialog.title.game.finished"),
         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[1]);
     if(option == 0) {
       reconnect(false);
@@ -521,7 +526,7 @@ class UserMessageDistributor {
 
   private void reconnect(boolean spectate) {
     try {
-      final SetUpFrame setup = SetUpFrame.getInstance();
+      final SetupFrame setup = SetupFrame.getInstance();
       final GameClient client = GameClient.getClient();
       final ClientInfo info = setup.getClientInfo();
       info.spectating = spectate;

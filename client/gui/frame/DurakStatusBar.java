@@ -1,5 +1,6 @@
 package client.gui.frame;
 
+import resources.I18nSupport;
 import resources.ResourceGetter;
 import resources.ResourceList;
 import utilities.constants.PlayerConstants;
@@ -13,7 +14,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Locale;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -22,10 +22,15 @@ import java.util.logging.Logger;
  * Time: 19:37
  */
 public class DurakStatusBar extends JPanel implements Runnable {
+  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
   private static final Logger LOGGER = Logger.getLogger(DurakStatusBar.class.getName());
 
-  private static final DateFormat format = new SimpleDateFormat("EEE d. MMM yyyy HH:mm:ss  ");
+  private static final DateFormat format = new SimpleDateFormat(I18nSupport.getValue(BUNDLE_NAME,"format.date"), Locale.getDefault());
   private static final Calendar calendar = GregorianCalendar.getInstance(Locale.GERMANY);
+  private static final ImageIcon connectedIcon = ResourceGetter.getImage(ResourceList.IMAGE_STATUS_CONNECTED,
+      I18nSupport.getValue(BUNDLE_NAME,"image.description.connected"));
+  private static final ImageIcon disconnectedIcon = ResourceGetter.getImage(ResourceList.IMAGE_STATUS_DISCONNECTED,
+      I18nSupport.getValue(BUNDLE_NAME,"image.description.disconnected"));
 
   private JPanel besideLabelPanel;
   private JLabel mainStatusLabel;
@@ -64,7 +69,7 @@ public class DurakStatusBar extends JPanel implements Runnable {
     clockLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     gameStatusLabel.setBorder(border);
     gameStatusLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-    gameStatusLabel.setToolTipText("Aktueller Status im Spiel");
+    gameStatusLabel.setToolTipText(I18nSupport.getValue(BUNDLE_NAME,"status.label.tooltip.game.status"));
     connectionLabel.setBorder(border);
     connectionLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
@@ -81,22 +86,22 @@ public class DurakStatusBar extends JPanel implements Runnable {
    */
   public void setConnected(Boolean connected, String serverAddress) {
     if(connected) {
-      connectionLabel.setIcon(ResourceGetter.getImage(ResourceList.IMAGE_STATUS_CONNECTED, "Verbunden"));
-      connectionLabel.setToolTipText("Verbunden mit " + serverAddress);
+      connectionLabel.setIcon(connectedIcon);
+      connectionLabel.setToolTipText(I18nSupport.getValue(BUNDLE_NAME,"status.label.connected.0", serverAddress));
     } else {
-      connectionLabel.setIcon(ResourceGetter.getImage(ResourceList.IMAGE_STATUS_DISCONNECTED, "Getrennt"));
-      connectionLabel.setToolTipText("Momentan besteht keine Verbindung zu einem Server");
+      connectionLabel.setIcon(disconnectedIcon);
+      connectionLabel.setToolTipText(I18nSupport.getValue(BUNDLE_NAME,"status.label.disconnected"));
     }
   }
 
   public void setConnected(Boolean connected) {
     if(connected) {
-      connectionLabel.setIcon(ResourceGetter.getImage(ResourceList.IMAGE_STATUS_CONNECTED, "Verbunden"));
+      connectionLabel.setIcon(connectedIcon);
     } else setConnected(false, "");
   }
 
   public void setPlayerType(PlayerConstants.PlayerType type) {
-    if(!type.getDescription().equals(gameStatusLabel.getText())) {
+    if(!type.getDescription().equals(gameStatusLabel.getText())) { //TODO sollte geändert werden, da es nicht i18n konform ist
       gameStatusLabel.setIcon(ResourceGetter.getPlayerTypeIcon(type,
           mainStatusLabel.getHeight()-mainStatusLabel.getBorder().getBorderInsets(mainStatusLabel).top*2));
       gameStatusLabel.setText(type.getDescription());
@@ -121,7 +126,7 @@ public class DurakStatusBar extends JPanel implements Runnable {
         Thread.sleep(waitingTime);
         millis = millis + waitingTime;
       } catch (InterruptedException ex) {
-        LOGGER.log(Level.INFO, "Error while thread pausing!");
+        LOGGER.info("Error while thread pausing!");
       }
     }
   }

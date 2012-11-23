@@ -2,14 +2,13 @@ package game.rules;
 
 import game.GameCard;
 import game.Player;
+import resources.I18nSupport;
 import utilities.Miscellaneous;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static game.rules.RuleMessages.*;
 import static utilities.constants.GameCardConstants.CardColour;
 import static utilities.constants.GameCardConstants.CardValue;
 import static utilities.constants.PlayerConstants.PlayerType;
@@ -23,6 +22,7 @@ import static utilities.constants.PlayerConstants.PlayerType;
  * if a move can be done or not.
  */
 public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spieler, mehr als 2 Spieler, 2 gegen 2 Spieler
+  private static final String BUNDLE_NAME = "user.messages"; //NON-NLS
   private static final Logger LOGGER = Logger.getLogger(RuleChecker.class.getName());
 
   private CardColour trumpColour;
@@ -90,23 +90,21 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   public void doDefenseMove(Player defender, Boolean attackerCardsEmpty,
                             GameCard defenderCard, GameCard attackerCard)
       throws RuleException {
-    final String notHigherText = "Der Kartenwert "+defenderCard.getCardValue().getValueName()+
-        " ist vielleicht in einem anderen Universum h\u00f6her als "+
-        attackerCard.getCardValue().getValueName();
-    final String noTrumpText = "Die Verteidigerkarte "+defenderCard.getColourAndValue()+
-        " ist kein Trumpf!";
+    final String notHigherText = I18nSupport.getValue("value.0.lower.than.1",
+        defenderCard.getCardValue().getValueName(), attackerCard.getCardValue().getValueName());
+    final String noTrumpText = I18nSupport.getValue("card.0.is.not.trump",
+        defenderCard.getColourAndValue());
     checkAuthentication(defender);
     if(attackerCardsEmpty)
-      throw new RuleException("Es liegen noch keine Karten auf dem Feld zum Verteidigen!");
+      throw new RuleException(I18nSupport.getValue(BUNDLE_NAME, "no.cards.to.defend"));
 
     checkDefense(defenderCard, attackerCard, notHigherText, noTrumpText);
     defender.useCard(defenderCard);
   }
 
   private String getCardsNotOnGamePanelMessage(String nonExistingCards) {
-    return "<html>Der Zug kann nicht gemacht werden, " +
-        "weil die Werte der Karten "+nonExistingCards+
-        "<p/>nicht auf dem Spielfeld liegen!</html>";
+    return I18nSupport.getValue("html.move.not.valid.cards.0.not.on.field",
+        nonExistingCards);
   }
 
   private Boolean allCardsExist(List<GameCard> attackerCards, List<GameCard> currentCards,
@@ -147,25 +145,27 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
     throws RuleException {
     final int newAttackCardsCount = currentAttackCards.size() + attackCards.size();
     if(wantsToAttack.equals(secondAttacker) && currentAttackCards.isEmpty())
-      throw new RuleException(RULE_MESSAGE_START_ATTACK_SECOND_PLAYER);
+      throw new RuleException("Der zweite Angreifer darf nicht zuerst eine Angriffskarte spielen!");
     else if(initAttack && (newAttackCardsCount > 5))
-      throw new RuleException(RULE_MESSSAGE_FIRST_ATTACK_ONLY_5_CARDS);
+      throw new RuleException("Im ersten Angriff d\u00fcrfen nur maximal 5 Angriffskarten auf dem Spieltisch liegen!");
     else if(newAttackCardsCount > 6)
-      throw new RuleException(RULE_MESSAGE_ALREADY_6_CARDS);
+      throw new RuleException("Es d\u00fcrfen nicht mehr als 6 Angriffskarten auf dem Spieltisch liegen!");
     else if(attackCards.size() > defender.getCards().size())
-      throw new RuleException(RULE_MESSAGE_DEFENDER_NOT_ENOUGH_CARDS);
+      throw new RuleException("<html>Der Verteidiger hat zu wenig Karten," +
+          "<p/>um diese Anzahl an Karten zu verteidigen</html>");
     else if(currentAttackCards.isEmpty()) {
       final CardValue currentValue = attackCards.get(0).getCardValue();
       for (GameCard attackCard : attackCards) {
         if (!currentValue.equals(attackCard.getCardValue()))
-          throw new RuleException(RULE_MESSAGE_START_ATTACK_DIFFERENT_VALUES);
+          throw new RuleException("<html>Da nicht alle Karten den gleichen Wert haben," +
+              "<p/>k\u00f6nnen diese Karten auch nicht f\u00fcr den ersten Angriff gelegt werden!</html>");
       }
     }
   }
 
   private void checkAuthentication(Player player) throws RuleException {
     if(!player.equals(firstAttacker) && !player.equals(secondAttacker) && !player.equals(defender))
-      throw new RuleException(RULE_MESSAGE_NO_DEFAULT_ALLOWED);
+      throw new RuleException("Nur Angreifer und Verteidiger d\u00fcrfen was legen!");
   }
 
   private void checkDefense(GameCard defenderCard, GameCard attackerCard,
@@ -210,7 +210,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
     }
 
     if(starter == null) {
-      LOGGER.log(Level.INFO, "No player has a trump!");
+      LOGGER.info("No player has a trump!");
       starter = players.get(0);
     }
 

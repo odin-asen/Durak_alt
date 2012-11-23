@@ -5,6 +5,7 @@ package rmi;
  * Date: 22.10.12
  * Time: 22:38
  */
+@SuppressWarnings("HardCodedStringLiteral")
 public enum RMIService {
   AUTHENTICATION("Authenticator", Authenticator.class),
   OBSERVER("RMIObservation", RMIObservable.class),

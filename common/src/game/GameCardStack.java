@@ -114,6 +114,7 @@ public class GameCardStack extends Observable {
     return trumpCard;
   }
 
+  @SuppressWarnings("ALL")
   public String toString() {
     String cards = "GameCardStack{\n"+
         "cardStack= ";

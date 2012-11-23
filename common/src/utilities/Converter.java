@@ -80,11 +80,11 @@ public class Converter {
         dto.getCardStack().add(Converter.toDTO(card));
       }
     } catch (InstantiationException e) {
-      LOGGER.log(Level.SEVERE, "Error converting object to dto!");
+      LOGGER.severe("Error converting object to dto!");
     } catch (IllegalAccessException e) {
-      LOGGER.log(Level.SEVERE, "Error converting object to dto!");
+      LOGGER.severe("Error converting object to dto!");
     } catch (ClassNotFoundException e) {
-      LOGGER.log(Level.SEVERE, "Error converting object to dto!");
+      LOGGER.severe("Error converting object to dto!");
     }
 
     return dto;
@@ -102,11 +102,11 @@ public class Converter {
       }
       stack.setCardStack(cardDeque);
     } catch (InstantiationException e) {
-      LOGGER.log(Level.SEVERE, "Error converting object to dto!");
+      LOGGER.severe("Error converting object to dto!");
     } catch (IllegalAccessException e) {
-      LOGGER.log(Level.SEVERE, "Error converting object to dto!");
+      LOGGER.severe("Error converting object to dto!");
     } catch (ClassNotFoundException e) {
-      LOGGER.log(Level.SEVERE, "Error converting object to dto!");
+      LOGGER.severe("Error converting object to dto!");
     }
 
     return stack;

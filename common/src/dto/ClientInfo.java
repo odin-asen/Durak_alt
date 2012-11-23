@@ -45,6 +45,7 @@ public class ClientInfo implements Serializable {
     spectating = info.spectating;
   }
 
+  @SuppressWarnings("HardCodedStringLiteral")
   public void printInfo(OutputStream output) {
     final PrintStream out = new PrintStream(output, true);
     out.println("Name: " + name);

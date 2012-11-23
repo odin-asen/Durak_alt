@@ -8,7 +8,6 @@ import utilities.constants.PlayerConstants;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * User: Timm Herrmann
@@ -16,8 +15,6 @@ import java.util.logging.Logger;
  * Time: 16:12
  */
 public class OpponentsPanel extends JPanel {
-  private static final Logger LOGGER = Logger.getLogger(OpponentsPanel.class.getName());
-
   /* Constructors */
   public OpponentsPanel() {
     this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
