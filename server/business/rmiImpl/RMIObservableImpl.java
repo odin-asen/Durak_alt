@@ -1,14 +1,13 @@
 package server.business.rmiImpl;
 
-import rmi.RMIObservable;
-import rmi.RMIObserver;
+import common.rmi.RMIObservable;
+import common.rmi.RMIObserver;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.ServerNotActiveException;
 import java.util.StringTokenizer;
 import java.util.Vector;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**

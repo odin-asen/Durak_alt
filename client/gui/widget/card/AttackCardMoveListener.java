@@ -4,10 +4,10 @@ import client.business.client.GameClient;
 import client.gui.frame.ClientFrame;
 import client.gui.frame.gamePanel.GamePanel;
 import client.gui.frame.setup.SetupFrame;
-import dto.ClientInfo;
-import dto.DTOCard;
-import resources.I18nSupport;
-import utilities.Converter;
+import common.dto.ClientInfo;
+import common.dto.DTOCard;
+import common.i18n.I18nSupport;
+import common.utilities.Converter;
 
 import javax.swing.*;
 import java.awt.*;

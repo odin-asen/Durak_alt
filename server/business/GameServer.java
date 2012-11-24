@@ -1,18 +1,18 @@
 package server.business;
 
-import dto.ClientInfo;
-import dto.DTOCard;
-import dto.message.*;
-import game.GameCardStack;
-import game.GameProcess;
-import rmi.RMIObserver;
-import rmi.RMIService;
+import common.dto.ClientInfo;
+import common.dto.DTOCard;
+import common.dto.message.*;
+import common.game.GameCardStack;
+import common.game.GameProcess;
+import common.rmi.RMIObserver;
+import common.rmi.RMIService;
+import common.utilities.Converter;
+import common.utilities.Miscellaneous;
+import common.utilities.constants.GameCardConstants;
+import common.utilities.constants.GameConfigurationConstants;
+import common.utilities.constants.PlayerConstants;
 import server.business.rmiImpl.*;
-import utilities.Converter;
-import utilities.Miscellaneous;
-import utilities.constants.GameCardConstants;
-import utilities.constants.GameConfigurationConstants;
-import utilities.constants.PlayerConstants;
 
 import java.rmi.NotBoundException;
 import java.rmi.Remote;

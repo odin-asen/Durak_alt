@@ -1,9 +1,9 @@
 package client.gui.frame;
 
 import client.gui.widget.card.OpponentHandWidget;
-import dto.ClientInfo;
-import resources.ResourceGetter;
-import utilities.constants.PlayerConstants;
+import common.dto.ClientInfo;
+import common.resources.ResourceGetter;
+import common.utilities.constants.PlayerConstants;
 
 import javax.swing.*;
 import java.awt.*;

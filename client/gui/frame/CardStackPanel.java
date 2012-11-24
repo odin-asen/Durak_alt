@@ -1,7 +1,7 @@
 package client.gui.frame;
 
 import client.gui.widget.card.CardStackWidget;
-import dto.DTOCardStack;
+import common.dto.DTOCardStack;
 
 import javax.swing.*;
 import java.awt.*;

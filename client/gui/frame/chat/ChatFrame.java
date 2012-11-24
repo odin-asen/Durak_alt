@@ -2,9 +2,9 @@ package client.gui.frame.chat;
 
 import client.business.client.GameClient;
 import client.gui.frame.setup.SetupFrame;
-import dto.ClientInfo;
-import resources.I18nSupport;
-import utilities.gui.FramePosition;
+import common.dto.ClientInfo;
+import common.i18n.I18nSupport;
+import common.utilities.gui.FramePosition;
 
 import javax.swing.*;
 import java.awt.*;

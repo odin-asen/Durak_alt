@@ -1,6 +1,6 @@
 package client.gui.widget.card;
 
-import dto.ClientInfo;
+import common.dto.ClientInfo;
 
 import javax.swing.*;
 import java.awt.*;

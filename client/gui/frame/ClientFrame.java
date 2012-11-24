@@ -4,17 +4,17 @@ import client.business.client.GameClient;
 import client.gui.frame.chat.ChatFrame;
 import client.gui.frame.gamePanel.GamePanel;
 import client.gui.frame.setup.SetupFrame;
-import dto.ClientInfo;
-import dto.DTOCard;
-import dto.DTOCardStack;
-import dto.message.*;
-import resources.I18nSupport;
-import resources.ResourceGetter;
-import utilities.Miscellaneous;
-import utilities.constants.GameConfigurationConstants;
-import utilities.gui.Constraints;
-import utilities.gui.FramePosition;
-import utilities.gui.WidgetCreator;
+import common.dto.ClientInfo;
+import common.dto.DTOCard;
+import common.dto.DTOCardStack;
+import common.dto.message.*;
+import common.i18n.I18nSupport;
+import common.resources.ResourceGetter;
+import common.utilities.Miscellaneous;
+import common.utilities.constants.GameConfigurationConstants;
+import common.utilities.gui.Constraints;
+import common.utilities.gui.FramePosition;
+import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,7 +30,7 @@ import java.util.Observer;
 import java.util.logging.Logger;
 
 import static client.gui.frame.ClientGUIConstants.*;
-import static utilities.constants.PlayerConstants.PlayerType;
+import static common.utilities.constants.PlayerConstants.PlayerType;
 
 /**
  * User: Timm Herrmann
@@ -274,7 +274,7 @@ public class ClientFrame extends JFrame implements Observer {
     clientsList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
     clientsList.setCellRenderer(new ClientInfoCellRenderer());
     listPanel.setLayout(new GridLayout());
-    listPanel.setBorder(BorderFactory.createTitledBorder(I18nSupport.getValue(BUNDLE_NAME,"opponents")));
+    listPanel.setBorder(BorderFactory.createTitledBorder(I18nSupport.getValue(BUNDLE_NAME,"border.title.opponents")));
     listPanel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, 100));
     listPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, listPanel.getPreferredSize().height));
     listPanel.add(listScroll);

@@ -1,10 +1,10 @@
 package client.gui.widget.card;
 
 import client.gui.frame.ClientGUIConstants;
-import dto.DTOCard;
-import dto.DTOCardStack;
-import resources.I18nSupport;
-import resources.ResourceGetter;
+import common.dto.DTOCard;
+import common.dto.DTOCardStack;
+import common.i18n.I18nSupport;
+import common.resources.ResourceGetter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -75,7 +75,7 @@ public class CardStackWidget extends JComponent {
         cardWidth, cardHeight);
     double x = backPoint.x + cardNumber*cardWidth/700;
     double y = backPoint.y;
-    if(orientation == CardStackWidget.ORIENTATION_HORIZONTAL) { //stimmt nicht mehr unbedingt, verbessern, wenn genug nerven übrig sind
+    if(orientation == CardStackWidget.ORIENTATION_HORIZONTAL) { //stimmt nicht mehr unbedingt, verbessern, wenn genug nerven \u00fcbrig sind
       theta = Math.PI/2;
       x = width/2+cardHeight/2;
       y = height*(1.0f-BORDER_MARGIN) - cardWidth + cardNumber*cardWidth/700;
@@ -95,7 +95,7 @@ public class CardStackWidget extends JComponent {
     double x = backPoint.x - (cardHeight/2.0);
     double y = backPoint.y + (cardHeight+cardWidth)/2.0;
 
-    if(orientation == CardStackWidget.ORIENTATION_HORIZONTAL) { //stimmt nicht mehr unbedingt, verbessern, wenn genug nerven übrig sind
+    if(orientation == CardStackWidget.ORIENTATION_HORIZONTAL) { //stimmt nicht mehr unbedingt, verbessern, wenn genug nerven \u00fcbrig sind
       theta = 0.0;
       x = width/2-cardWidth/2;
       y = height*(1.0f-BORDER_MARGIN) - cardWidth;

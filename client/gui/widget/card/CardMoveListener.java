@@ -2,7 +2,7 @@ package client.gui.widget.card;
 
 import client.gui.frame.gamePanel.CombatCardPanel;
 import client.gui.frame.gamePanel.GamePanel;
-import utilities.gui.Compute;
+import common.utilities.gui.Compute;
 
 import java.awt.*;
 import java.awt.event.*;

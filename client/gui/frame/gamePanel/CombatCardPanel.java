@@ -2,7 +2,7 @@ package client.gui.frame.gamePanel;
 
 import client.gui.frame.ClientGUIConstants;
 import client.gui.widget.card.GameCardWidget;
-import resources.I18nSupport;
+import common.i18n.I18nSupport;
 
 import javax.swing.*;
 import java.awt.*;
@@ -104,7 +104,7 @@ public class CombatCardPanel extends JPanel {
       if(defenderCard == null)
         return I18nSupport.getValue("0.has.to.be.beaten", attackerCard.getToolTipText());
       else return I18nSupport.getValue("0.beats.1", defenderCard.getToolTipText(), attackerCard.getToolTipText());
-    } else return "";
+    } else return null;
   }
 
   /**

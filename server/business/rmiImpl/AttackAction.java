@@ -1,11 +1,11 @@
 package server.business.rmiImpl;
 
-import dto.ClientInfo;
-import dto.DTOCard;
-import game.GameProcess;
-import game.rules.RuleException;
-import rmi.FinishAction;
-import rmi.GameAction;
+import common.dto.ClientInfo;
+import common.dto.DTOCard;
+import common.game.GameProcess;
+import common.game.rules.RuleException;
+import common.rmi.FinishAction;
+import common.rmi.GameAction;
 import server.business.GameServer;
 
 import java.rmi.RemoteException;

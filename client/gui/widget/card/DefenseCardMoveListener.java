@@ -5,10 +5,10 @@ import client.gui.frame.ClientFrame;
 import client.gui.frame.gamePanel.CombatCardPanel;
 import client.gui.frame.gamePanel.GamePanel;
 import client.gui.frame.setup.SetupFrame;
-import dto.ClientInfo;
-import resources.I18nSupport;
-import utilities.Converter;
-import utilities.gui.Compute;
+import common.dto.ClientInfo;
+import common.i18n.I18nSupport;
+import common.utilities.Converter;
+import common.utilities.gui.Compute;
 
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;

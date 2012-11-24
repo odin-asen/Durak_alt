@@ -3,8 +3,8 @@ package client.gui.frame.gamePanel;
 import client.gui.frame.ClientGUIConstants;
 import client.gui.widget.card.CardMoveListener;
 import client.gui.widget.card.GameCardWidget;
-import dto.DTOCard;
-import utilities.constants.PlayerConstants;
+import common.dto.DTOCard;
+import common.utilities.constants.PlayerConstants;
 
 import javax.swing.*;
 import java.awt.*;

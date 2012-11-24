@@ -2,7 +2,7 @@ package client.gui.frame.gamePanel;
 
 import client.gui.frame.ClientGUIConstants;
 import client.gui.widget.card.GameCardWidget;
-import dto.DTOCard;
+import common.dto.DTOCard;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;

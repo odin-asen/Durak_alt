@@ -1,8 +1,8 @@
 package server.business.rmiImpl;
 
-import dto.ClientInfo;
-import resources.I18nSupport;
-import rmi.Authenticator;
+import common.dto.ClientInfo;
+import common.i18n.I18nSupport;
+import common.rmi.Authenticator;
 import server.business.GameServer;
 
 import java.rmi.RemoteException;
@@ -18,6 +18,10 @@ public class AuthenticatorImpl implements Authenticator {
   private String reason;
 
   /* Constructors */
+  public AuthenticatorImpl() {
+    this("");
+  }
+
   public AuthenticatorImpl(String password) {
     this.password = password;
     reason = "";
@@ -38,7 +42,7 @@ public class AuthenticatorImpl implements Authenticator {
     GameServer.getServerInstance().removeClient(client);
   }
 
-  public String getRefusedReason() {
+  public String getRefusedReason() throws RemoteException {
     return reason;
   }
 

@@ -1,10 +1,10 @@
 package client.business.client;
 
-import dto.ClientInfo;
-import dto.DTOCard;
-import dto.message.MessageObject;
-import rmi.*;
-import utilities.constants.PlayerConstants;
+import common.dto.ClientInfo;
+import common.dto.DTOCard;
+import common.dto.message.MessageObject;
+import common.rmi.*;
+import common.utilities.constants.PlayerConstants;
 
 import java.rmi.NotBoundException;
 import java.rmi.Remote;

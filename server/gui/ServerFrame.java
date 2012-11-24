@@ -1,15 +1,15 @@
 package server.gui;
 
-import dto.ClientInfo;
-import dto.message.GUIObserverType;
-import dto.message.MessageObject;
-import resources.I18nSupport;
-import resources.ResourceGetter;
-import resources.ResourceList;
+import common.dto.ClientInfo;
+import common.dto.message.GUIObserverType;
+import common.dto.message.MessageObject;
+import common.i18n.I18nSupport;
+import common.resources.ResourceGetter;
+import common.resources.ResourceList;
 import server.business.GameServer;
-import utilities.gui.Constraints;
-import utilities.gui.FramePosition;
-import utilities.gui.WidgetCreator;
+import common.utilities.gui.Constraints;
+import common.utilities.gui.FramePosition;
+import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -33,7 +33,8 @@ import static server.gui.ServerGUIConstants.*;
  * Time: 19:33
  */
 public class ServerFrame extends JFrame implements Observer {
-  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
+  private static final String BUNDLE_NAME = "server.server"; //NON-NLS
+  private static final String BUNDLE_MESSAGE = "user.messages"; //NON-NLS
   private static Logger LOGGER = Logger.getLogger(ServerFrame.class.getName());
 
   private static final String VERSION_NUMBER = "0.1";
@@ -130,7 +131,7 @@ public class ServerFrame extends JFrame implements Observer {
     statusPanel = new JPanel();
     statusBar = new JLabel();
 
-    statusBar.setText(I18nSupport.getValue(BUNDLE_NAME,"server.inactive"));
+    statusBar.setText(I18nSupport.getValue(BUNDLE_MESSAGE,"server.inactive"));
     statusPanel.setPreferredSize(new Dimension(0, 16));
 
     statusPanel.setLayout(new BorderLayout());
@@ -282,7 +283,7 @@ public class ServerFrame extends JFrame implements Observer {
 
     private void stopGameServer() {
       closeServer();
-      setStatusBarText(I18nSupport.getValue(BUNDLE_NAME,"server.inactive"));
+      setStatusBarText(I18nSupport.getValue(BUNDLE_MESSAGE,"server.inactive"));
     }
 
     private void closeServer() {
@@ -307,10 +308,11 @@ public class ServerFrame extends JFrame implements Observer {
 
       try {
         gameServer.startServer();
-        setStatusBarText(I18nSupport.getValue(BUNDLE_NAME,"server.running"));
+        setStatusBarText(I18nSupport.getValue(BUNDLE_MESSAGE,"server.running"));
       } catch (IllegalAccessException e) {
         LOGGER.severe(e.getClass()+" "+e.getMessage());
       } catch (InstantiationException e) {
+        e.printStackTrace();
         LOGGER.severe(e.getClass()+" "+e.getMessage());
       } catch (RemoteException e) {
         LOGGER.severe(e.getClass() + " Could not register services");

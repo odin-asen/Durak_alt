@@ -1,6 +1,6 @@
 package client.gui.frame;
 
-import resources.ResourceGetter;
+import common.resources.ResourceGetter;
 
 import javax.swing.*;
 import java.awt.*;

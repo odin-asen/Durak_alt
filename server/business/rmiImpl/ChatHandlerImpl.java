@@ -1,9 +1,9 @@
 package server.business.rmiImpl;
 
-import dto.ClientInfo;
-import dto.message.BroadcastType;
-import dto.message.ChatMessage;
-import rmi.ChatHandler;
+import common.dto.ClientInfo;
+import common.dto.message.BroadcastType;
+import common.dto.message.ChatMessage;
+import common.rmi.ChatHandler;
 import server.business.GameServer;
 
 import java.rmi.RemoteException;

@@ -1,10 +1,10 @@
 package client.gui.frame.setup;
 
 import client.gui.frame.ClientGUIConstants;
-import dto.ClientInfo;
-import resources.I18nSupport;
-import utilities.constants.GameConfigurationConstants;
-import utilities.gui.Constraints;
+import common.dto.ClientInfo;
+import common.i18n.I18nSupport;
+import common.utilities.constants.GameConfigurationConstants;
+import common.utilities.gui.Constraints;
 
 import javax.swing.*;
 import java.awt.*;

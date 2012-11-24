@@ -1,10 +1,10 @@
 package client.gui.frame;
 
-import resources.I18nSupport;
-import resources.ResourceGetter;
-import resources.ResourceList;
-import utilities.constants.PlayerConstants;
-import utilities.gui.WidgetCreator;
+import common.i18n.I18nSupport;
+import common.resources.ResourceGetter;
+import common.resources.ResourceList;
+import common.utilities.constants.PlayerConstants;
+import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -26,7 +26,7 @@ public class DurakStatusBar extends JPanel implements Runnable {
   private static final Logger LOGGER = Logger.getLogger(DurakStatusBar.class.getName());
 
   private static final DateFormat format = new SimpleDateFormat(I18nSupport.getValue(BUNDLE_NAME,"format.date"), Locale.getDefault());
-  private static final Calendar calendar = GregorianCalendar.getInstance(Locale.GERMANY);
+  private static final Calendar calendar = GregorianCalendar.getInstance(Locale.getDefault());
   private static final ImageIcon connectedIcon = ResourceGetter.getImage(ResourceList.IMAGE_STATUS_CONNECTED,
       I18nSupport.getValue(BUNDLE_NAME,"image.description.connected"));
   private static final ImageIcon disconnectedIcon = ResourceGetter.getImage(ResourceList.IMAGE_STATUS_DISCONNECTED,

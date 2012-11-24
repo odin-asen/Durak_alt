@@ -1,8 +1,8 @@
 package client.business.client;
 
-import dto.message.MessageObject;
-import rmi.RMIObservable;
-import rmi.RMIObserver;
+import common.dto.message.MessageObject;
+import common.rmi.RMIObservable;
+import common.rmi.RMIObserver;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;

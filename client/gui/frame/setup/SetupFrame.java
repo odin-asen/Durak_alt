@@ -2,10 +2,10 @@ package client.gui.frame.setup;
 
 import client.business.ConnectionInfo;
 import client.gui.frame.ClientGUIConstants;
-import dto.ClientInfo;
-import resources.I18nSupport;
-import utilities.gui.FramePosition;
-import utilities.gui.WidgetCreator;
+import common.dto.ClientInfo;
+import common.i18n.I18nSupport;
+import common.utilities.gui.FramePosition;
+import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
 import java.awt.*;

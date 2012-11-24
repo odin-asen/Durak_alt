@@ -4,11 +4,11 @@ import client.business.ConnectionInfo;
 import client.business.client.GameClient;
 import client.gui.frame.chat.ChatFrame;
 import client.gui.frame.setup.SetupFrame;
-import dto.ClientInfo;
-import resources.I18nSupport;
-import resources.ResourceGetter;
-import resources.ResourceList;
-import utilities.gui.WidgetCreator;
+import common.dto.ClientInfo;
+import common.i18n.I18nSupport;
+import common.resources.ResourceGetter;
+import common.resources.ResourceList;
+import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,10 +1,10 @@
 package client.gui.widget.card;
 
 import client.gui.frame.ClientGUIConstants;
-import dto.DTOCard;
-import game.GameCard;
-import resources.ResourceGetter;
-import utilities.Converter;
+import common.dto.DTOCard;
+import common.game.GameCard;
+import common.resources.ResourceGetter;
+import common.utilities.Converter;
 
 import javax.swing.*;
 import java.awt.*;

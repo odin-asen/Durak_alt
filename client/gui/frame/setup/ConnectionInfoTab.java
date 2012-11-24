@@ -2,10 +2,10 @@ package client.gui.frame.setup;
 
 import client.business.ConnectionInfo;
 import client.gui.frame.ClientGUIConstants;
-import resources.I18nSupport;
-import utilities.constants.GameConfigurationConstants;
-import utilities.gui.Constraints;
-import utilities.gui.WidgetCreator;
+import common.i18n.I18nSupport;
+import common.utilities.constants.GameConfigurationConstants;
+import common.utilities.gui.Constraints;
+import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
 import java.awt.*;
