@@ -22,15 +22,16 @@ import java.util.logging.Logger;
  * Time: 19:37
  */
 public class DurakStatusBar extends JPanel implements Runnable {
-  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
+  private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
+  private static final String MESSAGE_BUNDLE = "user.messages"; //NON-NLS
   private static final Logger LOGGER = Logger.getLogger(DurakStatusBar.class.getName());
 
-  private static final DateFormat format = new SimpleDateFormat(I18nSupport.getValue(BUNDLE_NAME,"format.date"), Locale.getDefault());
+  private static final DateFormat format = new SimpleDateFormat(I18nSupport.getValue(CLIENT_BUNDLE,"format.date"), Locale.getDefault());
   private static final Calendar calendar = GregorianCalendar.getInstance(Locale.getDefault());
   private static final ImageIcon connectedIcon = ResourceGetter.getImage(ResourceList.IMAGE_STATUS_CONNECTED,
-      I18nSupport.getValue(BUNDLE_NAME,"image.description.connected"));
+      I18nSupport.getValue(CLIENT_BUNDLE,"image.description.connected"));
   private static final ImageIcon disconnectedIcon = ResourceGetter.getImage(ResourceList.IMAGE_STATUS_DISCONNECTED,
-      I18nSupport.getValue(BUNDLE_NAME,"image.description.disconnected"));
+      I18nSupport.getValue(CLIENT_BUNDLE,"image.description.disconnected"));
 
   private JPanel besideLabelPanel;
   private JLabel mainStatusLabel;
@@ -69,7 +70,7 @@ public class DurakStatusBar extends JPanel implements Runnable {
     clockLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     gameStatusLabel.setBorder(border);
     gameStatusLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-    gameStatusLabel.setToolTipText(I18nSupport.getValue(BUNDLE_NAME,"status.label.tooltip.game.status"));
+    gameStatusLabel.setToolTipText(I18nSupport.getValue(CLIENT_BUNDLE,"label.tooltip.game.status"));
     connectionLabel.setBorder(border);
     connectionLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
@@ -87,10 +88,10 @@ public class DurakStatusBar extends JPanel implements Runnable {
   public void setConnected(Boolean connected, String serverAddress) {
     if(connected) {
       connectionLabel.setIcon(connectedIcon);
-      connectionLabel.setToolTipText(I18nSupport.getValue(BUNDLE_NAME,"status.label.connected.0", serverAddress));
+      connectionLabel.setToolTipText(I18nSupport.getValue(MESSAGE_BUNDLE,"status.connected.with.0", serverAddress));
     } else {
       connectionLabel.setIcon(disconnectedIcon);
-      connectionLabel.setToolTipText(I18nSupport.getValue(BUNDLE_NAME,"status.label.disconnected"));
+      connectionLabel.setToolTipText(I18nSupport.getValue(MESSAGE_BUNDLE,"status.disconnected"));
     }
   }
 
@@ -101,7 +102,7 @@ public class DurakStatusBar extends JPanel implements Runnable {
   }
 
   public void setPlayerType(PlayerConstants.PlayerType type) {
-    if(!type.getDescription().equals(gameStatusLabel.getText())) { //TODO sollte geändert werden, da es nicht i18n konform ist
+    if(!type.getDescription().equals(gameStatusLabel.getText())) {
       gameStatusLabel.setIcon(ResourceGetter.getPlayerTypeIcon(type,
           mainStatusLabel.getHeight()-mainStatusLabel.getBorder().getBorderInsets(mainStatusLabel).top*2));
       gameStatusLabel.setText(type.getDescription());

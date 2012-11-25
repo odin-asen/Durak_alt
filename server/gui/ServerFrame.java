@@ -131,7 +131,7 @@ public class ServerFrame extends JFrame implements Observer {
     statusPanel = new JPanel();
     statusBar = new JLabel();
 
-    statusBar.setText(I18nSupport.getValue(BUNDLE_MESSAGE,"server.inactive"));
+    statusBar.setText(I18nSupport.getValue(BUNDLE_MESSAGE, "status.server.inactive"));
     statusPanel.setPreferredSize(new Dimension(0, 16));
 
     statusPanel.setLayout(new BorderLayout());
@@ -283,7 +283,7 @@ public class ServerFrame extends JFrame implements Observer {
 
     private void stopGameServer() {
       closeServer();
-      setStatusBarText(I18nSupport.getValue(BUNDLE_MESSAGE,"server.inactive"));
+      setStatusBarText(I18nSupport.getValue(BUNDLE_MESSAGE, "status.server.inactive"));
     }
 
     private void closeServer() {
@@ -308,7 +308,7 @@ public class ServerFrame extends JFrame implements Observer {
 
       try {
         gameServer.startServer();
-        setStatusBarText(I18nSupport.getValue(BUNDLE_MESSAGE,"server.running"));
+        setStatusBarText(I18nSupport.getValue(BUNDLE_MESSAGE, "status.server.running"));
       } catch (IllegalAccessException e) {
         LOGGER.severe(e.getClass()+" "+e.getMessage());
       } catch (InstantiationException e) {

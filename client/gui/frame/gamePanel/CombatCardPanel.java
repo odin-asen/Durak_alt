@@ -102,8 +102,8 @@ public class CombatCardPanel extends JPanel {
   private String createToolTipText() {
     if(attackerCard != null) {
       if(defenderCard == null)
-        return I18nSupport.getValue("0.has.to.be.beaten", attackerCard.getToolTipText());
-      else return I18nSupport.getValue("0.beats.1", defenderCard.getToolTipText(), attackerCard.getToolTipText());
+        return I18nSupport.getValue("panel.tooltip.card.0.has.to.be.beaten", attackerCard.getToolTipText());
+      else return I18nSupport.getValue("panel.tooltip.card.0.beats.1", defenderCard.getToolTipText(), attackerCard.getToolTipText());
     } else return null;
   }
 

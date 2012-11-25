@@ -132,7 +132,7 @@ public class GameProcess {
       validateAttack(action);
     } else if(validation.equals(ValidationAction.DEFENSE)) {
       validateDefense(action);
-    } else throw new IllegalArgumentException("n" +
+    } else throw new IllegalArgumentException("The first parameter is neither\n" +
       ValidationAction.ATTACK +" nor\n"+ValidationAction.DEFENSE);
   }
 

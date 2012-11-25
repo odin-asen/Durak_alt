@@ -88,7 +88,7 @@ public class SetupFrame extends JDialog {
     button.setEnabled(!changed);
 
     if(changed) {
-      setTitle(I18nSupport.getValue(BUNDLE_NAME,"0.title.changed", I18nSupport.getValue(BUNDLE_NAME,"frame.title.setup")));
+      setTitle(I18nSupport.getValue(BUNDLE_NAME, "title.0.changed", I18nSupport.getValue(BUNDLE_NAME,"frame.title.setup")));
     } else {
       setTitle(I18nSupport.getValue(BUNDLE_NAME,"frame.title.setup"));
     }

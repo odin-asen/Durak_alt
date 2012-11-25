@@ -90,9 +90,9 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   public void doDefenseMove(Player defender, Boolean attackerCardsEmpty,
                             GameCard defenderCard, GameCard attackerCard)
       throws RuleException {
-    final String notHigherText = I18nSupport.getValue("value.0.lower.than.1",
+    final String notHigherText = I18nSupport.getValue(BUNDLE_NAME, "value.0.lower.than.1",
         defenderCard.getCardValue().getValueName(), attackerCard.getCardValue().getValueName());
-    final String noTrumpText = I18nSupport.getValue("card.0.is.not.trump",
+    final String noTrumpText = I18nSupport.getValue(BUNDLE_NAME, "card.0.is.not.trump",
         defenderCard.getColourAndValue());
     checkAuthentication(defender);
     if(attackerCardsEmpty)
@@ -103,7 +103,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   }
 
   private String getCardsNotOnGamePanelMessage(String nonExistingCards) {
-    return I18nSupport.getValue("html.move.not.valid.cards.0.not.on.field",
+    return I18nSupport.getValue(BUNDLE_NAME, "html.move.not.valid.cards.0.not.on.field",
         nonExistingCards);
   }
 
