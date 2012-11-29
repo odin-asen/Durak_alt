@@ -19,13 +19,15 @@ import java.util.logging.Logger;
 public class WidgetCreator {
   private static final Logger LOGGER = Logger.getLogger(WidgetCreator.class.getName());
 
-  public static JComboBox<String> makeComboBox(Vector<String> comboBoxContent, int preferredWidth, String toolTipText) {
+  public static JComboBox<String> makeComboBox(Vector<String> comboBoxContent, int maxRowCount,
+                                               int preferredWidth, String toolTipText) {
     final JComboBox<String> comboBox = new JComboBox<String>(comboBoxContent);
 
     comboBox.setEditable(true);
     comboBox.setToolTipText(toolTipText);
     comboBox.setPreferredSize(new Dimension(preferredWidth, comboBox.getPreferredSize().height));
     comboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, comboBox.getPreferredSize().height));
+    comboBox.setMaximumRowCount(maxRowCount);
 
     return comboBox;
   }

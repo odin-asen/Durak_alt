@@ -89,50 +89,14 @@ public class ConnectionInfoTab extends JPanel {
   void initComponents() throws InstantiationException, IllegalAccessException {
     final Vector<String> comboBoxContent;
 
-    addressLabel = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.server.address"));
-    addressLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, addressLabel.getPreferredSize().height));
+    initAdressField();
+    initPortField();
+    initPasswordField();
+    initPasswordCheckBox();
+  }
 
-    comboBoxContent = new Vector<String>();
-    addressCombo = WidgetCreator.makeComboBox(comboBoxContent,
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH, I18nSupport.getValue(CLIENT_BUNDLE,"combo.box.tooltip.address"));
-
-    try {
-      addressCombo.addItem(InetAddress.getLocalHost().getHostName());
-    } catch (UnknownHostException e) {
-      e.printStackTrace();
-    }
-    addressCombo.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        try {
-          final InetAddress address = InetAddress.getByName(addressCombo.getSelectedItem().toString());
-          final String selected = address.getHostName();
-          if (!comboBoxContent.contains(selected)) {
-            addressCombo.addItem(selected);
-            addressCombo.setSelectedItem(selected);
-          }
-        } catch (UnknownHostException e1) {
-          LOGGER.log(Level.INFO, e1.getMessage());
-          addressCombo.setSelectedIndex(0);
-        }
-      }
-    });
-
-    portLabel = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.port"));
-    portLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, portLabel.getPreferredSize().height));
-
-    portField = WidgetCreator.makeIntegerTextField(GameConfigurationConstants.DEFAULT_PORT_STRING,
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH, I18nSupport.getValue(CLIENT_BUNDLE,"field.tooltip.port"));
-
-    passwordLabel = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.password"));
-    passwordLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, passwordLabel.getPreferredSize().height));
-
-    passwordField = (JPasswordField) WidgetCreator.makeTextField(JPasswordField.class,
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH, I18nSupport.getValue(CLIENT_BUNDLE,"check.box.tooltip.show.password"));
-
-    plainTextField = WidgetCreator.makeTextField(JTextField.class,
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH, I18nSupport.getValue(CLIENT_BUNDLE,"check.box.tooltip.show.password"));
-
-    passwordCheckBox = new JCheckBox(I18nSupport.getValue(CLIENT_BUNDLE,"check.box.show.password"));
+  private void initPasswordCheckBox() {
+    passwordCheckBox = new JCheckBox(I18nSupport.getValue(CLIENT_BUNDLE, "check.box.show.password"));
     passwordCheckBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, passwordCheckBox.getPreferredSize().height));
 
     passwordCheckBox.addActionListener(new ActionListener() {
@@ -145,6 +109,49 @@ public class ConnectionInfoTab extends JPanel {
           passwordField.setText(plainTextField.getText());
           plainTextField.setVisible(false);
           passwordField.setVisible(true);
+        }
+      }
+    });
+  }
+
+  private void initPasswordField() throws IllegalAccessException, InstantiationException {
+    passwordLabel = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.password"));
+    passwordLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, passwordLabel.getPreferredSize().height));
+
+    passwordField = (JPasswordField) WidgetCreator.makeTextField(JPasswordField.class,
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH, I18nSupport.getValue(CLIENT_BUNDLE, "check.box.tooltip.show.password"));
+
+    plainTextField = WidgetCreator.makeTextField(JTextField.class,
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH, I18nSupport.getValue(CLIENT_BUNDLE,"check.box.tooltip.show.password"));
+  }
+
+  private void initPortField() {
+    portLabel = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.port"));
+    portLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, portLabel.getPreferredSize().height));
+
+    portField = WidgetCreator.makeIntegerTextField(GameConfigurationConstants.DEFAULT_PORT_STRING,
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH, I18nSupport.getValue(CLIENT_BUNDLE, "field.tooltip.port"));
+  }
+
+  private void initAdressField() {
+    final Vector<String> comboBoxContent;
+    addressLabel = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.server.address"));
+    addressLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, addressLabel.getPreferredSize().height));
+
+    comboBoxContent = new Vector<String>();
+    addressCombo = WidgetCreator.makeComboBox(comboBoxContent, 3,
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH,
+        I18nSupport.getValue(CLIENT_BUNDLE, "combo.box.tooltip.address"));
+
+    try {addressCombo.addItem(InetAddress.getLocalHost().getHostName());}
+    catch (UnknownHostException e) {LOGGER.info(e.getMessage());}
+
+    addressCombo.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        final String selected = addressCombo.getSelectedItem().toString();
+        if (!comboBoxContent.contains(selected)) {
+          addressCombo.addItem(selected);
+          addressCombo.setSelectedItem(selected);
         }
       }
     });
