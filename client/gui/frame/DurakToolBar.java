@@ -67,7 +67,7 @@ public class DurakToolBar extends JToolBar {
     add(setUpButton);
     addSeparator();
     add(chatButton);
-    add(Box.createHorizontalGlue());
+    add(Box.createGlue());
     addSeparator();
     add(closeButton);
   }

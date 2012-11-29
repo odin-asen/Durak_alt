@@ -26,8 +26,8 @@ public class OpponentHandWidget extends JComponent {
     this.nameFont = nameFont;
     this.cardBack = cardBack;
     this.opponent = opponent;
-    this.setPreferredSize(new Dimension(CARD_WIDTH * 6, CARD_HEIGHT + 40));
-    this.setBackground(Color.BLACK);
+    setPreferredSize(new Dimension(CARD_WIDTH * 6, CARD_HEIGHT + 40));
+    setBackground(Color.BLACK);
     setStatusIcon(null, null);
   }
 

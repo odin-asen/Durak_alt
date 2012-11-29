@@ -11,9 +11,12 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static common.resources.ResourceList.*;
 
 /**
  * User: Timm Herrmann
@@ -30,7 +33,7 @@ public class ResourceGetter {
     ImageIcon image = null;
 
     try {
-      final String path = ResourceList.CARDS_ROOT + getStringCardColour(colour);
+      final String path = CARDS_ROOT + getStringCardColour(colour);
       image = getCardFromStripe(loadImage(path, alternativeText), cardValue.getValue());
     } catch (ResourceGetterException e) {
       LOGGER.log(Level.WARNING, e.getMessage());
@@ -43,13 +46,13 @@ public class ResourceGetter {
     final String string;
 
     if(GameCardConstants.CardColour.CLUBS.equals(colour)) {
-      string = ResourceList.CARD_COLOUR_CLUBS;
+      string = CARD_COLOUR_CLUBS;
     } else if(GameCardConstants.CardColour.DIAMONDS.equals(colour)) {
-      string = ResourceList.CARD_COLOUR_DIAMONDS;
+      string = CARD_COLOUR_DIAMONDS;
     } else if(GameCardConstants.CardColour.HEARTS.equals(colour)) {
-      string = ResourceList.CARD_COLOUR_HEARTS;
+      string = CARD_COLOUR_HEARTS;
     } else {
-      string = ResourceList.CARD_COLOUR_SPADES;
+      string = CARD_COLOUR_SPADES;
     }
 
     return string;
@@ -71,10 +74,9 @@ public class ResourceGetter {
     ImageIcon image = null;
 
     try {
-      final String path = ResourceList.PICTURES_ROOT + imageName;
-      image = loadImage(path, alternativeText);
+      image = loadImage(imageName, alternativeText);
     } catch (ResourceGetterException e) {
-      LOGGER.log(Level.WARNING, e.getMessage());
+      LOGGER.info(e.getMessage());
     }
 
     return image;
@@ -111,22 +113,26 @@ public class ResourceGetter {
   }
 
   public static ImageIcon getBackCard() {
-    return getImage("cards/"+ ResourceList.CARD_BACK, "Back"); //NON-NLS NON-NLS
+    final String back = "Back"; //NON-NLS
+    final ImageIcon icon = getImage(CARDS_ROOT+CARD_BACK, back);
+    if(icon != null)
+      return icon;
+    else return new ImageIcon("", back);
   }
 
   public static ImageIcon getPlayerTypeIcon(PlayerConstants.PlayerType type, Integer height) {
     final String text = type.getDescription();
     final ImageIcon statusIcon;
     if (PlayerConstants.PlayerType.FIRST_ATTACKER.equals(type))
-      statusIcon = getImage(ResourceList.IMAGE_STAR_GREEN, text);
+      statusIcon = getImage(IMAGE_STAR_GREEN, text);
     else if (PlayerConstants.PlayerType.SECOND_ATTACKER.equals(type))
-      statusIcon = getImage(ResourceList.IMAGE_STAR_RED, text);
+      statusIcon = getImage(IMAGE_STAR_RED, text);
     else if (PlayerConstants.PlayerType.DEFENDER.equals(type))
-      statusIcon = getImage(ResourceList.IMAGE_DEFENDER, text);
+      statusIcon = getImage(IMAGE_DEFENDER, text);
     else if (PlayerConstants.PlayerType.NOT_LOSER.equals(type))
-      statusIcon = getImage(ResourceList.IMAGE_CROWN, text);
+      statusIcon = getImage(IMAGE_CROWN, text);
     else if (PlayerConstants.PlayerType.LOSER.equals(type))
-      statusIcon = getImage(ResourceList.IMAGE_RED_CROSS, text);
+      statusIcon = getImage(IMAGE_RED_CROSS, text);
     else statusIcon = null;
 
     if(statusIcon != null) {
@@ -135,8 +141,18 @@ public class ResourceGetter {
   }
 
   public static List<? extends Image> getApplicationIcons() {
-    //TODO liste mit verschiedenen Programm Icons zurück geben
-    return null;
+    final String[] imageSizes = {"16","32","64","128","256"};
+    final String suffix = ".png"; //NON-NLS
+    final List<Image> images = new ArrayList<Image>(imageSizes.length);
+    for (String size : imageSizes) {
+      try {
+        images.add(loadImage(APPLICATION_BASE_PATH + size + suffix, "").getImage());
+      } catch (ResourceGetterException e) {
+        LOGGER.info(e.getMessage());
+      }
+    }
+
+    return images;
   }
 }
 
@@ -166,7 +182,7 @@ class SoundPlayer {
 
     playData(ais, line, format.getFrameSize());
 
-    // Line blockieren bis die gepufferten Daten zu Ende gespielt werden
+    /* Block the Line until the buffered data are played till the end */
     line.drain();
 
     line.close();
@@ -174,9 +190,9 @@ class SoundPlayer {
   }
 
   private static void playData(AudioInputStream ais, SourceDataLine line, int framesize) throws IOException {
-    // Allocate a buffer for reading from the input stream and writing
-    // to the line.  Make it large enough to hold 4k audio frames.
-    // Note that the SourceDataLine also has its own internal buffer.
+    /* Allocate a buffer for reading from the input stream and writing
+     * to the line.  Make it large enough to hold 4k audio frames.
+     * Note that the SourceDataLine also has its own internal buffer. */
     byte[] buffer = new byte[4 * 1024 * framesize];
     int bytesread = ais.read(buffer, 0, buffer.length);
     while (bytesread != -1) {
