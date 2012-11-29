@@ -161,6 +161,11 @@ public class SetupFrame extends JDialog {
     clientInfoTab.updateGUISettings();
   }
 
+  private void resetInfos() {
+    clientInfoTab.resetInput();
+    connectionInfoTab.resetInput();
+  }
+
   /* Inner Classes */
   private class ButtonListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
@@ -168,6 +173,7 @@ public class SetupFrame extends JDialog {
         clientInfoTab.fillClientInfo();
         connectionInfoTab.fillConnectionInfo();
       } else if(e.getActionCommand().equals(ACTION_COMMAND_CANCEL)) {
+        resetInfos();
         SetupFrame.getInstance().dispose();
       } else if(e.getActionCommand().equals(ACTION_COMMAND_OKAY)) {
         clientInfoTab.fillClientInfo();

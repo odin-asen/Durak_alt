@@ -15,6 +15,8 @@ import java.awt.*;
  * attacker card and a defender card.
  */
 public class CombatCardPanel extends JPanel {
+  private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
+
   private GameCardWidget attackerCard;
   private GameCardWidget defenderCard;
 
@@ -102,8 +104,10 @@ public class CombatCardPanel extends JPanel {
   private String createToolTipText() {
     if(attackerCard != null) {
       if(defenderCard == null)
-        return I18nSupport.getValue("panel.tooltip.card.0.has.to.be.beaten", attackerCard.getToolTipText());
-      else return I18nSupport.getValue("panel.tooltip.card.0.beats.1", defenderCard.getToolTipText(), attackerCard.getToolTipText());
+        return I18nSupport.getValue(CLIENT_BUNDLE,
+            "panel.tooltip.card.0.has.to.be.beaten", attackerCard.getToolTipText());
+      else return I18nSupport.getValue(CLIENT_BUNDLE, "panel.tooltip.card.0.beats.1",
+          defenderCard.getToolTipText(), attackerCard.getToolTipText());
     } else return null;
   }
 

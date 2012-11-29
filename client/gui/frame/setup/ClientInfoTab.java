@@ -12,7 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class ClientInfoTab extends JPanel {
-  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
+  private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
   private JTextField nameField;
   private JCheckBox spectatorCheckBox;
 
@@ -45,20 +45,20 @@ public class ClientInfoTab extends JPanel {
   }
 
   void initComponents() {
-    nameLabel = new JLabel(I18nSupport.getValue(BUNDLE_NAME,"label.player.name"));
+    nameLabel = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.player.name"));
     int preferredHeight = nameLabel.getPreferredSize().height;
     nameLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, preferredHeight));
 
     String defaultText = System.getProperty("user.name");
     if (defaultText == null)
-      defaultText = I18nSupport.getValue(BUNDLE_NAME,"default.player.name");
+      defaultText = I18nSupport.getValue(CLIENT_BUNDLE,"default.player.name");
 
     nameField = new JTextField(defaultText);
     preferredHeight = nameField.getPreferredSize().height;
     nameField.setPreferredSize(new Dimension(ClientGUIConstants.PREFERRED_FIELD_WIDTH,
         preferredHeight));
     nameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, preferredHeight));
-    spectatorCheckBox = new JCheckBox(I18nSupport.getValue(BUNDLE_NAME,"check.box.spectator"));
+    spectatorCheckBox = new JCheckBox(I18nSupport.getValue(CLIENT_BUNDLE,"check.box.spectator"));
     preferredHeight = spectatorCheckBox.getPreferredSize().height;
     spectatorCheckBox.setPreferredSize(new Dimension(ClientGUIConstants.PREFERRED_FIELD_WIDTH,
         preferredHeight));
@@ -77,6 +77,11 @@ public class ClientInfoTab extends JPanel {
   }
 
   public void updateGUISettings() {
+    nameField.setText(clientInfo.name);
+    spectatorCheckBox.setSelected(clientInfo.spectating);
+  }
+
+  public void resetInput() {
     nameField.setText(clientInfo.name);
     spectatorCheckBox.setSelected(clientInfo.spectating);
   }

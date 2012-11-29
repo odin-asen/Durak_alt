@@ -142,12 +142,12 @@ public class DurakToolBar extends JToolBar {
 
       try {
         final SetupFrame setup = SetupFrame.getInstance();
-        setup.setConnectionEnabled(false);
         final ConnectionInfo connection = setup.getConnectionInfo();
         final String socketString =
             "[" + connection.getIpAddress()+":"+ connection.getPort()+"]";
         if(client.connect(setup.getClientInfo(), connection.getPassword())) {
           parent.setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE,"status.connected"), true, socketString);
+          setup.setConnectionEnabled(false);
         } else {
           parent.setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE,"status.permission.denied"), false, "");
         }

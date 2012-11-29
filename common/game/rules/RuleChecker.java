@@ -103,7 +103,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   }
 
   private String getCardsNotOnGamePanelMessage(String nonExistingCards) {
-    return I18nSupport.getValue(BUNDLE_NAME, "html.move.not.valid.cards.0.not.on.field",
+    return I18nSupport.getValue(BUNDLE_NAME, "move.not.valid.cards.0.not.on.field",
         nonExistingCards);
   }
 
@@ -151,12 +151,12 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
     else if(newAttackCardsCount > 6)
       throw new RuleException(I18nSupport.getValue(BUNDLE_NAME,"not.more.than.six.cards"));
     else if(attackCards.size() > defender.getCards().size())
-      throw new RuleException(I18nSupport.getValue(BUNDLE_NAME,"html.defender.too.few.cards"));
+      throw new RuleException(I18nSupport.getValue(BUNDLE_NAME, "defender.too.few.cards"));
     else if(currentAttackCards.isEmpty()) {
       final CardValue currentValue = attackCards.get(0).getCardValue();
       for (GameCard attackCard : attackCards) {
         if (!currentValue.equals(attackCard.getCardValue()))
-          throw new RuleException(I18nSupport.getValue(BUNDLE_NAME,"html.cards.not.same.value"));
+          throw new RuleException(I18nSupport.getValue(BUNDLE_NAME, "cards.not.same.value"));
       }
     }
   }
@@ -180,7 +180,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
             throw new RuleException(notHigherText);
         } else {
           throw new RuleException(I18nSupport.getValue(BUNDLE_NAME,
-              "html.card.0.neither.trump.nor.colour.1",defenderCard.getColourAndValue(),
+              "card.0.neither.trump.nor.colour.1",defenderCard.getColourAndValue(),
               attackerCard.getCardColour().getName()));
         }
       }

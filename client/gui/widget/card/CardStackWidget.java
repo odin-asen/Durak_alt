@@ -151,7 +151,7 @@ public class CardStackWidget extends JComponent {
   }
 
   public void updateTooltip() {
-    this.setToolTipText(I18nSupport.getValue(BUNDLE_NAME,"html.card.number.0.trump.colour.1",
+    this.setToolTipText(I18nSupport.getValue(BUNDLE_NAME, "card.stack.tooltip.card.number.0.trump.colour.1",
         cardCount, trump.cardColour.getName()));
   }
 
