@@ -19,21 +19,22 @@ import java.util.List;
  * Time: 23:16
  */
 public class AttackAction implements GameAction {
-  private ClientInfo executor;
-  private List<DTOCard> cards;
   private String reason;
 
   /* Constructors */
   /* Methods */
   public boolean doAction(ClientInfo client, FinishAction finish, DTOCard ...cards) throws RemoteException {
-    this.cards = new ArrayList<DTOCard>();
-    this.executor = client;
-    Collections.addAll(this.cards, cards);
+    final List<List<DTOCard>> cardLists = new ArrayList<List<DTOCard>>(1);
     Boolean actionDone = false;
     final GameProcess process = GameProcess.getInstance();
 
+    /* convert array to list list */
+    cardLists.add(new ArrayList<DTOCard>());
+    Collections.addAll(cardLists.get(0), cards);
+
     try {
-      process.validateAction(GameProcess.ValidationAction.ATTACK, this);
+      process.validateAction(GameProcess.ValidationAction.ATTACK,
+          client.toString(), cardLists);
       actionDone = true;
       reason = "";
       GameServer.getServerInstance().sendProcessUpdate(false);
@@ -49,19 +50,5 @@ public class AttackAction implements GameAction {
     final String lastText = reason;
     reason = null;
     return lastText;
-  }
-
-  /**
-   * Returns one list with the attacker cards.
-   * @return Returns a list of lists with the cards related to this action.
-   */
-  public List<List<DTOCard>> getCardLists() {
-    final List<List<DTOCard>> cardsList = new ArrayList<List<DTOCard>>();
-    cardsList.add(cards);
-    return cardsList;
-  }
-
-  public ClientInfo getExecutor() {
-    return executor;
   }
 }

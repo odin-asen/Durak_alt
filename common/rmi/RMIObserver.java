@@ -13,10 +13,10 @@ import java.rmi.server.ServerNotActiveException;
 public interface RMIObserver extends Remote {
   /**
    * This method should be used by the server to notify a client.
-   * @param notificationObject Notification for the client.
+   * @param parameter Notification for the client.
    * @throws RemoteException
    * @throws ServerNotActiveException
    */
-  public void incomingMessage(Serializable notificationObject)
+  public void update(Object parameter)
       throws RemoteException, ServerNotActiveException;
 }

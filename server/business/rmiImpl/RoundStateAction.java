@@ -16,13 +16,10 @@ import java.util.List;
  * Time: 23:52
  */
 public class RoundStateAction implements GameAction {
-  private ClientInfo executor;
-
-  /* Constructors */
   /* Methods */
+
   public boolean doAction(ClientInfo client, FinishAction finish, DTOCard... cards) throws RemoteException {
     Boolean goToNextRound = false;
-    executor = client;
 
     if(!finish.equals(FinishAction.NOT_FINISHING)) {
       if(doFinishing(client, finish)) {
@@ -49,13 +46,5 @@ public class RoundStateAction implements GameAction {
   /* Getter and Setter */
   public String getRefusedReason() throws RemoteException {
     return "";
-  }
-
-  public List<List<DTOCard>> getCardLists() {
-    return null;
-  }
-
-  public ClientInfo getExecutor() {
-    return executor;
   }
 }

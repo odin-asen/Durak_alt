@@ -10,11 +10,6 @@ package common.dto.message;
  * </p>
  */
 public enum GUIObserverType {
-  CONNECTED,
-  CONNECTION_FAIL,
-  DISCONNECTED,
-  REFRESH_CLIENT_LIST,
-  SERVER_FAIL,
-  SERVER_START,
-  SERVER_STOP
+  REFRESH_CLIENT_LIST,  /* Updates the servers client list to the server frame */
+  SERVER_FAIL,          /* Notfies the user that an error in the server occured */
 }

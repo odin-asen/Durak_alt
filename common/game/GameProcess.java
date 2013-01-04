@@ -1,17 +1,18 @@
 package common.game;
 
+import common.dto.ClientInfo;
 import common.dto.DTOCard;
 import common.game.rules.RuleChecker;
 import common.game.rules.RuleException;
 import common.game.rules.RuleFactory;
 import common.rmi.GameAction;
 import common.utilities.Converter;
+import common.utilities.Miscellaneous;
 import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.constants.PlayerConstants;
 
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * User: Timm Herrmann
@@ -26,7 +27,8 @@ public class GameProcess {
 
   private ElementPairHolder<GameCard> inGameCardHolder;
 
-  private List<Player> playerList;
+  private ListMap<String,Player> playerHolder;
+
   private GameCardStack stack;
   private Boolean gameInProcess;
   private Boolean initialiseNew;
@@ -47,7 +49,7 @@ public class GameProcess {
 
   /* Methods */
   private void initialiseInstance() {
-    playerList = new ArrayList<Player>();
+    playerHolder = new ListMap<String, Player>();
     inGameCardHolder = new ElementPairHolder<GameCard>();
     gameInProcess = false;
     initialiseNew = true;
@@ -64,7 +66,7 @@ public class GameProcess {
    * @return True, if the game has been initialised, otherwise false.
    */
   public Boolean initialiseNewGame(Integer cardsPerColour) {
-    if(playerList.size() > 1) {
+    if(playerHolder.size() > 1) {
       ruleChecker = RuleFactory.getStandardRules();
       distributeCards(cardsPerColour);
       determineInitialPlayers();
@@ -79,7 +81,7 @@ public class GameProcess {
   private void determineInitialPlayers() {
     ruleChecker.setTrumpColour(stack.getTrumpCard().getCardColour());
     if(initialiseNew)
-      ruleChecker.initStartPlayer(playerList);
+      ruleChecker.initStartPlayer(playerHolder.getList());
     else ruleChecker.setActivePlayers(determineLoser().getRightPlayer());
   }
 
@@ -93,18 +95,19 @@ public class GameProcess {
     stack = GameCardStack.getInstance();
     stack.initialiseStack(cardsPerColour);
     for(int i = 0; i< GameConfigurationConstants.INITIAL_CARD_COUNT; i++)
-      for (Player player : playerList)
+      for (Player player : playerHolder.getList())
         player.pickUpCard(stack.drawCard());
   }
 
   private void initPlayerNeighbours() {
-    for (int index = 0; index < playerList.size(); index++) {
-      final Player player = playerList.get(index);
+    for (int index = 0; index < playerHolder.size(); index++) {
+      final Player player = playerHolder.getList().get(index);
       setPlayerNeighbours(index, player);
     }
   }
 
   private void setPlayerNeighbours(int index, Player player) {
+    final List<Player> playerList = playerHolder.getList();
     if(index == 0) {
       player.setLeftPlayer(playerList.get(playerList.size()-1));
       player.setRightPlayer(playerList.get(index+1));
@@ -126,30 +129,32 @@ public class GameProcess {
    * @throws IllegalArgumentException If {@code action} is not instanceof
    * {@link server.business.rmiImpl.AttackAction} or {@link server.business.rmiImpl.DefenseAction}
    */
-  public void validateAction(ValidationAction validation, GameAction action)
+  public void validateAction(ValidationAction validation, String playerID,
+                             List<List<DTOCard>> cards)
       throws RuleException, RemoteException {
     if(validation.equals(ValidationAction.ATTACK)) {
-      validateAttack(action);
+      validateAttack(playerID, cards.get(0));
     } else if(validation.equals(ValidationAction.DEFENSE)) {
-      validateDefense(action);
+      validateDefense(playerID, cards);
     } else throw new IllegalArgumentException("The first parameter is neither\n" +
       ValidationAction.ATTACK +" nor\n"+ValidationAction.DEFENSE);
   }
 
-  private void validateDefense(GameAction defense) throws RuleException, RemoteException {
+  private void validateDefense(String playerID, List<List<DTOCard>> cards) throws RuleException, RemoteException {
     ruleChecker.doDefenseMove(
-        playerList.get(defense.getExecutor().loginNumber),
+        playerHolder.get(playerID),
         inGameCardHolder.getFirstElements().isEmpty(),
-        Converter.fromDTO(defense.getCardLists().get(1).get(0)),
-        Converter.fromDTO(defense.getCardLists().get(0).get(0)));
+        Converter.fromDTO(cards.get(1).get(0)),
+        Converter.fromDTO(cards.get(0).get(0)));
     inGameCardHolder.joinElements(
-        Converter.fromDTO(defense.getCardLists().get(0).get(0)),
-        Converter.fromDTO(defense.getCardLists().get(1).get(0)));
+        Converter.fromDTO(cards.get(0).get(0)),
+        Converter.fromDTO(cards.get(1).get(0)));
   }
 
-  private void validateAttack(GameAction attack) throws RuleException, RemoteException {
-    List<GameCard> cards = Converter.fromDTO(attack.getCardLists().get(0));
-    ruleChecker.doAttackMove(playerList.get(attack.getExecutor().loginNumber),
+  private void validateAttack(String playerID, List<DTOCard> attackCards)
+      throws RuleException, RemoteException {
+    List<GameCard> cards = Converter.fromDTO(attackCards);
+    ruleChecker.doAttackMove(playerHolder.get(playerID),
         cards, inGameCardHolder.getFirstElements(), inGameCardHolder.getSecondElements());
 
     for (GameCard card : cards)
@@ -221,7 +226,7 @@ public class GameProcess {
   }
 
   private Player determineLoser() {
-    for (Player player : playerList) {
+    for (Player player : playerHolder.getList()) {
       if(player.isAlone())
         return player;
     }
@@ -249,19 +254,27 @@ public class GameProcess {
     }
   }
 
-  public void addPlayer() {
+  public void setPlayer(String playerID) {
     if(!gameInProcess) {
-      playerList.add(new Player());
+      playerHolder.add(playerID, new Player());
     }
   }
 
-  public void removePlayer(Short playerIndex) {
-    final Player player = getPlayer(playerIndex.intValue());
-    playerList.remove(player);
+  /**
+   * Returns whether a player with this id could be removed or not.
+   * @param playerID The player having this id should be removed.
+   * @return True, the player existed and is now removed, else false.
+   */
+  public boolean removePlayer(String playerID) {
+    return playerHolder.remove(playerID);
   }
 
-  public List<List<DTOCard>> getPlayerCards() {
-    return Converter.playersCardsToDTO(playerList);
+  public List<List<DTOCard>> getPlayersCards() {
+    return Converter.playersCardsToDTO(playerHolder.getList());
+  }
+
+  public List<DTOCard> getPlayerCards(String playerID) {
+    return Converter.playerCardsToDTO(playerHolder.get(playerID));
   }
 
   public void abortGame() {
@@ -278,22 +291,22 @@ public class GameProcess {
   }
 
   /* Getter and Setter */
-  private Player getPlayer(int playerIndex) {
-    if(playerIndex >= 0 && playerIndex < playerList.size())
-      return playerList.get(playerIndex);
-    else return null;
-  }
+
   public Boolean isGameInProcess() {
     return gameInProcess;
   }
 
-  public List<PlayerConstants.PlayerType> getPlayerTypes() {
+  public List<PlayerConstants.PlayerType> getPlayersTypes() {
     final List<PlayerConstants.PlayerType> types = new ArrayList<PlayerConstants.PlayerType>();
-    for (Player player : playerList) {
+    for (Player player : playerHolder.getList()) {
       types.add(player.getType());
     }
 
     return types;
+  }
+
+  public PlayerConstants.PlayerType getPlayerType(String playerID) {
+    return playerHolder.get(playerID).getType();
   }
 
   public List<GameCard> getAttackCards() {
@@ -305,6 +318,7 @@ public class GameProcess {
   }
 
   /* Inner Classes */
+
   public static enum ValidationAction {
     ATTACK, DEFENSE
   }
@@ -428,5 +442,44 @@ class ElementPairHolder<T> {
     }
 
     return true;
+  }
+}
+
+class ListMap<K,V> {
+  private Map<K,V> map;
+  private List<V> list;
+
+  ListMap() {
+    map = new Hashtable<K,V>();
+    list = new  ArrayList<V>();
+  }
+
+  void add(K key, V value) {
+    if(map.containsKey(key)) {
+      final V oldValue = map.get(key);
+      final int index = Miscellaneous.findIndex(list,oldValue);
+      list.set(index,value);
+    } else {
+      list.add(value);
+    }
+    map.put(key, value);
+  }
+
+  V get(K key) {
+    return map.get(key);
+  }
+
+  boolean remove(K key) {
+    boolean removed = (map.remove(key) != null);
+    removed = removed | list.remove(key);
+    return removed;
+  }
+
+  public int size() {
+    return list.size();
+  }
+
+  public List<V> getList() {
+    return list;
   }
 }

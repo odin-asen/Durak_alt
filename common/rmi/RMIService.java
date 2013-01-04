@@ -13,7 +13,8 @@ import common.rmi.RMIObservable;
 @SuppressWarnings("HardCodedStringLiteral")
 public enum RMIService {
   AUTHENTICATION("Authenticator", Authenticator.class),
-  OBSERVER("RMIObservation", RMIObservable.class),
+  OBSERVABLE("RMIObservable", RMIObservable.class),
+  OBSERVER("RMIObserver", RMIObserver.class),
   ATTACK_ACTION("AttackAction", GameAction.class),
   DEFENSE_ACTION("DefenseAction", GameAction.class),
   ROUND_STATE_ACTION("RoundStateAction", GameAction.class),
@@ -29,6 +30,10 @@ public enum RMIService {
 
   public String getServiceName() {
     return serviceName;
+  }
+
+  public String getServiceName(String ipAddress) {
+    return "//"+ipAddress+"/"+getServiceName();
   }
 
   public Class getServiceClass() {

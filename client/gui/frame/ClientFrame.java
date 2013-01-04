@@ -1,6 +1,7 @@
 package client.gui.frame;
 
 import client.business.client.GameClient;
+import client.business.client.GameClientException;
 import client.gui.frame.chat.ChatFrame;
 import client.gui.frame.gamePanel.GamePanel;
 import client.gui.frame.setup.SetupFrame;
@@ -11,7 +12,7 @@ import common.dto.message.*;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
 import common.utilities.Miscellaneous;
-import common.utilities.constants.GameConfigurationConstants;
+import common.utilities.gui.DurakPopup;
 import common.utilities.gui.Constraints;
 import common.utilities.gui.FramePosition;
 import common.utilities.gui.WidgetCreator;
@@ -20,9 +21,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.server.ServerNotActiveException;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Observable;
@@ -55,15 +54,15 @@ public class ClientFrame extends JFrame implements Observer {
   private ClientFrameMessageHandler handler;
   private JButton roundDoneButton;
   private JButton takeCardsButton;
-  private static ClientFramePopup rulePopup;
+  private DurakToolBar toolBar;
 
   /* Constructors */
+
   public ClientFrame() {
     final FramePosition position = FramePosition.createFensterPositionen(
         MAIN_FRAME_SCREEN_SIZE, MAIN_FRAME_SCREEN_SIZE);
     GameClient.getClient().addObserver(this);
 
-    rulePopup = new ClientFramePopup();
     handler = new ClientFrameMessageHandler(this);
     setIconImages(ResourceGetter.getApplicationIcons());
     setTitle(MessageFormat.format("{0} - {1} {2}", I18nSupport.getValue(BUNDLE_NAME,"application.title"),
@@ -75,6 +74,7 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   /* Methods */
+
   public void showGameOverMessage() {
     final ClientInfo ownClient = SetupFrame.getInstance().getClientInfo();
     final ClientFrame frame = this;
@@ -87,38 +87,34 @@ public class ClientFrame extends JFrame implements Observer {
 
   public static void showRuleException(Component parent, String ruleException) {
     final ClientFrame frame = (ClientFrame) SwingUtilities.getRoot(parent);
-    Rectangle bounds = frame.getBounds();
-    rulePopup.setText(ruleException);
-    rulePopup.setSize(rulePopup.getPrefferedSize());
-    rulePopup.setLocation(bounds.x + bounds.width - rulePopup.getWidth() - 20,
-        bounds.y + bounds.height - rulePopup.getHeight() - 20);
+    final Rectangle bounds = frame.getBounds();
+    final DurakPopup rulePopup = WidgetCreator.createPopup(
+        ClientGUIConstants.GAME_TABLE_COLOUR, ruleException, bounds, 3);
     rulePopup.setVisible(true);
-
-    new Thread(new Runnable() {
-      public void run() {
-        try {
-          Thread.sleep(5000L);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-        rulePopup.setVisible(false);
-        rulePopup.dispose();
-      }
-    }).start();
   }
 
   private void initComponents() {
-    DurakToolBar toolBar = new DurakToolBar(this);
+    toolBar = new DurakToolBar(this);
 
     getContentPane().setLayout(new BorderLayout());
     getContentPane().add(toolBar, BorderLayout.PAGE_START);
     getContentPane().add(getSecondPane(), BorderLayout.CENTER);
   }
 
-  public void setStatusBarText(String mainText, Boolean connected, String serverAddress) {
+  /**
+   * Sets the status bar's main text, server address field and indicates if a connection
+   * consists to the server. The boolean parameter also indicates the representation of the
+   * gui, e.g. the picture of the connection toolbar button, the picture in the status bar,
+   * etc...
+   * @param mainText Text to set to the status bar.
+   * @param connected Indicates whether the client is connected or not.
+   * @param serverAddress Shows the server address as tooltip.
+   */
+  public void setStatus(String mainText, Boolean connected, String serverAddress) {
     statusBar.setConnected(connected, serverAddress);
     statusBar.setText(mainText);
     statusBar.setPlayerType(SetupFrame.getInstance().getClientInfo().playerType);
+    toolBar.setConnection(connected);
   }
 
   public void updateStatusBar() {
@@ -132,13 +128,17 @@ public class ClientFrame extends JFrame implements Observer {
     handler.handleUpdate(object);
   }
 
-  public void clearClientList() {
+  /**
+   * Empties the client list, the opponent card widgets and ...?
+   */
+  public void clearClients() {
     ((DefaultListModel<ClientInfo>) clientsList.getModel()).removeAllElements();
+    opponentsPanel.removeAllOpponents();
   }
 
   public void clearGameCards() {
     gamePanel.deleteCards();
-    opponentsPanel.deleteCards();
+    opponentsPanel.removeAllOpponents();
     cardStackPanel.deleteCards();
   }
 
@@ -148,11 +148,8 @@ public class ClientFrame extends JFrame implements Observer {
     final ClientInfo ownInfo = SetupFrame.getInstance().getClientInfo();
 
     listModel.clear();
-
     for (ClientInfo client : clients) {
-      if(ownInfo.isEqual(client))
-        ownInfo.setClientInfo(client);
-      else listModel.add(listModel.size(), client);
+      listModel.add(listModel.size(), client);
     }
   }
 
@@ -164,27 +161,14 @@ public class ClientFrame extends JFrame implements Observer {
     cardStackPanel.updateStack(cardStack);
   }
 
-  public void updatePlayers(List<ClientInfo> clients) {
-    final ClientInfo ownInfo = SetupFrame.getInstance().getClientInfo();
-    for (ClientInfo client : clients) {
-      if (ownInfo.isEqual(client) && !ownInfo.playerType.equals(client.playerType)) {
-        ownInfo.setClientInfo(client);
-        gamePanel.setListenerType(ownInfo.playerType);
-      }
-    }
+  public void updateOpponents(List<ClientInfo> clients) {
     opponentsPanel.updateOpponents(clients);
   }
 
   public void initialisePlayers(List<ClientInfo> clients) {
     opponentsPanel.removeAll();
-    final ClientInfo ownInfo = SetupFrame.getInstance().getClientInfo();
     for (ClientInfo client : clients) {
-      if(!ownInfo.isEqual(client))
-        opponentsPanel.addOpponent(client);
-      else {
-        ownInfo.setClientInfo(client);
-        gamePanel.setListenerType(ownInfo.playerType);
-      }
+      opponentsPanel.addOpponent(client);
     }
     opponentsPanel.updateOpponents(clients);
   }
@@ -213,7 +197,12 @@ public class ClientFrame extends JFrame implements Observer {
     roundDoneButton.setEnabled(round && cardsOnTable);
   }
 
+  public void updateSubComponents() {
+    gamePanel.setListenerType(SetupFrame.getInstance().getClientInfo().playerType);
+  }
+
   /* Getter and Setter */
+
   private JPanel getSecondPane() {
     if(secondPane != null)
       return secondPane;
@@ -321,7 +310,7 @@ public class ClientFrame extends JFrame implements Observer {
 
       final ClientInfo client = (ClientInfo) value;
       final Color foreground;
-      if(client.loginNumber >= GameConfigurationConstants.SPECTATOR_START_NUMBER) {
+      if(client.spectating) {
         foreground = new Color(164, 164, 164);
         this.setToolTipText(I18nSupport.getValue(BUNDLE_NAME,"list.tooltip.audience"));
       } else {
@@ -392,8 +381,10 @@ class ClientFrameMessageHandler {
   }
 
   private void handleMessageType(MessageObject object) {
-    if(MessageType.LOGIN_NUMBER.equals(object.getType())) {
-      SetupFrame.getInstance().getClientInfo().setClientInfo((ClientInfo) object.getSendingObject());
+    if(MessageType.OWN_CLIENT_INFO.equals(object.getType())) {
+      final ClientInfo info = SetupFrame.getInstance().getClientInfo();
+      info.setClientInfo((ClientInfo) object.getSendingObject());
+      frame.updateSubComponents();
     }
   }
 
@@ -404,8 +395,9 @@ class ClientFrameMessageHandler {
       final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
       frame.updateClientList(clients);
     } else if(BroadcastType.SERVER_SHUTDOWN.equals(object.getType())) {
-      disconnectClient();
+      frame.clearClients();
       frame.clearGameCards();
+      frame.setStatus("Der Server wurde geschlossen!", false, "");
     }
   }
 
@@ -416,7 +408,7 @@ class ClientFrameMessageHandler {
       frame.updateStatusBar();
     } else if(GameUpdateType.PLAYERS_UPDATE.equals(object.getType())) {
       final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
-      frame.updatePlayers(clients);
+      frame.updateOpponents(clients);
       frame.updateStatusBar();
     } else if(GameUpdateType.STACK_UPDATE.equals(object.getType())) {
       frame.updateStack((DTOCardStack) object.getSendingObject());
@@ -450,23 +442,10 @@ class ClientFrameMessageHandler {
     frame.updateInGameCards(attackerCards, defenderCards);
   }
 
-  private void disconnectClient() {
-    try {
-      GameClient.getClient().disconnect(SetupFrame.getInstance().getClientInfo());
-    } catch (NotBoundException e) {
-      LOGGER.warning(e.getMessage());
-    } catch (RemoteException e) {
-      LOGGER.warning(e.getMessage());
-    }
-    frame.setStatusBarText("", false, "");
-  }
-
   private String buildChatAnswer(MessageObject object) {
     final ChatMessage chatMessage = (ChatMessage) object.getSendingObject();
     String message = Miscellaneous.getChatMessage(chatMessage.getSender().name,
         chatMessage.getMessage());
-    if(chatMessage.getSender().isEqual(SetupFrame.getInstance().getClientInfo()))
-      message = Miscellaneous.changeChatMessageInBrackets(I18nSupport.getValue(BUNDLE_NAME,"chat.indicator.me"), message);
     return message;
   }
 }
@@ -475,9 +454,9 @@ class UserMessageDistributor {
   private static final String BUNDLE_NAME = "client.client"; //NON-NLS
   private static final Logger LOGGER = Logger.getLogger(UserMessageDistributor.class.getName());
 
-  private JFrame frame;
+  private ClientFrame frame;
 
-  UserMessageDistributor(JFrame frame) {
+  UserMessageDistributor(ClientFrame frame) {
     this.frame = frame;
   }
 
@@ -533,11 +512,8 @@ class UserMessageDistributor {
       setup.updateClientInfo();
       client.disconnect(info);
       client.connect(info, setup.getConnectionInfo().getPassword());
-    } catch (RemoteException e) {
-      LOGGER.severe(e.getMessage());
-    } catch (NotBoundException e) {
-      LOGGER.severe(e.getMessage());
-    } catch (ServerNotActiveException e) {
+    } catch (GameClientException e) {
+      frame.setStatus(e.getMessage(), false, "");
       LOGGER.severe(e.getMessage());
     }
   }

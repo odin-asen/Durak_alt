@@ -1,20 +1,25 @@
 package client.business.client;
 
+import client.business.ConnectionInfo;
 import common.dto.ClientInfo;
 import common.dto.DTOCard;
 import common.dto.message.MessageObject;
 import common.rmi.*;
+import common.utilities.Miscellaneous;
 import common.utilities.constants.PlayerConstants;
 
+import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.ServerNotActiveException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Observable;
+import java.util.logging.Logger;
 
 /**
  * User: Timm Herrmann
@@ -24,15 +29,18 @@ import java.util.Observable;
 public class GameClient extends Observable {
   private static GameClient client;
 
-  public static final String DEFAULT_SERVER_ADDRESS = "localhost"; //NON-NLS
-  public static final Integer DEFAULT_SERVER_PORT = Registry.REGISTRY_PORT;
+  public static final String DEFAULT_IP_ADDRESS = "127.0.0.1"; //NON-NLS
+  public static final Integer DEFAULT_PORT = Registry.REGISTRY_PORT;
+  private static final Logger LOGGER = Logger.getLogger(GameClient.class.getName());
 
   private Map<RMIService,Remote> services;
-  private ServerMessageHandler serverObserver;
 
   private String serverAddress;
-  private Integer port;
+  private String clientAddress;
+  private Integer serverPort;
+  private Integer clientPort;
   private Boolean connected;
+  private RMIObserverImpl observer;
 
   /* Constructors */
   public static GameClient getClient() {
@@ -42,37 +50,29 @@ public class GameClient extends Observable {
     return client;
   }
 
-  public static GameClient getClient(String serverAddress, Integer port) {
-    if (client == null) {
-      client = new GameClient();
-    }
-    client.setPort(port);
-    client.setServerAddress(serverAddress);
-
-    return client;
-  }
-
   private GameClient() {
-    this.serverAddress = DEFAULT_SERVER_ADDRESS;
-    this.port = DEFAULT_SERVER_PORT;
+    this.serverAddress = DEFAULT_IP_ADDRESS;
+    this.serverPort = DEFAULT_PORT;
+    this.clientAddress = DEFAULT_IP_ADDRESS;
+    this.clientPort = DEFAULT_PORT;
     this.connected = false;
     services = new HashMap<RMIService,Remote>();
   }
 
   /* Methods */
-  private void lookupServices(Registry registry, RMIService service)
+  private void lookupService(Registry registry, RMIService service)
       throws RemoteException, NotBoundException {
-    final Remote remote = registry.lookup(service.getServiceName());
+    final Remote remote = registry.lookup(service.getServiceName(serverAddress));
     services.put(service, remote);
   }
 
   private void initServices(Registry registry) throws RemoteException, NotBoundException {
-    lookupServices(registry, RMIService.ATTACK_ACTION);
-    lookupServices(registry, RMIService.AUTHENTICATION);
-    lookupServices(registry, RMIService.CHAT);
-    lookupServices(registry, RMIService.DEFENSE_ACTION);
-    lookupServices(registry, RMIService.ROUND_STATE_ACTION);
-    serverObserver = new ServerMessageHandler(registry, RMIService.OBSERVER.getServiceName());
+    lookupService(registry, RMIService.ATTACK_ACTION);
+    lookupService(registry, RMIService.AUTHENTICATION);
+    lookupService(registry, RMIService.CHAT);
+    lookupService(registry, RMIService.DEFENSE_ACTION);
+    lookupService(registry, RMIService.ROUND_STATE_ACTION);
+    lookupService(registry, RMIService.OBSERVABLE);
   }
 
   public void receiveServerMessage(MessageObject object) {
@@ -85,28 +85,42 @@ public class GameClient extends Observable {
     this.notifyObservers(object);
   }
 
-  public boolean connect(ClientInfo info, String password)
-      throws RemoteException, NotBoundException, ServerNotActiveException {
+  public void connect(ClientInfo info, String password)
+      throws GameClientException {
     if (!isConnected()) {
-      Registry registry = LocateRegistry.getRegistry(serverAddress, port);
-      initServices(registry);
-      getRMIObserver().getServer().registerInterest(getRMIObserver());
-      connected = true;
-      return getAuthenticator().login(info, password);
-    }
+      try {
+        Registry serverRegistry = LocateRegistry.getRegistry(serverAddress, serverPort);
+        Registry clientRegistry = Miscellaneous.getSafeRegistry(clientPort);
 
-    return false;
+        observer = new RMIObserverImpl();
+        Remote stub = UnicastRemoteObject.exportObject((Remote) observer, 0);
+        clientRegistry.rebind(RMIService.OBSERVER.getServiceName(clientAddress), stub);
+
+        initServices(serverRegistry);
+
+        connected = getAuthenticator().login(info, password);
+        if(!connected)
+          throw new GameClientException(getAuthenticator().getRefusedReason());
+      } catch (RemoteException e) {
+        LOGGER.severe("RemoteException occured while connecting: " + e.getMessage());
+        throw new GameClientException("Could not connect to the server! Please be sure that it is running.");
+      } catch (NotBoundException e) {
+        LOGGER.severe("NotBoundException occured while connecting: "+ e.getMessage());
+        throw new GameClientException("Could not establish a connection. The server is not running!");
+      }
+    }
   }
 
-  public void disconnect(ClientInfo info) throws NotBoundException, RemoteException {
+  public void disconnect(ClientInfo client) throws GameClientException {
     if(isConnected()) {
-      getAuthenticator().logoff(info);
-      connected = false;
+      try {
+        getAuthenticator().logoff(client);
+        connected = false;
+      } catch (RemoteException e) {
+        LOGGER.severe("RemoteException occured while connecting: " + e.getMessage());
+        throw new GameClientException("An internal error occured. Please refer to the developer!");
+      }
     }
-  }
-
-  private ServerMessageHandler getRMIObserver() {
-    return serverObserver;
   }
 
   /**
@@ -146,17 +160,14 @@ public class GameClient extends Observable {
 
   /* Getter and Setter */
   public String getSocketAddress() {
-    return serverAddress + ":" + port;
+    return serverAddress + ":" + serverPort;
   }
 
-  public void setServerAddress(String serverAddress) {
-    if(!isConnected())
-      this.serverAddress = serverAddress;
-  }
-
-  public void setPort(Integer port) {
-    if(!isConnected())
-      this.port = port;
+  public void setConnection(ConnectionInfo info) {
+    serverAddress = info.getServerAddress();
+    serverPort = info.getServerPort();
+    clientAddress = info.getClientAddress();
+    clientPort = info.getClientPort();
   }
 
   public Boolean isConnected() {
@@ -181,5 +192,17 @@ public class GameClient extends Observable {
 
   private GameAction getGameActionRound() {
     return (GameAction) services.get(RMIService.ROUND_STATE_ACTION);
+  }
+
+  private RMIObservable getRMIObservable() {
+    return (RMIObservable) services.get(RMIService.OBSERVABLE);
+  }
+}
+
+class RMIObserverImpl implements RMIObserver {
+  public void update(Object parameter) throws RemoteException {
+    if(parameter instanceof MessageObject) {
+      GameClient.getClient().receiveServerMessage((MessageObject) parameter);
+    }
   }
 }

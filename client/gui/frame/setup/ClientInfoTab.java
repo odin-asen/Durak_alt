@@ -34,7 +34,7 @@ public class ClientInfoTab extends JPanel {
     add(nameField, constraints);
     constraints = Constraints.getDefaultFieldConstraintLeft(3, 1, 2, 1);
     add(spectatorCheckBox, constraints);
-    clientInfo = new ClientInfo("", GameConfigurationConstants.NO_LOGIN_NUMBER);
+    clientInfo = new ClientInfo("");
     fillClientInfo();
   }
 

@@ -36,7 +36,7 @@ public class OpponentsPanel extends JPanel {
   private OpponentHandWidget findOpponentHandWidget(ClientInfo info) {
     for (Component component : getComponents()) {
       final OpponentHandWidget widget = (OpponentHandWidget) component;
-      if(widget.getOpponent().isEqual(info))
+      if(widget.getOpponent().equals(info))
         return widget;
     }
 
@@ -59,7 +59,7 @@ public class OpponentsPanel extends JPanel {
     widget.setStatusIcon(statusIcon, type.getDescription());
   }
 
-  public void deleteCards() {
+  public void removeAllOpponents() {
     this.removeAll();
     this.validate();
     this.repaint();

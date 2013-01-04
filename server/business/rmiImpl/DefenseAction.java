@@ -21,27 +21,25 @@ public class DefenseAction implements GameAction {
   private static final String DEBUG_MESSAGE_WRONG_FORMAT = "Wrong format of the cards. " + //NON-NLS
       "First card is the defense card, the second the attacker card." + //NON-NLS
       "\nPlease debug!"; //NON-NLS
-  private ClientInfo executor;
-  private DTOCard defenseCard;
-  private DTOCard attackCard;
   private String reason;
 
   /* Constructors */
   /* Methods */
   public boolean doAction(ClientInfo client, FinishAction finish, DTOCard ...cards) throws RemoteException {
-    this.executor = client;
     Boolean actionDone = false;
+    final List<List<DTOCard>> cardLists = setCards(cards);
 
-    if(setCards(cards)) {
+    if(cardLists != null) {
       try {
-        GameProcess.getInstance().validateAction(GameProcess.ValidationAction.DEFENSE, this);
+        GameProcess.getInstance().validateAction(GameProcess.ValidationAction.DEFENSE,
+            client.toString(), cardLists);
         actionDone = true;
         reason = "";
         GameServer.getServerInstance().sendProcessUpdate(false);
       } catch (RuleException e) {
         reason = e.getMessage();
       }
-    } else reason = DEBUG_MESSAGE_WRONG_FORMAT;
+    }
 
     return actionDone;
   }
@@ -52,40 +50,21 @@ public class DefenseAction implements GameAction {
     return lastText;
   }
 
-  private boolean setCards(DTOCard[] cards) {
-    if(cards.length >= 2) {
-      defenseCard = cards[0];
-      attackCard = cards[1];
-    } else return false;
+  private List<List<DTOCard>> setCards(DTOCard[] cards) {
+    List<List<DTOCard>> cardLists = new ArrayList<List<DTOCard>>(2);
 
-    return true;
+    if(cards.length >= 2) {
+      cardLists.add(new ArrayList<DTOCard>());
+      cardLists.add(new ArrayList<DTOCard>());
+      cardLists.get(0).add(cards[0]);
+      cardLists.get(1).add(cards[1]);
+    } else {
+      reason = DEBUG_MESSAGE_WRONG_FORMAT;
+      return null;
+    }
+
+    return cardLists;
   }
 
   /* Getter and Setter */
-  public DTOCard getDefendCard() {
-    return defenseCard;
-  }
-
-  public DTOCard getAttackCard() {
-    return attackCard;
-  }
-
-  /**
-   * Returns two lists. The first list contains the attacker cards.
-   * The second list contains the defender cards.
-   * @return Returns a list of lists with the cards related to this action.
-   */
-  public List<List<DTOCard>> getCardLists() {
-    final List<List<DTOCard>> cardLists = new ArrayList<List<DTOCard>>();
-    final List<DTOCard> attackCards = new ArrayList<DTOCard>();
-    final List<DTOCard> defenseCards = new ArrayList<DTOCard>();
-    attackCards.add(attackCard);
-    defenseCards.add(defenseCard);
-    cardLists.add(attackCards);
-    cardLists.add(defenseCards);
-    return cardLists;
-  }
-  public ClientInfo getExecutor() {
-    return executor;
-  }
 }

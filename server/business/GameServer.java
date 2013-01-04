@@ -10,7 +10,6 @@ import common.rmi.RMIService;
 import common.utilities.Converter;
 import common.utilities.Miscellaneous;
 import common.utilities.constants.GameCardConstants;
-import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.constants.PlayerConstants;
 import server.business.rmiImpl.*;
 
@@ -19,29 +18,26 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * User: Timm Herrmann
  * Date: 03.10.12
  * Time: 21:57
- *
- *
  */
 public class GameServer extends Observable {
   private static Logger LOGGER = Logger.getLogger(GameServer.class.getName());
 
   private static GameServer gameServer;
-  public static final String SERVER_PING_ANSWER = "Hello! Is it me you're looking for?"; //NON-NLS
+
+  private static final String RMI_SERVER_HOST = "java.rmi.server.hostname"; //NON-NLS
 
   private Map<RMIService,Remote> services;
   private Registry registry;
 
-  private ServerClientHolder clientHolder;
+  private InGameSpectatorHolder<RMIObserver,ClientInfo> clientHolder;
 
   private Integer port;
   private Boolean running;
@@ -70,29 +66,30 @@ public class GameServer extends Observable {
   private GameServer() {
     port = Registry.REGISTRY_PORT;
     services = new HashMap<RMIService,Remote>();
-    clientHolder = new ServerClientHolder();
+    clientHolder = new InGameSpectatorHolder<RMIObserver,ClientInfo>();
     running = false;
   }
 
   /* Methods */
-  private void registerService(Registry registry, Class implementationClass, RMIService service)
+  private void registerService(Registry registry, String serverAddress,
+                               Class implementationClass, RMIService service)
       throws RemoteException, IllegalAccessException, InstantiationException {
     final Object implementation = implementationClass.newInstance();
     if(implementation instanceof Remote) {
       Remote stub = UnicastRemoteObject.exportObject((Remote) implementation, 0);
-      registry.rebind(service.getServiceName(), stub);
-
+      registry.rebind(service.getServiceName(serverAddress), stub);
       services.put(service, (Remote) implementation);
     }
   }
 
-  private void initServices(Registry registry) throws RemoteException, IllegalAccessException, InstantiationException {
-    registerService(registry, AttackAction.class, RMIService.ATTACK_ACTION);
-    registerService(registry, AuthenticatorImpl.class, RMIService.AUTHENTICATION);
-    registerService(registry, ChatHandlerImpl.class, RMIService.CHAT);
-    registerService(registry, DefenseAction.class, RMIService.DEFENSE_ACTION);
-    registerService(registry, RoundStateAction.class, RMIService.ROUND_STATE_ACTION);
-    registerService(registry, RMIObservableImpl.class, RMIService.OBSERVER);
+  private void initServices(Registry registry, String serverAddress)
+      throws RemoteException, IllegalAccessException, InstantiationException {
+    registerService(registry, serverAddress, AttackAction.class, RMIService.ATTACK_ACTION);
+    registerService(registry, serverAddress, AuthenticatorImpl.class, RMIService.AUTHENTICATION);
+    registerService(registry, serverAddress, ChatHandlerImpl.class, RMIService.CHAT);
+    registerService(registry, serverAddress, DefenseAction.class, RMIService.DEFENSE_ACTION);
+    registerService(registry, serverAddress, RoundStateAction.class, RMIService.ROUND_STATE_ACTION);
+    registerService(registry, serverAddress, RMIObservableImpl.class, RMIService.OBSERVABLE);
   }
 
   private void initImplementations() {
@@ -103,17 +100,19 @@ public class GameServer extends Observable {
     }
   }
 
-  private void unregisterServices(Registry registry) throws RemoteException, NotBoundException {
+  private void unregisterServices(Registry registry, String serverAddress) throws RemoteException, NotBoundException {
     for (RMIService rmiService : services.keySet()) {
-      registry.unbind(rmiService.getServiceName());
-      UnicastRemoteObject.unexportObject(services.get(rmiService),true);
+      registry.unbind(rmiService.getServiceName(serverAddress));
+      UnicastRemoteObject.unexportObject(services.get(rmiService), true);
     }
+    UnicastRemoteObject.unexportObject(registry,true);
   }
 
-  public void startServer() throws InstantiationException, IllegalAccessException, RemoteException {
+  public void startServer(String serverAddress) throws InstantiationException, IllegalAccessException, RemoteException {
     if(!isServerRunning()) {
+      System.setProperty(RMI_SERVER_HOST, serverAddress);
       registry = getSafeRegistry(port);
-      initServices(registry);
+      initServices(registry, serverAddress);
       initImplementations();
       running = true;
     }
@@ -134,12 +133,8 @@ public class GameServer extends Observable {
 
   public void shutdownServer() throws NotBoundException, RemoteException {
     if(isServerRunning()) {
-      try {
-        getRMIObservable().notifyObservers(new MessageObject(BroadcastType.SERVER_SHUTDOWN));
-      } catch (ServerNotActiveException e) {
-        LOGGER.warning("Server is not active: " +e.getMessage());
-      }
-      unregisterServices(registry);
+      getRMIObservable().notifyObservers(new MessageObject(BroadcastType.SERVER_SHUTDOWN));
+      unregisterServices(registry, System.getProperty(RMI_SERVER_HOST, "127.0.0.1"));
       running = false;
     }
   }
@@ -149,23 +144,31 @@ public class GameServer extends Observable {
     gameUpdater.invoke();
   }
 
+  /**
+   * Calls {@link GameServer#setChangedAndNotify(Enum, Object)} with null
+   * as second parameter.
+   * @param type Type that defines the MessageObject.
+   */
   void setChangedAndNotify(Enum<?> type) {
     setChangedAndNotify(type, null);
   }
 
+  /**
+   * Notifies all java.util.Observer objects that are added to the server.
+   * It sends a MessageObject object as update parameter to all observers.
+   * @param type Type that defines the MessageObject.
+   * @param sendingObject Object that is corresponding to the type.
+   */
   void setChangedAndNotify(Enum<?> type, Object sendingObject) {
     setChanged();
     notifyObservers(new MessageObject(type, sendingObject));
   }
 
   public void broadcastMessage(Enum<?> type, Object sendingObject) {
-    final RMIObservableImpl observable = getRMIObservable();
     try {
-      observable.notifyObservers(new MessageObject(type, sendingObject));
+      getRMIObservable().notifyObservers(new MessageObject(type, sendingObject));
     } catch (RemoteException e) {
-      LOGGER.severe(e.getMessage());
-    } catch (ServerNotActiveException e) {
-      LOGGER.severe(e.getMessage());
+      LOGGER.severe("Could not notify observer: "+e.getMessage()+" occured!");
     }
   }
 
@@ -177,8 +180,12 @@ public class GameServer extends Observable {
     broadcastMessage(type, null);
   }
 
-  public void sendMessage(RMIClient rmiClient, MessageObject messageObject) {
-    getRMIObservable().notifyObserver(rmiClient.rmiObserver, messageObject);
+  public void sendMessage(RMIObserver observer, MessageObject messageObject) {
+    try {
+      getRMIObservable().notifyObserver(observer, messageObject);
+    } catch (RemoteException e) {
+      LOGGER.severe("Could not notify observer: " + e.getMessage() + " occured!");
+    }
   }
 
   /**
@@ -190,89 +197,112 @@ public class GameServer extends Observable {
    * @throws GameServerException The number of server threads and the size of
    * {@code sendingObjects} is not equal.
    */
-  public void broadcastArray(Enum<?> type, List<RMIClient> rmiClients, List<?> sendingObjects)
+  public void broadcastArray(Enum<?> type, Collection<RMIObserver> clients,
+                             Collection<?> sendingObjects)
       throws GameServerException {
-    if(sendingObjects.size() != rmiClients.size())
+    if(sendingObjects.size() != clients.size())
       throw new GameServerException("The number of server threads and sending objects is not equal!");
-    for (int i = 0; i < sendingObjects.size(); i++) {
-        getRMIObservable().notifyObserver(rmiClients.get(i).rmiObserver,
-            new MessageObject(type, sendingObjects.get(i)));
-    }
-  }
-
-  public void addClient(ClientInfo client) {
-    final RMIClient addedClient;
-    final RMIObserver lastObserver = getRMIObservable().getObservers().lastElement();
-    final Boolean inProcess = GameProcess.getInstance().isGameInProcess();
-
-    if(inProcess || client.spectating) { //TODO testen, ob nach einem Neustart des Spiels, ein Spieler, der sich für Zuschauen entschiden hat, auch hier rein kommt
-      addedClient = clientHolder.addSpectator(new RMIClient(lastObserver, client));
-      if(addedClient != null)
-        notifyClientLists(addedClient);
-    } else {
-      addedClient = clientHolder.addInGameClient(new RMIClient(lastObserver, client));
-      if(addedClient != null) {
-        GameProcess.getInstance().addPlayer();
-        notifyClientLists(addedClient);
+    final Iterator<RMIObserver> observers = clients.iterator();
+    final Iterator<?> objects = sendingObjects.iterator();
+    while (observers.hasNext()) {
+      try {
+        getRMIObservable().notifyObserver(observers.next(),
+          new MessageObject(type, objects.next()));
+      } catch (RemoteException e) {
+        LOGGER.severe("Could not notify observer: " + e.getMessage() + " occured!");
       }
     }
   }
 
-  private void notifyClientLists(RMIClient addedClient) {
-    setChangedAndNotify(GUIObserverType.REFRESH_CLIENT_LIST, addedClient.clientInfo);
-    sendMessage(addedClient, new MessageObject(MessageType.LOGIN_NUMBER, addedClient.clientInfo));
-    broadcastMessage(BroadcastType.LOGIN_LIST, clientHolder.getAllClientInfo());
-  }
+  /**
+   * Adds the client to the server.
+   * @param client The client.
+   * @throws NotBoundException If the client observer service is not bound
+   * for the specified ip address and port.
+   */
+  public void addClient(ClientInfo client)
+      throws NotBoundException, RemoteException, GameServerException {
+    final Boolean inProcess = GameProcess.getInstance().isGameInProcess();
+    if(Miscellaneous.containsClientAddress(clientHolder.getAllValues(),client))
+      throw new GameServerException("Client already exists!");
 
-  public void removeClient(ClientInfo toRemove) {
-    RMIClient reference = clientHolder.getIsEqualInGameClient(toRemove);
-    if(reference != null) {
-      deletePlayer(reference);
-      removeAndUpdateClients(clientHolder.getInGameClients(), reference);
+    RMIObserver observer = addObserver(client);
+
+    if(inProcess || client.spectating) { //TODO testen, ob nach einem Neustart des Spiels, ein Spieler, der sich für Zuschauen entschiden hat, auch hier rein kommt
+      clientHolder.addSpectator(observer,client);
     } else {
-      reference = clientHolder.getIsEqualSpectator(toRemove);
-      if(reference != null)
-        removeAndUpdateClients(clientHolder.getSpectators(), reference);
+      clientHolder.addInGameValue(observer,client);
+      GameProcess.getInstance().setPlayer(client.toString());
     }
+    notifyClientLists(observer, client);
   }
 
-  private void removeAndUpdateClients(List<RMIClient> clientList, RMIClient toRemove) {
-    sendResetClientNumber(toRemove);
-    clientHolder.removeClient(toRemove);
-    getRMIObservable().removeObserver(toRemove.rmiObserver);
-    setChangedAndNotify(GUIObserverType.REFRESH_CLIENT_LIST, toRemove.clientInfo);
-    try {
-      final List<ClientInfo> clientInfoList = new ArrayList<ClientInfo>();
-      for (RMIClient client : clientList)
-        clientInfoList.add(client.clientInfo);
-      broadcastArray(MessageType.LOGIN_NUMBER, clientList, clientInfoList);
-      broadcastMessage(BroadcastType.LOGIN_LIST, clientInfoList);
-    } catch (GameServerException e) {
-      LOGGER.severe(e.getMessage());
-    }
-  }
-
-  private void deletePlayer(RMIClient rmiClient) {
+  public void removeClient(ClientInfo client) {
     final GameProcess process = GameProcess.getInstance();
-    process.removePlayer(rmiClient.clientInfo.loginNumber);
-    if(process.isGameInProcess())
-      process.abortGame();
+    if(process.removePlayer(client.toString())) {
+      if(process.isGameInProcess())
+        process.abortGame();
+      final RMIObserver observer = findObserver(client);
+      if(observer != null)
+        clientHolder.removeKey(observer);
+      notifyClientLists(null,null);
+    }
   }
 
-  private void sendResetClientNumber(RMIClient client) {
-    final ClientInfo newLoginNumber = new ClientInfo("", (short) -1);
-    newLoginNumber.setClientInfo(client.clientInfo);
-    newLoginNumber.loginNumber = GameConfigurationConstants.NO_LOGIN_NUMBER;
-    sendMessage(client, new MessageObject(MessageType.LOGIN_NUMBER, newLoginNumber));
+  private RMIObserver addObserver(ClientInfo client)
+      throws NotBoundException, RemoteException {
+    final Registry registry = LocateRegistry.getRegistry(client.ipAddress, client.port);
+    final RMIObserver observer =
+        (RMIObserver) registry.lookup(RMIService.OBSERVER.getServiceName(client.ipAddress));
+    getRMIObservable().registerInterest(observer);
+    return observer;
+  }
+
+  private RMIObserver findObserver(ClientInfo client) {
+    for (RMIObserver observer : clientHolder.getAllKeys()) {
+      final ClientInfo info = clientHolder.getValue(observer);
+      if(info.toString().equals(client.toString())) {
+        return observer;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Notifies the server gui and all clients which clients are currently in the list.
+   * The first parameter is the observer of the client that was added.
+   * If this parameter is null, only all other clients and the server gui will
+   * be notified.
+   */
+  private void notifyClientLists(RMIObserver observer, ClientInfo addedClient) {
+    setChangedAndNotify(GUIObserverType.REFRESH_CLIENT_LIST);
+    if(observer != null)
+      sendMessage(observer, new MessageObject(MessageType.OWN_CLIENT_INFO, addedClient));
+    broadcastOtherClients(BroadcastType.LOGIN_LIST);
+  }
+
+  /* sends to each client a list with all the other logged in clients */
+  void broadcastOtherClients(Enum<?> type) {
+    final List<ClientInfo> clients = clientHolder.getAllValues();
+    ClientInfo currentClient;
+
+    /* iterate the clients so that the original sequence is not changed */
+    for (RMIObserver rmiObserver : clientHolder.getAllKeys()) {
+      currentClient = clientHolder.getValue(rmiObserver);
+      final int index = Miscellaneous.findIndex(clients,currentClient,
+          Miscellaneous.CLIENT_COMPARATOR);
+      /* remove the client, send the rest of the list to all clients and add the current
+       * client back to the list */
+      clients.remove(index);
+      sendMessage(rmiObserver, new MessageObject(type, clients));
+      clients.add(index,currentClient);
+    }
   }
 
   /* Getter and Setter */
-  public List<ClientInfo> getClients() {
-    return clientHolder.getAllInGameClientInfo();
-  }
 
-  private RMIObservableImpl getRMIObservable() {
-    return (RMIObservableImpl) services.get(RMIService.OBSERVER);
+  public RMIObservableImpl getRMIObservable() {
+    return (RMIObservableImpl) services.get(RMIService.OBSERVABLE);
   }
 
   public void setPort(int port) {
@@ -296,6 +326,10 @@ public class GameServer extends Observable {
     return password;
   }
 
+  public List<ClientInfo> getClients() {
+    return clientHolder.getAllValues();
+  }
+
   /* Inner classes */
 }
 
@@ -304,9 +338,10 @@ class GameUpdater {
   private Integer stackSize;
   private GameProcess process;
   private GameServer server;
-  private ServerClientHolder clientHolder;
+  private InGameSpectatorHolder<RMIObserver,ClientInfo> clientHolder;
 
-  public GameUpdater(Integer stackSize, ServerClientHolder clientHolder) {
+  public GameUpdater(Integer stackSize,
+                     InGameSpectatorHolder<RMIObserver,ClientInfo> clientHolder) {
     this.stackSize = stackSize;
     this.clientHolder = clientHolder;
     this.process = GameProcess.getInstance();
@@ -320,23 +355,16 @@ class GameUpdater {
   }
 
   private void sendClientInit() {
-    try {
-      updateClients();
-      server.broadcastMessage(GameUpdateType.STACK_UPDATE, Converter.toDTO(GameCardStack.getInstance()));
-      server.broadcastArray(GameUpdateType.CLIENT_CARDS, clientHolder.getInGameClients(), process.getPlayerCards());
-      server.broadcastMessage(GameUpdateType.INITIALISE_PLAYERS, clientHolder.getAllInGameClientInfo());
-    } catch (GameServerException e) {
-      LOGGER.log(Level.SEVERE, e.getMessage());
-    }
+    updateClients();
+    server.broadcastMessage(GameUpdateType.STACK_UPDATE, Converter.toDTO(GameCardStack.getInstance()));
+    sendPlayersInfos();
+    server.broadcastOtherClients(GameUpdateType.INITIALISE_PLAYERS);
   }
 
   private void updateClients() {
-    final List<List<DTOCard>> clientCardCounts = process.getPlayerCards();
-    final List<PlayerConstants.PlayerType> types = process.getPlayerTypes();
-    for (int index = 0; index < clientHolder.getInGameClients().size(); index++) {
-      final RMIClient rmiClient = clientHolder.getInGameClients().get(index);
-      rmiClient.clientInfo.cardCount = clientCardCounts.get(index).size();
-      rmiClient.clientInfo.playerType = types.get(index);
+    for (ClientInfo info : clientHolder.getAllValues()) {
+      info.cardCount = process.getPlayerCards(info.toString()).size();
+      info.playerType = process.getPlayerType(info.toString());
     }
   }
 
@@ -344,143 +372,118 @@ class GameUpdater {
     final List<List<DTOCard>> allCards;
     updateClients();
 
-    try {
-      if(nextRound) {
-        allCards = null;
-        server.broadcastArray(GameUpdateType.CLIENT_CARDS,
-            clientHolder.getInGameClients(), process.getPlayerCards());
-        server.broadcastMessage(GameUpdateType.STACK_UPDATE,
-            Converter.toDTO(GameCardStack.getInstance()));
-      } else allCards = Converter.toDTO(process.getAttackCards(), process.getDefenseCards());
-      server.broadcastMessage(GameUpdateType.INGAME_CARDS, allCards);
-      server.broadcastMessage(GameUpdateType.PLAYERS_UPDATE, clientHolder.getAllInGameClientInfo());
-      server.broadcastMessage(GameUpdateType.NEXT_ROUND_AVAILABLE, process.nextRoundAvailable());
-    } catch (GameServerException e) {
-      LOGGER.log(Level.SEVERE, e.getMessage());
-    }
+    if(nextRound) {
+      allCards = null;
+      sendPlayersInfos();
+      server.broadcastMessage(GameUpdateType.STACK_UPDATE,
+          Converter.toDTO(GameCardStack.getInstance()));
+    } else allCards = Converter.toDTO(process.getAttackCards(), process.getDefenseCards());
+
+    /* update ingame cards, player list and if the next round is available */
+    server.broadcastMessage(GameUpdateType.INGAME_CARDS, allCards);
+    server.broadcastMessage(GameUpdateType.PLAYERS_UPDATE,
+        Collections.list(Collections.enumeration(clientHolder.getInGameValues())));
+    server.broadcastMessage(GameUpdateType.NEXT_ROUND_AVAILABLE, process.nextRoundAvailable());
 
     if(process.gameHasFinished()) {
       server.broadcastMessage(GameUpdateType.GAME_FINISHED);
     }
   }
+
+  /* sends each client his player info */
+  private void sendPlayersInfos() {
+    for (RMIObserver rmiObserver : clientHolder.getInGameKeys()) {
+      final ClientInfo client = clientHolder.getInGameValue(rmiObserver);
+      server.sendMessage(rmiObserver, new MessageObject(GameUpdateType.CLIENT_CARDS,
+          process.getPlayerCards(client.toString())));
+      server.sendMessage(rmiObserver, new MessageObject(MessageType.OWN_CLIENT_INFO, client));
+    }
+  }
 }
 
-class ServerClientHolder {
-  private List<RMIClient> inGameClients;
-  private List<RMIClient> spectators;
+class InGameSpectatorHolder<K,V> {
+  private Map<K,V> inGameMap;
+  private Map<K,V> spectatorMap;
 
   /* Constructors */
-  ServerClientHolder() {
-    inGameClients = new ArrayList<RMIClient>();
-    spectators = new ArrayList<RMIClient>();
+
+  InGameSpectatorHolder() {
+    inGameMap = new HashMap<K,V>(6);
+    spectatorMap = new HashMap<K,V>(6);
   }
 
   /* Methods */
-  /**
-   * Adds an rmiClient to the server and returns this rmiClient.
-   * @param rmiClient ClientInfo object to add to the server
-   * @return Returns the added ClientInfo object or null, if the object wasn't
-   * added.
-   */
-  public RMIClient addInGameClient(RMIClient rmiClient) {
-    final Integer nextNumber = inGameClients.size();
-    if(rmiClient.clientInfo.loginNumber.equals(GameConfigurationConstants.NO_LOGIN_NUMBER) ||
-        nextNumber.shortValue() < rmiClient.clientInfo.loginNumber) {
-      rmiClient.clientInfo.loginNumber = nextNumber.shortValue();
-      inGameClients.add(rmiClient);
-      return rmiClient;
-    }
 
-    return null;
+  public void addInGameValue(K key, V value) {
+    spectatorMap.remove(key);
+    inGameMap.put(key, value);
   }
 
-  public RMIClient addSpectator(RMIClient rmiClient) {
-    final Integer nextNumber = GameConfigurationConstants.SPECTATOR_START_NUMBER
-        + spectators.size();
-    if(rmiClient.clientInfo.loginNumber.equals(GameConfigurationConstants.NO_LOGIN_NUMBER) ||
-        nextNumber.shortValue() < rmiClient.clientInfo.loginNumber) {
-      rmiClient.clientInfo.loginNumber = nextNumber.shortValue();
-      spectators.add(rmiClient);
-      return rmiClient;
-    }
-
-    return null;
+  public void addSpectator(K key, V value) {
+    inGameMap.remove(key);
+    spectatorMap.put(key, value);
   }
 
-  public void removeClient(RMIClient rmiClient) {
-    inGameClients.remove(rmiClient);
-    spectators.remove(rmiClient);
-    refreshAllClients();
-  }
-
-  private void refreshAllClients() {
-    refreshClientListNumbers(inGameClients);
-    refreshClientListNumbers(spectators);
-  }
-
-  private void refreshClientListNumbers(List<RMIClient> list) {
-    for (int index = 0; index < list.size(); index++) {
-      final ClientInfo client = list.get(index).clientInfo;
-      if(client.loginNumber != index)
-        client.loginNumber = (short) index;
-    }
-  }
-
-  private RMIClient getIsEqualClient(List<RMIClient> list, ClientInfo info) {
-    for (RMIClient client : list) {
-      if(client.clientInfo.isEqual(info)) {
-        client.clientInfo.setClientInfo(info);
-        return client;
-      }
-    }
-    return null;
+  public void removeKey(K key) {
+    inGameMap.remove(key);
+    spectatorMap.remove(key);
   }
 
   /* Getter and Setter */
-  public RMIClient getIsEqualInGameClient(ClientInfo info) {
-    return getIsEqualClient(inGameClients, info);
+
+  /* Returns a copy of all values as one list */
+  public List<V> getAllValues() {
+    final List<V> values = new ArrayList<V>(inGameMap.size()+spectatorMap.size());
+    Miscellaneous.addAllToCollection(values, inGameMap.values());
+    Miscellaneous.addAllToCollection(values, spectatorMap.values());
+    return values;
   }
 
-  public RMIClient getIsEqualSpectator(ClientInfo info) {
-    return getIsEqualClient(spectators, info);
+  /* Returns a copy of all keys as one list */
+  public List<K> getAllKeys() {
+    final List<K> keys = new ArrayList<K>(inGameMap.size()+spectatorMap.size());
+    Miscellaneous.addAllToCollection(keys, inGameMap.keySet());
+    Miscellaneous.addAllToCollection(keys, spectatorMap.keySet());
+    return keys;
   }
 
-  public List<RMIClient> getInGameClients() {
-    return inGameClients;
+  public Map<K,V> getInGameMap() {
+    return inGameMap;
   }
 
-  public List<RMIClient> getSpectators() {
-    return spectators;
+  public Map<K,V> getSpectatorMap() {
+    return spectatorMap;
   }
 
-  public List<ClientInfo> getAllClientInfo() {
-    final List<ClientInfo> all = new ArrayList<ClientInfo>();
-    Miscellaneous.addAllToCollection(all, getAllInGameClientInfo());
-    Miscellaneous.addAllToCollection(all, getAllSpectatorClientInfo());
-    return all;
+  public V getInGameValue(K key) {
+    return inGameMap.get(key);
   }
 
-  public List<ClientInfo> getAllSpectatorClientInfo() {
-    final List<ClientInfo> all = new ArrayList<ClientInfo>();
-    for (RMIClient client : spectators)
-      all.add(client.clientInfo);
-    return all;
+  public V getSpectatorValue(K key) {
+    return spectatorMap.get(key);
   }
 
-  public List<ClientInfo> getAllInGameClientInfo() {
-    final List<ClientInfo> all = new ArrayList<ClientInfo>();
-    for (RMIClient client : inGameClients)
-      all.add(client.clientInfo);
-    return all;
+  public V getValue(K key) {
+    if(inGameMap.containsKey(key))
+      return inGameMap.get(key);
+    else if(spectatorMap.containsKey(key))
+      return spectatorMap.get(key);
+    else return null;
   }
-}
 
-class RMIClient {
-  RMIObserver rmiObserver;
-  ClientInfo clientInfo;
+  public Collection<K> getInGameKeys() {
+    return inGameMap.keySet();
+  }
 
-  RMIClient(RMIObserver rmiObserver, ClientInfo clientInfo) {
-    this.rmiObserver = rmiObserver;
-    this.clientInfo = clientInfo;
+  public Collection<K> getSpectatorKeys() {
+    return spectatorMap.keySet();
+  }
+
+  public Collection<V> getInGameValues() {
+    return inGameMap.values();
+  }
+
+  public Collection<V> getSpectatorValues() {
+    return spectatorMap.values();
   }
 }

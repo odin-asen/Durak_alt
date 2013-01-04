@@ -2,11 +2,10 @@ package client.gui.frame;
 
 import client.business.ConnectionInfo;
 import client.business.client.GameClient;
+import client.business.client.GameClientException;
 import client.gui.frame.chat.ChatFrame;
 import client.gui.frame.setup.SetupFrame;
-import common.dto.ClientInfo;
 import common.i18n.I18nSupport;
-import common.resources.ResourceGetter;
 import common.resources.ResourceList;
 import common.utilities.gui.WidgetCreator;
 
@@ -15,8 +14,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
 import java.util.logging.Logger;
 
 /**
@@ -37,7 +34,7 @@ public class DurakToolBar extends JToolBar {
   private static final String ACTION_COMMAND_CHAT = "chat";  //NON-NLS
 
   private ClientFrame parent;
-
+  private JButton connectionButton;
 
   public DurakToolBar(ClientFrame parent) {
     this.parent = parent;
@@ -49,9 +46,9 @@ public class DurakToolBar extends JToolBar {
 
   private void addButtons() {
     final ActionListener listener = new ToolBarComponentAL();
-    JButton connectionButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_NETWORK,
+    connectionButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_NETWORK,
         I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.connect"), ACTION_COMMAND_CONNECT,
-        I18nSupport.getValue(CLIENT_BUNDLE,"image.description.connect"), listener, KeyEvent.VK_V);
+        I18nSupport.getValue(CLIENT_BUNDLE, "image.description.connect"), listener, KeyEvent.VK_V);
     JButton setUpButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_PINION,
         I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.open.setup"), ACTION_COMMAND_SETUP,
         I18nSupport.getValue(CLIENT_BUNDLE,"image.description.setup"), listener, KeyEvent.VK_E);
@@ -72,24 +69,28 @@ public class DurakToolBar extends JToolBar {
     add(closeButton);
   }
 
+  public void setConnection(boolean connected) {
+    if(connected) {
+      WidgetCreator.changeButton(connectionButton,ResourceList.IMAGE_TOOLBAR_NETWORK_CLOSE,
+          ACTION_COMMAND_DISCONNECT, I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.disconnect"),
+          I18nSupport.getValue(CLIENT_BUNDLE,"image.description.disconnect"));
+    } else {
+      WidgetCreator.changeButton(connectionButton, ResourceList.IMAGE_TOOLBAR_NETWORK,
+          ACTION_COMMAND_CONNECT, I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.connect"),
+          I18nSupport.getValue(CLIENT_BUNDLE,"image.description.connect"));
+    }
+  }
+
   private class ToolBarComponentAL implements ActionListener {
     public void actionPerformed(ActionEvent e) {
       if(ACTION_COMMAND_CLOSE.equals(e.getActionCommand())) {
         close();
       } else if(ACTION_COMMAND_CONNECT.equals(e.getActionCommand())) {
         GameClient client = GameClient.getClient();
-        if(connectClient(client)) {
-          changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_NETWORK_CLOSE,
-              ACTION_COMMAND_DISCONNECT, I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.disconnect"),
-              I18nSupport.getValue(CLIENT_BUNDLE,"image.description.disconnect"));
-        }
+        setConnection(connectClient(client));
       } else if(ACTION_COMMAND_DISCONNECT.equals(e.getActionCommand())) {
         GameClient client = GameClient.getClient();
-        if(disconnectClient(client)) {
-          changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_NETWORK,
-              ACTION_COMMAND_CONNECT, I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.connect"),
-              I18nSupport.getValue(CLIENT_BUNDLE,"image.description.connect"));
-        }
+        setConnection(disconnectClient(client));
       } else if(ACTION_COMMAND_SETUP.equals(e.getActionCommand())) {
         SetupFrame frame = SetupFrame.getInstance();
         if(!frame.isVisible())
@@ -103,16 +104,6 @@ public class DurakToolBar extends JToolBar {
       }
     }
 
-    private void changeButton(JButton button, String pictureName, String actionCommand,
-                              String toolTipText, String alternativeText) {
-      button.setActionCommand(actionCommand);
-      if(pictureName != null) {
-        ImageIcon icon = ResourceGetter.getImage(pictureName, alternativeText);
-        button.setIcon(icon);
-      }
-      button.setToolTipText(toolTipText);
-    }
-
     private void close() {
       disconnectClient(GameClient.getClient());
       parent.setVisible(false);
@@ -122,14 +113,12 @@ public class DurakToolBar extends JToolBar {
 
     private Boolean disconnectClient(GameClient client) {
       try {
-        final ClientInfo info = SetupFrame.getInstance().getClientInfo();
-        client.disconnect(info);
-        SetupFrame.getInstance().setConnectionEnabled(true);
-        parent.setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE,"status.has.been.disconnected"), false, "");
-        parent.clearClientList();
-      } catch (NotBoundException e) {
-        LOGGER.severe(e.getMessage());
-      } catch (RemoteException e) {
+        final SetupFrame frame = SetupFrame.getInstance();
+        client.disconnect(frame.getClientInfo());
+        frame.setConnectionEnabled(true);
+        parent.setStatus(I18nSupport.getValue(MESSAGE_BUNDLE, "status.has.been.disconnected"), false, "");
+        parent.clearClients();
+      } catch (GameClientException e) {
         LOGGER.severe(e.getMessage());
       }
 
@@ -137,23 +126,26 @@ public class DurakToolBar extends JToolBar {
     }
 
     private Boolean connectClient(GameClient client) {
-      client.setPort(SetupFrame.getInstance().getConnectionInfo().getPort());
-      client.setServerAddress(SetupFrame.getInstance().getConnectionInfo().getIpAddress());
+      final SetupFrame setup = SetupFrame.getInstance();
 
       try {
-        final SetupFrame setup = SetupFrame.getInstance();
         final ConnectionInfo connection = setup.getConnectionInfo();
+        client.setConnection(connection);
+
+        setup.getClientInfo().ipAddress = connection.getClientAddress();
+        setup.getClientInfo().port = connection.getClientPort();
+
         final String socketString =
-            "[" + connection.getIpAddress()+":"+ connection.getPort()+"]";
-        if(client.connect(setup.getClientInfo(), connection.getPassword())) {
-          parent.setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE,"status.connected"), true, socketString);
-          setup.setConnectionEnabled(false);
-        } else {
-          parent.setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE,"status.permission.denied"), false, "");
-        }
+            "[" + connection.getServerAddress()+":"+ connection.getServerPort()+"]";
+        client.connect(setup.getClientInfo(), connection.getPassword());
+        parent.setStatus(I18nSupport.getValue(MESSAGE_BUNDLE, "status.connected"),
+            true, socketString);
+        setup.setConnectionEnabled(false);
+      } catch (GameClientException e) {
+        parent.setStatus(e.getMessage(), false, "");
       } catch (Exception e) {
         LOGGER.severe(e.getMessage());
-        parent.setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE,"status.connection.failed"), false, "");
+        parent.setStatus(I18nSupport.getValue(MESSAGE_BUNDLE, "status.connection.failed"), false, "");
       }
 
       return client.isConnected();

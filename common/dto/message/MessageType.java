@@ -8,6 +8,6 @@ package common.dto.message;
  * This enum contains constants that will be used on client and server side.
  */
 public enum MessageType {
-  LOGIN_NUMBER,
+  OWN_CLIENT_INFO,
   SERVER_PING
 }

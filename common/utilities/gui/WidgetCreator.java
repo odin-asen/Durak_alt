@@ -19,9 +19,9 @@ import java.util.logging.Logger;
 public class WidgetCreator {
   private static final Logger LOGGER = Logger.getLogger(WidgetCreator.class.getName());
 
-  public static JComboBox<String> makeComboBox(Vector<String> comboBoxContent, int maxRowCount,
+  public static <T> JComboBox<T> makeComboBox(Vector<T> comboBoxContent, int maxRowCount,
                                                int preferredWidth, String toolTipText) {
-    final JComboBox<String> comboBox = new JComboBox<String>(comboBoxContent);
+    final JComboBox<T> comboBox = new JComboBox<T>(comboBoxContent);
 
     comboBox.setEditable(true);
     comboBox.setToolTipText(toolTipText);
@@ -86,8 +86,41 @@ public class WidgetCreator {
     return button;
   }
 
+  public static void changeButton(AbstractButton button, String pictureName, String actionCommand,
+                            String toolTipText, String alternativeText) {
+    if(button == null)
+      return;
+
+    button.setActionCommand(actionCommand);
+    if(pictureName != null) {
+      ImageIcon icon = ResourceGetter.getImage(pictureName, alternativeText);
+      button.setIcon(icon);
+    }
+    button.setToolTipText(toolTipText);
+  }
+
   public static Border createStatusBorder() {
     final Border lowered = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
     return lowered;
+  }
+
+  public static Border createPopupBorder() {
+    Border line = BorderFactory.createLineBorder(Color.BLACK);
+    Border compound = BorderFactory.createCompoundBorder(
+        BorderFactory.createBevelBorder(BevelBorder.RAISED),
+        BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+    return BorderFactory.createCompoundBorder(line, compound);
+  }
+
+  public static DurakPopup createPopup(Color backgroundColour, String text,
+                                       Rectangle topFrameBounds, double openSeconds) {
+    final DurakPopup popup = new DurakPopup(backgroundColour);
+    popup.setText(text);
+    popup.setSize(popup.getPrefferedSize());
+    popup.setLocation(topFrameBounds.x + topFrameBounds.width - popup.getWidth() - 20,
+        topFrameBounds.y + topFrameBounds.height - popup.getHeight() - 20);
+    popup.setOpenSeconds(openSeconds);
+
+    return popup;
   }
 }

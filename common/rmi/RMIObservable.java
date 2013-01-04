@@ -11,8 +11,10 @@ import java.rmi.server.ServerNotActiveException;
  * Time: 16:58
  */
 public interface RMIObservable extends Remote {
-  public void registerInterest(RMIObserver client)
-      throws RemoteException, ServerNotActiveException;
-  public void notifyObservers(Serializable notification)
-      throws RemoteException, ServerNotActiveException;
+  public void registerInterest(RMIObserver observer)
+      throws RemoteException;
+  public void notifyObservers(Object parameter)
+      throws RemoteException;
+  public void removeAllSubscribers()
+      throws RemoteException;
 }

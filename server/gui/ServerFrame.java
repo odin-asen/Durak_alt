@@ -6,16 +6,20 @@ import common.dto.message.MessageObject;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
 import common.resources.ResourceList;
-import server.business.GameServer;
+import common.utilities.Miscellaneous;
 import common.utilities.gui.Constraints;
 import common.utilities.gui.FramePosition;
 import common.utilities.gui.WidgetCreator;
+import server.business.GameServer;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.text.MessageFormat;
@@ -33,7 +37,7 @@ import static server.gui.ServerGUIConstants.*;
  * Time: 19:33
  */
 public class ServerFrame extends JFrame implements Observer {
-  private static final String CLIENT_BUNDLE = "server.server"; //NON-NLS
+  private static final String SERVER_BUNDLE = "server.server"; //NON-NLS
   private static final String MESSAGE_BUNDLE = "user.messages"; //NON-NLS
   private static Logger LOGGER = Logger.getLogger(ServerFrame.class.getName());
 
@@ -64,8 +68,8 @@ public class ServerFrame extends JFrame implements Observer {
     initComponents();
 
     GameServer.getServerInstance().addObserver(this);
-    setTitle(MessageFormat.format("{0} - {1} {2}", I18nSupport.getValue(CLIENT_BUNDLE,"application.title"),
-        I18nSupport.getValue(CLIENT_BUNDLE,"version"), VERSION_NUMBER));
+    setTitle(MessageFormat.format("{0} - {1} {2}", I18nSupport.getValue(SERVER_BUNDLE,"application.title"),
+        I18nSupport.getValue(SERVER_BUNDLE,"version"), VERSION_NUMBER));
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
   }
 
@@ -97,21 +101,17 @@ public class ServerFrame extends JFrame implements Observer {
     if (GUIObserverType.REFRESH_CLIENT_LIST.equals(object.getType())) {
       refreshClientList(GameServer.getServerInstance().getClients());
     } else if (GUIObserverType.SERVER_FAIL.equals(object.getType())) {
-      setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE,"port.0.used", portField.getText()));
+      setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "server.port.0.used",
+          portField.getText()));
     }
   }
 
   private void removeClient(ClientInfo client) {
-    int clientIndex = -1;
     for (int i = 0; i < listModel.size(); i++) {
-      if(listModel.get(i).isEqual(client)) {
-        clientIndex = i;
+      if(listModel.get(i).equals(client)) {
+        listModel.remove(i);
         i = listModel.size();
       }
-    }
-
-    if(clientIndex != -1) {
-      listModel.remove(clientIndex);
     }
   }
 
@@ -148,14 +148,14 @@ public class ServerFrame extends JFrame implements Observer {
     toolBar = new JToolBar();
     final ToolBarComponentAL listener = new ToolBarComponentAL();
     JButton startStopButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_PLAY,
-        I18nSupport.getValue(CLIENT_BUNDLE,"button.tooltip.start.server"), ACTION_COMMAND_START,
-        I18nSupport.getValue(CLIENT_BUNDLE,"image.description.start.server"), listener, KeyEvent.VK_G);
+        I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.start.server"), ACTION_COMMAND_START,
+        I18nSupport.getValue(SERVER_BUNDLE,"image.description.start.server"), listener, KeyEvent.VK_G);
     JButton gameStartButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_GAME_START,
-        I18nSupport.getValue(CLIENT_BUNDLE,"button.tooltip.start.game"), ACTION_COMMAND_START_GAME,
-        I18nSupport.getValue(CLIENT_BUNDLE,"image.description.start.game"), listener, KeyEvent.VK_S);
+        I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.start.game"), ACTION_COMMAND_START_GAME,
+        I18nSupport.getValue(SERVER_BUNDLE,"image.description.start.game"), listener, KeyEvent.VK_S);
     JButton closeButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_CLOSE,
-        I18nSupport.getValue(CLIENT_BUNDLE,"button.tooltip.close"), ACTION_COMMAND_CLOSE,
-        I18nSupport.getValue(CLIENT_BUNDLE,"image.description.close"), listener, KeyEvent.VK_Q);
+        I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.close"), ACTION_COMMAND_CLOSE,
+        I18nSupport.getValue(SERVER_BUNDLE,"image.description.close"), listener, KeyEvent.VK_Q);
 
     toolBar.setMargin(new Insets(5, 5, 5, 5));
     toolBar.setRollover(true);
@@ -200,11 +200,10 @@ public class ServerFrame extends JFrame implements Observer {
     portField.setPreferredSize(new Dimension(PREFERRED_FIELD_WIDTH, portField.getPreferredSize().height));
     portField.setMaximumSize(new Dimension(Integer.MAX_VALUE, portField.getPreferredSize().height));
 
-    panel.setBorder(BorderFactory.createTitledBorder(I18nSupport.getValue(CLIENT_BUNDLE,"border.title.port")));
+    panel.setBorder(BorderFactory.createTitledBorder(I18nSupport.getValue(SERVER_BUNDLE, "border.title.server.port")));
 
     GridBagConstraints constraints = new GridBagConstraints();
     panel.add(portField, constraints);
-
     return panel;
   }
 
@@ -229,14 +228,14 @@ public class ServerFrame extends JFrame implements Observer {
 
     gameSettingsPanel = new JPanel();
     stackSizeCombo = new JComboBox<Integer>(new Integer[]{36,40,44,48,52});
-    JLabel stackSizeLabel = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.card.number"));
+    JLabel stackSizeLabel = new JLabel(I18nSupport.getValue(SERVER_BUNDLE, "label.text.card.number"));
 
     stackSizeCombo.setEditable(false);
-    stackSizeCombo.setToolTipText(I18nSupport.getValue(CLIENT_BUNDLE,"combo.box.tooltip.card.number"));
+    stackSizeCombo.setToolTipText(I18nSupport.getValue(SERVER_BUNDLE,"combo.box.tooltip.card.number"));
     stackSizeCombo.setMaximumSize(stackSizeCombo.getPreferredSize());
-    gameSettingsPanel.setLayout(new GridLayout(0,2,2,0));
+    gameSettingsPanel.setLayout(new GridLayout(0, 2, 2, 0));
     gameSettingsPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_BUNDLE,"border.title.game.settings")));
+        I18nSupport.getValue(SERVER_BUNDLE, "border.title.game.settings")));
     gameSettingsPanel.add(stackSizeLabel);
     gameSettingsPanel.add(stackSizeCombo);
 
@@ -255,13 +254,13 @@ public class ServerFrame extends JFrame implements Observer {
       } else if (ACTION_COMMAND_START.equals(e.getActionCommand())) {
         startGameServer();
         changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_STOP_PLAYER,
-            ACTION_COMMAND_STOP, I18nSupport.getValue(CLIENT_BUNDLE,"button.tooltip.stop.server"),
-            I18nSupport.getValue(CLIENT_BUNDLE,"image.description.stop.server"));
+            ACTION_COMMAND_STOP, I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.stop.server"),
+            I18nSupport.getValue(SERVER_BUNDLE,"image.description.stop.server"));
       } else if (ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
         stopGameServer();
         changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_PLAY,
-            ACTION_COMMAND_START, I18nSupport.getValue(CLIENT_BUNDLE,"button.tooltip.start.server"),
-            I18nSupport.getValue(CLIENT_BUNDLE,"image.description.start.server"));
+            ACTION_COMMAND_START, I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.start.server"),
+            I18nSupport.getValue(SERVER_BUNDLE,"image.description.start.server"));
       } else if (ACTION_COMMAND_START_GAME.equals(e.getActionCommand())) {
         startGame();
       }
@@ -307,14 +306,22 @@ public class ServerFrame extends JFrame implements Observer {
       final GameServer gameServer = GameServer.getServerInstance(getPortValue(), "");
 
       try {
-        gameServer.startServer();
+        String ipAddress;
+        try {
+          ipAddress = Miscellaneous.getHostInetAddress(Inet4Address.class).getHostAddress();
+        } catch (SocketException e) {
+          ipAddress = InetAddress.getLoopbackAddress().getHostAddress();
+        }
+        gameServer.startServer(ipAddress);
         setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "status.server.running"));
       } catch (IllegalAccessException e) {
+        setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "network.error"));
         LOGGER.severe(e.getClass()+" "+e.getMessage());
       } catch (InstantiationException e) {
-        e.printStackTrace();
+        setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "network.error"));
         LOGGER.severe(e.getClass()+" "+e.getMessage());
       } catch (RemoteException e) {
+        setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "network.error"));
         LOGGER.severe(e.getClass() + " Could not register services");
       }
     }
