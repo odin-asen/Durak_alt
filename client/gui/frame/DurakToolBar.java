@@ -112,21 +112,20 @@ public class DurakToolBar extends JToolBar {
     }
 
     private Boolean disconnectClient(GameClient client) {
-      try {
-        final SetupFrame frame = SetupFrame.getInstance();
-        client.disconnect(frame.getClientInfo());
-        frame.setConnectionEnabled(true);
-        parent.setStatus(I18nSupport.getValue(MESSAGE_BUNDLE, "status.has.been.disconnected"), false, "");
-        parent.clearClients();
-      } catch (GameClientException e) {
-        LOGGER.severe(e.getMessage());
-      }
+      final SetupFrame frame = SetupFrame.getInstance();
+      client.disconnect(frame.getClientInfo());
+      frame.setConnectionEnabled(true);
+      parent.setStatus(I18nSupport.getValue(MESSAGE_BUNDLE, "status.has.been.disconnected"), false, "");
+      parent.clearClients();
 
-      return !client.isConnected();
+      return client.isConnected();
     }
 
     private Boolean connectClient(GameClient client) {
       final SetupFrame setup = SetupFrame.getInstance();
+
+      if(client.isConnected())
+        client.disconnect(setup.getClientInfo());
 
       try {
         final ConnectionInfo connection = setup.getConnectionInfo();

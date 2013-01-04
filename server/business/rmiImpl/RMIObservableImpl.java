@@ -3,7 +3,6 @@ package server.business.rmiImpl;
 import common.rmi.RMIObservable;
 import common.rmi.RMIObserver;
 
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.ServerNotActiveException;
 import java.util.Vector;
@@ -17,32 +16,36 @@ import java.util.logging.Logger;
 public class RMIObservableImpl implements RMIObservable {
   private static final Logger LOGGER = Logger.getLogger(RMIObservableImpl.class.getName());
 
-  private Vector<RMIObserver> clients;
+  private Vector<RMIObserver> observers;
 
   /* Constructors */
 
   public RMIObservableImpl() {
-    clients = new Vector<RMIObserver>();
+    observers = new Vector<RMIObserver>();
   }
 
   /* Methods */
   public void registerInterest(RMIObserver observer)
       throws RemoteException {
-    clients.addElement(observer);
+    observers.addElement(observer);
   }
 
   public void notifyObservers(Object parameter)
       throws RemoteException {
-    for (RMIObserver client : clients)
-      notifyObserver(client, parameter);
+    for (RMIObserver observer : observers)
+      try {
+        notifyObserver(observer, parameter);
+      } catch (RemoteException e) {
+        LOGGER.warning(e.getMessage());
+      }
   }
 
   public void removeAllSubscribers() throws RemoteException {
-    clients.removeAllElements();
+    observers.removeAllElements();
   }
 
   public void removeObserver(RMIObserver observer) {
-    clients.remove(observer);
+    observers.remove(observer);
   }
 
   public void notifyObserver(RMIObserver observer, Object parameter)
@@ -50,13 +53,13 @@ public class RMIObservableImpl implements RMIObservable {
     try {
       observer.update(parameter);
     } catch (ServerNotActiveException e) {
-      LOGGER.severe("Client " + observer + " is not active and will be removed!");
+      LOGGER.info("Observer " + observer + " is not active and will be removed!");
       removeObserver(observer);
     }
   }
 
   /* Getter and Setter */
-  public Vector<RMIObserver> getClients() {
-    return clients;
+  public Vector<RMIObserver> getObservers() {
+    return observers;
   }
 }

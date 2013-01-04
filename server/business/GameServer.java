@@ -243,8 +243,10 @@ public class GameServer extends Observable {
       if(process.isGameInProcess())
         process.abortGame();
       final RMIObserver observer = findObserver(client);
-      if(observer != null)
+      if(observer != null) {
         clientHolder.removeKey(observer);
+        getRMIObservable().removeObserver(observer);
+      }
       notifyClientLists(null,null);
     }
   }

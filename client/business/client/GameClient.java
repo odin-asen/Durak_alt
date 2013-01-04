@@ -111,14 +111,17 @@ public class GameClient extends Observable {
     }
   }
 
-  public void disconnect(ClientInfo client) throws GameClientException {
+  public void disconnect(ClientInfo client) {
     if(isConnected()) {
       try {
-        getAuthenticator().logoff(client);
         connected = false;
+        getAuthenticator().logoff(client);
+        Miscellaneous.getSafeRegistry(clientPort).unbind(RMIService.OBSERVER.getServiceName(clientAddress));
+        UnicastRemoteObject.unexportObject(observer, true);
       } catch (RemoteException e) {
-        LOGGER.severe("RemoteException occured while connecting: " + e.getMessage());
-        throw new GameClientException("An internal error occured. Please refer to the developer!");
+        LOGGER.info(e.getMessage());
+      } catch (NotBoundException e) {
+        LOGGER.info(e.getMessage());
       }
     }
   }
