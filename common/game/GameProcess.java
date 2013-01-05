@@ -1,11 +1,9 @@
 package common.game;
 
-import common.dto.ClientInfo;
 import common.dto.DTOCard;
 import common.game.rules.RuleChecker;
 import common.game.rules.RuleException;
 import common.game.rules.RuleFactory;
-import common.rmi.GameAction;
 import common.utilities.Converter;
 import common.utilities.Miscellaneous;
 import common.utilities.constants.GameConfigurationConstants;
@@ -25,7 +23,11 @@ import java.util.*;
 public class GameProcess {
   private static GameProcess gameProcess;
 
-  private ElementPairHolder<GameCard> inGameCardHolder;
+  /**
+   * This object lists pairs of cards where the first card of a pair is
+   * the attacker card and the second card is the defender card.
+   */
+  private ElementPairHolder<GameCard> pairCardHolder;
 
   private ListMap<String,Player> playerHolder;
 
@@ -50,7 +52,7 @@ public class GameProcess {
   /* Methods */
   private void initialiseInstance() {
     playerHolder = new ListMap<String, Player>();
-    inGameCardHolder = new ElementPairHolder<GameCard>();
+    pairCardHolder = new ElementPairHolder<GameCard>();
     gameInProcess = false;
     initialiseNew = true;
   }
@@ -141,24 +143,22 @@ public class GameProcess {
   }
 
   private void validateDefense(String playerID, List<List<DTOCard>> cards) throws RuleException, RemoteException {
-    ruleChecker.doDefenseMove(
-        playerHolder.get(playerID),
-        inGameCardHolder.getFirstElements().isEmpty(),
-        Converter.fromDTO(cards.get(1).get(0)),
-        Converter.fromDTO(cards.get(0).get(0)));
-    inGameCardHolder.joinElements(
-        Converter.fromDTO(cards.get(0).get(0)),
-        Converter.fromDTO(cards.get(1).get(0)));
+    final GameCard defenderCard = Converter.fromDTO(cards.get(0).get(0));
+    final GameCard attackerCard = Converter.fromDTO(cards.get(1).get(0));
+    ruleChecker.doDefenseMove(playerHolder.get(playerID),
+        pairCardHolder.getFirstElements().isEmpty(),
+        defenderCard, attackerCard);
+    pairCardHolder.joinElements(attackerCard, defenderCard);
   }
 
   private void validateAttack(String playerID, List<DTOCard> attackCards)
       throws RuleException, RemoteException {
     List<GameCard> cards = Converter.fromDTO(attackCards);
-    ruleChecker.doAttackMove(playerHolder.get(playerID),
-        cards, inGameCardHolder.getFirstElements(), inGameCardHolder.getSecondElements());
+    ruleChecker.doAttackMove(playerHolder.get(playerID), cards,
+        pairCardHolder.getFirstElements(), pairCardHolder.getSecondElements());
 
     for (GameCard card : cards)
-      inGameCardHolder.addPair(card, null);
+      pairCardHolder.addPair(card, null);
   }
 
   /**
@@ -180,7 +180,7 @@ public class GameProcess {
     }
 
     if(result)
-      inGameCardHolder.clearPairs();
+      pairCardHolder.clearPairs();
 
     return result;
   }
@@ -189,7 +189,7 @@ public class GameProcess {
     Boolean result = true;
 
     if(takeCards) {
-      final List<List<GameCard>> pairs = inGameCardHolder.getElementPairs();
+      final List<List<GameCard>> pairs = pairCardHolder.getElementPairs();
       for (List<GameCard> pair : pairs) {
         for (GameCard card : pair) {
           defender.pickUpCard(card);
@@ -198,7 +198,7 @@ public class GameProcess {
       prepareForNextRound();
       nextRoundOrFinish(defender.getLeftPlayer());
     } else {
-      if(ruleChecker.readyForNextRound() && inGameCardHolder.hasNoNullPairs()) {
+      if(ruleChecker.readyForNextRound() && pairCardHolder.hasNoNullPairs()) {
         prepareForNextRound();
         nextRoundOrFinish(defender);
       } else result = false;
@@ -310,11 +310,11 @@ public class GameProcess {
   }
 
   public List<GameCard> getAttackCards() {
-    return inGameCardHolder.getFirstElements();
+    return pairCardHolder.getFirstElements();
   }
 
   public List<GameCard> getDefenseCards() {
-    return inGameCardHolder.getSecondElements();
+    return pairCardHolder.getSecondElements();
   }
 
   /* Inner Classes */

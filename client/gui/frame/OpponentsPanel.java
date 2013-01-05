@@ -36,7 +36,8 @@ public class OpponentsPanel extends JPanel {
   private OpponentHandWidget findOpponentHandWidget(ClientInfo info) {
     for (Component component : getComponents()) {
       final OpponentHandWidget widget = (OpponentHandWidget) component;
-      if(widget.getOpponent().equals(info))
+      final ClientInfo opponent = widget.getOpponent();
+      if(opponent.ipAddress.equals(info.ipAddress) && opponent.port == info.port)
         return widget;
     }
 

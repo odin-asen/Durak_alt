@@ -11,6 +11,12 @@ import java.util.List;
  * User: Timm Herrmann
  * Date: 12.10.12
  * Time: 17:12
+ *
+ * The ClientInfo class represents a client with some informations like the name, the
+ * number of cards, if it is spectating a match or the network information
+ * (ip address, port). The toString()-method uses the ip address and port as unique string
+ * representation, hence there should be only one device in a network that runs a server
+ * connected to a server once a time.
  */
 public class ClientInfo implements Serializable {
   public String name;

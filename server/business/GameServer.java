@@ -228,7 +228,7 @@ public class GameServer extends Observable {
 
     RMIObserver observer = addObserver(client);
 
-    if(inProcess || client.spectating) { //TODO testen, ob nach einem Neustart des Spiels, ein Spieler, der sich für Zuschauen entschiden hat, auch hier rein kommt
+    if(inProcess || client.spectating) {
       clientHolder.addSpectator(observer,client);
     } else {
       clientHolder.addInGameValue(observer,client);

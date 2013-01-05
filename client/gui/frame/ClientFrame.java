@@ -407,6 +407,7 @@ class ClientFrameMessageHandler {
       frame.initialisePlayers(clients);
       frame.updateStatusBar();
     } else if(GameUpdateType.PLAYERS_UPDATE.equals(object.getType())) {
+      System.out.println("players update");
       final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
       frame.updateOpponents(clients);
       frame.updateStatusBar();
@@ -423,7 +424,7 @@ class ClientFrameMessageHandler {
       frame.showGameOverMessage();
     }
   }
-
+  //TODO nicht internationalisierte Strings internationalisieren
   private void guiInGameCardsUpdate(List<List<DTOCard>> cardLists) {
     List<DTOCard> attackerCards = null;
     List<DTOCard> defenderCards = null;
