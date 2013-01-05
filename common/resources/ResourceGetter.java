@@ -1,5 +1,6 @@
 package common.resources;
 
+import common.utilities.LoggingUtility;
 import common.utilities.constants.GameCardConstants;
 import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.constants.PlayerConstants;
@@ -24,7 +25,7 @@ import static common.resources.ResourceList.*;
  * Time: 19:59
  */
 public class ResourceGetter {
-  private static final Logger LOGGER = Logger.getLogger(ResourceGetter.class.getName());
+  private static final Logger LOGGER = LoggingUtility.getLogger(ResourceGetter.class.getName());
 
   private static final int CARD_STRIPE_X_AXIS_GAP = 1;
   private static final int MAGIC_X_AXIS_GAP_CONSTANT = 2;

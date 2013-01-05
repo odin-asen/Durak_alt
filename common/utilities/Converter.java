@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  */
 @SuppressWarnings("unchecked")
 public class Converter {
-  private static final Logger LOGGER = Logger.getLogger(Converter.class.getName());
+  private static final Logger LOGGER = LoggingUtility.getLogger(Converter.class.getName());
 
   public static ClientInfo toDTO(ClientInfo client, Player player) {
     if(client != null) {

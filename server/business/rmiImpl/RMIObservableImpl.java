@@ -2,6 +2,7 @@ package server.business.rmiImpl;
 
 import common.rmi.RMIObservable;
 import common.rmi.RMIObserver;
+import common.utilities.LoggingUtility;
 
 import java.rmi.RemoteException;
 import java.rmi.server.ServerNotActiveException;
@@ -14,7 +15,7 @@ import java.util.logging.Logger;
  * Time: 17:02
  */
 public class RMIObservableImpl implements RMIObservable {
-  private static final Logger LOGGER = Logger.getLogger(RMIObservableImpl.class.getName());
+  private static final Logger LOGGER = LoggingUtility.getLogger(RMIObservableImpl.class.getName());
 
   private Vector<RMIObserver> observers;
 

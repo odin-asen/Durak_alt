@@ -1,6 +1,7 @@
 package client;
 
 import client.gui.frame.ClientFrame;
+import common.utilities.LoggingUtility;
 
 import javax.swing.*;
 
@@ -12,6 +13,7 @@ import javax.swing.*;
 public class StartClient {
   public static void main(String[] args) {
     loadLaF();
+    LoggingUtility.setFirstTimeLoggingFile("clientLog.txt"); //NON-NLS
     final ClientFrame frame = new ClientFrame();
     frame.setVisible(true);
   }

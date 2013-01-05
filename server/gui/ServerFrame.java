@@ -6,6 +6,7 @@ import common.dto.message.MessageObject;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
 import common.resources.ResourceList;
+import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
 import common.utilities.gui.Constraints;
 import common.utilities.gui.FramePosition;
@@ -39,7 +40,7 @@ import static server.gui.ServerGUIConstants.*;
 public class ServerFrame extends JFrame implements Observer {
   private static final String SERVER_BUNDLE = "server.server"; //NON-NLS
   private static final String MESSAGE_BUNDLE = "user.messages"; //NON-NLS
-  private static Logger LOGGER = Logger.getLogger(ServerFrame.class.getName());
+  private static Logger LOGGER = LoggingUtility.getLogger(ServerFrame.class.getName());
 
   private static final String VERSION_NUMBER = "0.1";
   private static final String ACTION_COMMAND_START = "start"; //NON-NLS

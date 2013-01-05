@@ -3,6 +3,7 @@ package common.game.rules;
 import common.game.GameCard;
 import common.game.Player;
 import common.i18n.I18nSupport;
+import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
 
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ import static common.utilities.constants.PlayerConstants.PlayerType;
  */
 public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spieler, mehr als 2 Spieler, 2 gegen 2 Spieler
   private static final String BUNDLE_NAME = "user.messages"; //NON-NLS
-  private static final Logger LOGGER = Logger.getLogger(RuleChecker.class.getName());
+  private static final Logger LOGGER = LoggingUtility.getLogger(RuleChecker.class.getName());
 
   private CardColour trumpColour;
   private Player firstAttacker;

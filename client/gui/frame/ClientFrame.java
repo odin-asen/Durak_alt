@@ -11,9 +11,10 @@ import common.dto.DTOCardStack;
 import common.dto.message.*;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
+import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
-import common.utilities.gui.DurakPopup;
 import common.utilities.gui.Constraints;
+import common.utilities.gui.DurakPopup;
 import common.utilities.gui.FramePosition;
 import common.utilities.gui.WidgetCreator;
 
@@ -39,7 +40,7 @@ import static common.utilities.constants.PlayerConstants.PlayerType;
 public class ClientFrame extends JFrame implements Observer {
   private static final String BUNDLE_NAME = "client.client"; //NON-NLS
   
-  private static final String VERSION_NUMBER = "0.1";
+  private static final String VERSION_NUMBER = "0.2";
   private static final String ACTION_COMMAND_TAKE_CARDS = "takeCards"; //NON-NLS
   private static final String ACTION_COMMAND_ROUND_DONE = "roundDone"; //NON-NLS
 
@@ -358,8 +359,8 @@ public class ClientFrame extends JFrame implements Observer {
 @SuppressWarnings("unchecked")
 class ClientFrameMessageHandler {
   private static final String BUNDLE_NAME = "client.client"; //NON-NLS
-  private static final Logger LOGGER = Logger.getLogger(ClientFrameMessageHandler.class.getName());
-  
+  private static final Logger LOGGER = LoggingUtility.getLogger(ClientFrameMessageHandler.class.getName());
+
   private ClientFrame frame;
 
   ClientFrameMessageHandler(ClientFrame frame) {
@@ -407,7 +408,6 @@ class ClientFrameMessageHandler {
       frame.initialisePlayers(clients);
       frame.updateStatusBar();
     } else if(GameUpdateType.PLAYERS_UPDATE.equals(object.getType())) {
-      System.out.println("players update");
       final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
       frame.updateOpponents(clients);
       frame.updateStatusBar();
@@ -453,7 +453,7 @@ class ClientFrameMessageHandler {
 
 class UserMessageDistributor {
   private static final String BUNDLE_NAME = "client.client"; //NON-NLS
-  private static final Logger LOGGER = Logger.getLogger(UserMessageDistributor.class.getName());
+  private static final Logger LOGGER = LoggingUtility.getLogger(UserMessageDistributor.class.getName());
 
   private ClientFrame frame;
 

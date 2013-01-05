@@ -3,6 +3,7 @@ package client.gui.frame;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
 import common.resources.ResourceList;
+import common.utilities.LoggingUtility;
 import common.utilities.constants.PlayerConstants;
 import common.utilities.gui.WidgetCreator;
 
@@ -24,7 +25,7 @@ import java.util.logging.Logger;
 public class DurakStatusBar extends JPanel implements Runnable {
   private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
   private static final String MESSAGE_BUNDLE = "user.messages"; //NON-NLS
-  private static final Logger LOGGER = Logger.getLogger(DurakStatusBar.class.getName());
+  private static final Logger LOGGER = LoggingUtility.getLogger(DurakStatusBar.class.getName());
 
   private static final DateFormat format = new SimpleDateFormat(I18nSupport.getValue(CLIENT_BUNDLE,"format.date"), Locale.getDefault());
   private static final Calendar calendar = GregorianCalendar.getInstance(Locale.getDefault());

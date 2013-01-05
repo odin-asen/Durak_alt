@@ -7,6 +7,7 @@ import client.gui.frame.chat.ChatFrame;
 import client.gui.frame.setup.SetupFrame;
 import common.i18n.I18nSupport;
 import common.resources.ResourceList;
+import common.utilities.LoggingUtility;
 import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
@@ -25,7 +26,7 @@ public class DurakToolBar extends JToolBar {
   private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
   private static final String MESSAGE_BUNDLE = "user.messages"; //NON-NLS
 
-  private static final Logger LOGGER = Logger.getLogger(DurakToolBar.class.getName());
+  private static final Logger LOGGER = LoggingUtility.getLogger(DurakToolBar.class.getName());
   
   private static final String ACTION_COMMAND_CLOSE = "close";  //NON-NLS
   private static final String ACTION_COMMAND_CONNECT = "connect";  //NON-NLS

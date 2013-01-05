@@ -1,6 +1,7 @@
 package common.utilities.gui;
 
 import common.resources.ResourceGetter;
+import common.utilities.LoggingUtility;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -17,7 +18,7 @@ import java.util.logging.Logger;
  * Time: 01:06
  */
 public class WidgetCreator {
-  private static final Logger LOGGER = Logger.getLogger(WidgetCreator.class.getName());
+  private static final Logger LOGGER = LoggingUtility.getLogger(WidgetCreator.class.getName());
 
   public static <T> JComboBox<T> makeComboBox(Vector<T> comboBoxContent, int maxRowCount,
                                                int preferredWidth, String toolTipText) {

@@ -1,5 +1,6 @@
 package server;
 
+import common.utilities.LoggingUtility;
 import server.gui.ServerFrame;
 
 import javax.swing.*;
@@ -12,6 +13,7 @@ import javax.swing.*;
 public class StartServer {
   public static void main(String[] args) {
     loadLaF();
+    LoggingUtility.setFirstTimeLoggingFile("serverLog.txt"); //NON-NLS
     final ServerFrame frame = new ServerFrame();
     frame.setVisible(true);
   }

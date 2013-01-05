@@ -5,16 +5,15 @@ import common.dto.ClientInfo;
 import common.dto.DTOCard;
 import common.dto.message.MessageObject;
 import common.rmi.*;
+import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
 import common.utilities.constants.PlayerConstants;
 
-import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +30,8 @@ public class GameClient extends Observable {
 
   public static final String DEFAULT_IP_ADDRESS = "127.0.0.1"; //NON-NLS
   public static final Integer DEFAULT_PORT = Registry.REGISTRY_PORT;
-  private static final Logger LOGGER = Logger.getLogger(GameClient.class.getName());
+  private static final Logger LOGGER =
+      LoggingUtility.getLogger(GameClient.class.getName());
 
   private Map<RMIService,Remote> services;
 

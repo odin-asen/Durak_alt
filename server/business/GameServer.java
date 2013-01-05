@@ -8,9 +8,9 @@ import common.game.GameProcess;
 import common.rmi.RMIObserver;
 import common.rmi.RMIService;
 import common.utilities.Converter;
+import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
 import common.utilities.constants.GameCardConstants;
-import common.utilities.constants.PlayerConstants;
 import server.business.rmiImpl.*;
 
 import java.rmi.NotBoundException;
@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  * Time: 21:57
  */
 public class GameServer extends Observable {
-  private static Logger LOGGER = Logger.getLogger(GameServer.class.getName());
+  private static Logger LOGGER = LoggingUtility.getLogger(GameServer.class.getName());
 
   private static GameServer gameServer;
 
@@ -336,7 +336,7 @@ public class GameServer extends Observable {
 }
 
 class GameUpdater {
-  private Logger LOGGER = Logger.getLogger(GameUpdater.class.getName());
+  private Logger LOGGER = LoggingUtility.getLogger(GameUpdater.class.getName());
   private Integer stackSize;
   private GameProcess process;
   private GameServer server;

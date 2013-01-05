@@ -3,6 +3,7 @@ package client.gui.frame.setup;
 import client.business.ConnectionInfo;
 import client.gui.frame.ClientGUIConstants;
 import common.i18n.I18nSupport;
+import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
 import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.gui.Constraints;
@@ -21,7 +22,7 @@ import java.util.logging.Logger;
 
 public class ConnectionInfoTab extends JPanel {
   private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
-  private static final Logger LOGGER = Logger.getLogger(ConnectionInfoTab.class.getName());
+  private static final Logger LOGGER = LoggingUtility.getLogger(ConnectionInfoTab.class.getName());
 
   private JComboBox<String> serverAddressCombo;
   private JComboBox<String> clientAddressCombo;
