@@ -1,6 +1,6 @@
 package common.rmi;
 
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -18,14 +18,14 @@ public interface Authenticator extends Remote {
    * @return Returns true, if the client is logged in, else false.
    * @throws RemoteException
    */
-  public boolean login(ClientInfo client, String password) throws RemoteException;
+  public boolean login(DTOClient client, String password) throws RemoteException;
 
   /**
    * Logs the specified client off the server.
    * @param client Specified client.
    * @throws RemoteException
    */
-  public void logoff(ClientInfo client) throws RemoteException;
+  public void logoff(DTOClient client) throws RemoteException;
 
   /**
    * This method returns a reason why the login returned false. If login

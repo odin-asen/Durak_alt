@@ -4,7 +4,7 @@ import client.business.client.GameClient;
 import client.gui.frame.ClientFrame;
 import client.gui.frame.ConnectionDialog;
 import client.gui.frame.gamePanel.GamePanel;
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.dto.DTOCard;
 import common.i18n.I18nSupport;
 import common.utilities.Converter;
@@ -134,7 +134,7 @@ public class AttackCardMoveListener extends CardMoveListener {
         cards[index] = Converter.toDTO(pointedWidgets.widgets.get(index).getCardInfo());
       }
 
-      final ClientInfo clientInfo = ConnectionDialog.getInstance().getClientInfo();
+      final DTOClient clientInfo = ConnectionDialog.getInstance().getClientInfo();
       GameClient.getClient().sendAction(clientInfo, cards);
       result = GameClient.getClient().getActionDeniedReason(clientInfo);
     } catch (RemoteException e) {

@@ -1,6 +1,6 @@
 package common.dto.message;
 
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 
 import java.io.Serializable;
 
@@ -11,22 +11,22 @@ import java.io.Serializable;
  */
 public class ChatMessage implements Serializable {
   private Long sendingTime;
-  private ClientInfo sender;
+  private DTOClient sender;
   private String message;
 
   /* Constructors */
-  public ChatMessage(Long sendingTime, ClientInfo sender, String message) {
+  public ChatMessage(Long sendingTime, DTOClient sender, String message) {
     this.sendingTime = sendingTime;
     this.sender = sender;
     this.message = message;
   }
   /* Methods */
   /* Getter and Setter */
-  public ClientInfo getSender() {
+  public DTOClient getSender() {
     return sender;
   }
 
-  public void setSender(ClientInfo sender) {
+  public void setSender(DTOClient sender) {
     this.sender = sender;
   }
 

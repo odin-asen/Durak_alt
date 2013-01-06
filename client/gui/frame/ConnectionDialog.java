@@ -2,7 +2,7 @@ package client.gui.frame;
 
 import client.business.ConnectionInfo;
 import client.gui.ActionFactory;
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.i18n.I18nSupport;
 import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
@@ -37,7 +37,7 @@ public class ConnectionDialog extends JDialog {
   private static final int STRUT_HEIGHT = 5;
   private static final int STRUT_WIDTH = 5;
 
-  private ClientInfo clientInfo;
+  private DTOClient clientInfo;
   private ConnectionInfo connectionInfo;
 
   private JComboBox<String> serverAddressCombo;
@@ -57,7 +57,7 @@ public class ConnectionDialog extends JDialog {
     String defaultName = System.getProperty("user.name");
     if (defaultName == null)
       defaultName = I18nSupport.getValue(CLIENT_BUNDLE,"default.player.name");
-    clientInfo = new ClientInfo(defaultName);
+    clientInfo = new DTOClient(defaultName);
     connectionInfo = new ConnectionInfo();
 
     /* initialise gui stuff */
@@ -299,7 +299,7 @@ public class ConnectionDialog extends JDialog {
     return buttonPanel;
   }
 
-  public ClientInfo getClientInfo() {
+  public DTOClient getClientInfo() {
     return clientInfo;
   }
 

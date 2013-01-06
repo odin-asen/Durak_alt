@@ -2,7 +2,7 @@ package client.gui.frame.chat;
 
 import client.business.client.GameClient;
 import client.gui.frame.ConnectionDialog;
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.i18n.I18nSupport;
 import common.utilities.gui.FramePosition;
 
@@ -176,7 +176,7 @@ public class ChatFrame extends JDialog {
 
     public void sendChatMessage(String text) {
       if (!text.isEmpty()) {
-        ClientInfo info = ConnectionDialog.getInstance().getClientInfo();
+        DTOClient info = ConnectionDialog.getInstance().getClientInfo();
         try {
           GameClient.getClient().getChatHandler().sendMessage(info, text);
           chatWriteArea.setText("");

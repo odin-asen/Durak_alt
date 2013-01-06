@@ -1,6 +1,6 @@
 package server.business.rmiImpl;
 
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.dto.DTOCard;
 import common.game.GameProcess;
 import common.rmi.FinishAction;
@@ -8,7 +8,6 @@ import common.rmi.GameAction;
 import server.business.GameServer;
 
 import java.rmi.RemoteException;
-import java.util.List;
 
 /**
  * User: Timm Herrmann
@@ -18,7 +17,7 @@ import java.util.List;
 public class RoundStateAction implements GameAction {
   /* Methods */
 
-  public boolean doAction(ClientInfo client, FinishAction finish, DTOCard... cards) throws RemoteException {
+  public boolean doAction(DTOClient client, FinishAction finish, DTOCard... cards) throws RemoteException {
     Boolean goToNextRound = false;
 
     if(!finish.equals(FinishAction.NOT_FINISHING)) {
@@ -31,7 +30,7 @@ public class RoundStateAction implements GameAction {
     return goToNextRound;
   }
 
-  private Boolean doFinishing(ClientInfo client, FinishAction finish) {
+  private Boolean doFinishing(DTOClient client, FinishAction finish) {
     final Boolean goToNextRound;
 
     if(finish.equals(FinishAction.GO_TO_NEXT_ROUND)) {

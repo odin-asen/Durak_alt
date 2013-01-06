@@ -4,7 +4,7 @@ import client.business.client.GameClient;
 import client.business.client.GameClientException;
 import client.gui.frame.chat.ChatFrame;
 import client.gui.frame.gamePanel.GamePanel;
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.dto.DTOCard;
 import common.dto.DTOCardStack;
 import common.dto.message.*;
@@ -37,7 +37,7 @@ import static common.utilities.constants.PlayerConstants.PlayerType;
  * Time: 22:37
  */
 public class ClientFrame extends JFrame implements Observer {
-  private static ClientFrame CLIENT_FRAME;
+  private static ClientFrame frameInstance;
 
   private static final String BUNDLE_NAME = "client.client"; //NON-NLS
   
@@ -51,7 +51,7 @@ public class ClientFrame extends JFrame implements Observer {
   private GamePanel gamePanel;
   private DurakStatusBar statusBar;
   private JPanel stackClientsPanel;
-  private JList<ClientInfo> clientsList;
+  private JList<DTOClient> clientsList;
 
   private ClientFrameMessageHandler handler;
   private JButton roundDoneButton;
@@ -74,18 +74,18 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   public static ClientFrame getInstance() {
-    if(CLIENT_FRAME == null) {
-      CLIENT_FRAME = new ClientFrame();
-      GameClient.getClient().addObserver(CLIENT_FRAME);
+    if(frameInstance == null) {
+      frameInstance = new ClientFrame();
+      GameClient.getClient().addObserver(frameInstance);
     }
 
-    return CLIENT_FRAME;
+    return frameInstance;
   }
 
   /* Methods */
 
   public void showGameOverMessage() {
-    final ClientInfo ownClient = ConnectionDialog.getInstance().getClientInfo();
+    final DTOClient ownClient = ConnectionDialog.getInstance().getClientInfo();
     new Thread(new Runnable() {
       public void run() {
         new UserMessageDistributor().gameOverMessage(ownClient.playerType);
@@ -94,7 +94,7 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   public static void showRuleException(Component parent, String ruleException) {
-    final Rectangle bounds = CLIENT_FRAME.getBounds();
+    final Rectangle bounds = frameInstance.getBounds();
     final DurakPopup rulePopup = WidgetCreator.createPopup(
         ClientGUIConstants.GAME_TABLE_COLOUR, ruleException, bounds, 3);
     rulePopup.setVisible(true);
@@ -144,7 +144,7 @@ public class ClientFrame extends JFrame implements Observer {
    * Empties the client list, the opponent card widgets and ...?
    */
   public void clearClients() {
-    ((DefaultListModel<ClientInfo>) clientsList.getModel()).removeAllElements();
+    ((DefaultListModel<DTOClient>) clientsList.getModel()).removeAllElements();
     opponentsPanel.removeAllOpponents();
   }
 
@@ -154,13 +154,13 @@ public class ClientFrame extends JFrame implements Observer {
     cardStackPanel.deleteCards();
   }
 
-  public void updateClientList(List<ClientInfo> clients) {
-    final DefaultListModel<ClientInfo> listModel =
-        ((DefaultListModel<ClientInfo>) clientsList.getModel());
-    final ClientInfo ownInfo = ConnectionDialog.getInstance().getClientInfo();
+  public void updateClientList(List<DTOClient> clients) {
+    final DefaultListModel<DTOClient> listModel =
+        ((DefaultListModel<DTOClient>) clientsList.getModel());
+    final DTOClient ownInfo = ConnectionDialog.getInstance().getClientInfo();
 
     listModel.clear();
-    for (ClientInfo client : clients) {
+    for (DTOClient client : clients) {
       listModel.add(listModel.size(), client);
     }
   }
@@ -173,13 +173,13 @@ public class ClientFrame extends JFrame implements Observer {
     cardStackPanel.updateStack(cardStack);
   }
 
-  public void updateOpponents(List<ClientInfo> clients) {
+  public void updateOpponents(List<DTOClient> clients) {
     opponentsPanel.updateOpponents(clients);
   }
 
-  public void initialisePlayers(List<ClientInfo> clients) {
+  public void initialisePlayers(List<DTOClient> clients) {
     opponentsPanel.removeAll();
-    for (ClientInfo client : clients) {
+    for (DTOClient client : clients) {
       opponentsPanel.addOpponent(client);
     }
     opponentsPanel.updateOpponents(clients);
@@ -262,7 +262,7 @@ public class ClientFrame extends JFrame implements Observer {
     stackClientsPanel = new JPanel();
     cardStackPanel = new CardStackPanel();
 
-    clientsList = new JList<ClientInfo>(new DefaultListModel<ClientInfo>());
+    clientsList = new JList<DTOClient>(new DefaultListModel<DTOClient>());
     final JPanel listPanel = new JPanel();
     final JScrollPane listScroll = new JScrollPane(clientsList);
 
@@ -321,7 +321,7 @@ public class ClientFrame extends JFrame implements Observer {
       if(value ==null)
         return this;
 
-      final ClientInfo client = (ClientInfo) value;
+      final DTOClient client = (DTOClient) value;
       final Color foreground;
       if(client.spectating) {
         foreground = new Color(164, 164, 164);
@@ -340,7 +340,7 @@ public class ClientFrame extends JFrame implements Observer {
 
   private class GameButtonListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
-      final ClientInfo clientInfo = ConnectionDialog.getInstance().getClientInfo();
+      final DTOClient clientInfo = ConnectionDialog.getInstance().getClientInfo();
       Boolean takeCards = null;
       if(e.getActionCommand().equals(ACTION_COMMAND_TAKE_CARDS)) {
         takeCards = true;
@@ -353,7 +353,7 @@ public class ClientFrame extends JFrame implements Observer {
       }
     }
 
-    private Boolean nextRoundRequest(ClientInfo clientInfo, Boolean takeCards) {
+    private Boolean nextRoundRequest(DTOClient clientInfo, Boolean takeCards) {
       if(takeCards == null)
         return false;
 
@@ -391,8 +391,8 @@ class ClientFrameMessageHandler {
 
   private void handleMessageType(MessageObject object) {
     if(MessageType.OWN_CLIENT_INFO.equals(object.getType())) {
-      final ClientInfo info = ConnectionDialog.getInstance().getClientInfo();
-      info.setClientInfo((ClientInfo) object.getSendingObject());
+      final DTOClient info = ConnectionDialog.getInstance().getClientInfo();
+      info.setClientInfo((DTOClient) object.getSendingObject());
       ClientFrame.getInstance().updateSubComponents();
     }
   }
@@ -401,7 +401,7 @@ class ClientFrameMessageHandler {
     if(BroadcastType.CHAT_MESSAGE.equals(object.getType())) {
       ChatFrame.getFrame().addMessage(buildChatAnswer(object));
     } else if(BroadcastType.LOGIN_LIST.equals(object.getType())) {
-      final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
+      final List<DTOClient> clients = (List<DTOClient>) object.getSendingObject();
       ClientFrame.getInstance().updateClientList(clients);
     } else if(BroadcastType.SERVER_SHUTDOWN.equals(object.getType())) {
       final ClientFrame frame = ClientFrame.getInstance();
@@ -413,12 +413,12 @@ class ClientFrameMessageHandler {
 
   private void handleGameUpdateType(MessageObject object) {
     if(GameUpdateType.INITIALISE_PLAYERS.equals(object.getType())) {
-      final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
+      final List<DTOClient> clients = (List<DTOClient>) object.getSendingObject();
       final ClientFrame frame = ClientFrame.getInstance();
       frame.initialisePlayers(clients);
       frame.updateStatusBar();
     } else if(GameUpdateType.PLAYERS_UPDATE.equals(object.getType())) {
-      final List<ClientInfo> clients = (List<ClientInfo>) object.getSendingObject();
+      final List<DTOClient> clients = (List<DTOClient>) object.getSendingObject();
       final ClientFrame frame = ClientFrame.getInstance();
       frame.updateOpponents(clients);
       frame.updateStatusBar();
@@ -524,7 +524,7 @@ class UserMessageDistributor {
     try {
       final ConnectionDialog dialog = ConnectionDialog.getInstance();
       final GameClient client = GameClient.getClient();
-      final ClientInfo info = dialog.getClientInfo();
+      final DTOClient info = dialog.getClientInfo();
       info.spectating = spectate;
       dialog.resetFields();
       client.disconnect(info);

@@ -5,7 +5,7 @@ import client.gui.frame.ClientFrame;
 import client.gui.frame.ConnectionDialog;
 import client.gui.frame.gamePanel.CombatCardPanel;
 import client.gui.frame.gamePanel.GamePanel;
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.i18n.I18nSupport;
 import common.utilities.Converter;
 import common.utilities.gui.Compute;
@@ -91,7 +91,7 @@ public class DefenseCardMoveListener extends CardMoveListener {
       return null;
 
     try {
-      final ClientInfo clientInfo = ConnectionDialog.getInstance().getClientInfo();
+      final DTOClient clientInfo = ConnectionDialog.getInstance().getClientInfo();
       GameClient.getClient().sendAction(clientInfo, Converter.toDTO(widget.getCardInfo()),
          Converter.toDTO(currentPanel.getAttackerCard().getCardInfo()));
       result = GameClient.getClient().getActionDeniedReason(clientInfo);

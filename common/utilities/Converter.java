@@ -1,7 +1,7 @@
 package common.utilities;
 
 
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.dto.DTOCard;
 import common.dto.DTOCardStack;
 import common.game.GameCard;
@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 public class Converter {
   private static final Logger LOGGER = LoggingUtility.getLogger(Converter.class.getName());
 
-  public static ClientInfo toDTO(ClientInfo client, Player player) {
+  public static DTOClient toDTO(DTOClient client, Player player) {
     if(client != null) {
       client.cardCount = player.getCards().size();
       client.playerType = player.getType();

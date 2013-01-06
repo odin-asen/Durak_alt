@@ -1,11 +1,10 @@
 package common.rmi;
 
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.dto.DTOCard;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.List;
 
 /**
  * User: Timm Herrmann
@@ -21,7 +20,7 @@ public interface GameAction extends Remote {
    * @param cards Primary card, e.g. an attack needs just one card.
    * @return True, action is done, false action was refused.
    */
-  public boolean doAction(ClientInfo client, FinishAction finish, DTOCard ...cards) throws RemoteException;
+  public boolean doAction(DTOClient client, FinishAction finish, DTOCard ...cards) throws RemoteException;
 
   /**
    * This method returns a reason why the doAction returned false. If doAction

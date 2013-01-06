@@ -5,7 +5,6 @@ import common.utilities.constants.PlayerConstants;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * User: Timm Herrmann
@@ -18,7 +17,7 @@ import java.util.List;
  * representation, hence there should be only one device in a network that runs a server
  * connected to a server once a time.
  */
-public class ClientInfo implements Serializable {
+public class DTOClient implements Serializable {
   public String name;
   public int cardCount;
   public boolean spectating;
@@ -27,7 +26,7 @@ public class ClientInfo implements Serializable {
   public int port;
 
   /* Constructors */
-  public ClientInfo(String name) {
+  public DTOClient(String name) {
     this.name = name;
     this.cardCount = 0;
     this.playerType = PlayerConstants.PlayerType.DEFAULT;
@@ -42,7 +41,7 @@ public class ClientInfo implements Serializable {
     return ipAddress+":"+port;
   }
 
-  public void setClientInfo(ClientInfo info) {
+  public void setClientInfo(DTOClient info) {
     cardCount = info.cardCount;
     name = info.name;
     playerType = info.playerType;

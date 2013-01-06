@@ -1,6 +1,6 @@
 package server.business.rmiImpl;
 
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.i18n.I18nSupport;
 import common.rmi.Authenticator;
 import server.business.GameServer;
@@ -8,9 +8,6 @@ import server.business.GameServerException;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
 
 /**
  * User: Timm Herrmann
@@ -33,7 +30,7 @@ public class AuthenticatorImpl implements Authenticator  {
   }
 
   /* Methods */
-  public boolean login(ClientInfo client, String password)
+  public boolean login(DTOClient client, String password)
       throws RemoteException {
     if(this.password.equals(password)) {
       final GameServer server = GameServer.getServerInstance();
@@ -54,7 +51,7 @@ public class AuthenticatorImpl implements Authenticator  {
     return true;
   }
 
-  public void logoff(ClientInfo client) throws RemoteException {
+  public void logoff(DTOClient client) throws RemoteException {
     final GameServer server = GameServer.getServerInstance();
     server.removeClient(client);
   }

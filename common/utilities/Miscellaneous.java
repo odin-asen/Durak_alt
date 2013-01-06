@@ -1,6 +1,6 @@
 package common.utilities;
 
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 
 import java.net.*;
 import java.rmi.RemoteException;
@@ -24,8 +24,8 @@ public class Miscellaneous {
    * and port or both are null. If one ip address or port differs from the other, either
    * a value less than 0 or bigger than 0 will be returned.
    */
-  public static final Comparator<ClientInfo> CLIENT_COMPARATOR = new Comparator<ClientInfo>() {
-    public int compare(ClientInfo o1, ClientInfo o2) {
+  public static final Comparator<DTOClient> CLIENT_COMPARATOR = new Comparator<DTOClient>() {
+    public int compare(DTOClient o1, DTOClient o2) {
       if(o1 == null && o2 == null) return 0;
       if(o1 == null && o2 != null) return -1;
       if(o1 != null && o2 == null) return 1;
@@ -116,9 +116,9 @@ public class Miscellaneous {
     return InetAddress.getLoopbackAddress();
   }
 
-  public static boolean containsClientAddress(List<ClientInfo> list, ClientInfo client) {
+  public static boolean containsClientAddress(List<DTOClient> list, DTOClient client) {
     boolean exists = false;
-    for (ClientInfo info : list) {
+    for (DTOClient info : list) {
       exists = exists | (CLIENT_COMPARATOR.compare(info,client) == 0);
     }
     return exists;

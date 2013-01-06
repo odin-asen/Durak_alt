@@ -1,6 +1,6 @@
 package common.rmi;
 
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -11,5 +11,5 @@ import java.rmi.RemoteException;
  * Time: 22:59
  */
 public interface ChatHandler extends Remote {
-  public void sendMessage(ClientInfo client, String message) throws RemoteException;
+  public void sendMessage(DTOClient client, String message) throws RemoteException;
 }

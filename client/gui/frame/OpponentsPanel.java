@@ -1,7 +1,7 @@
 package client.gui.frame;
 
 import client.gui.widget.card.OpponentHandWidget;
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.resources.ResourceGetter;
 import common.utilities.constants.PlayerConstants;
 
@@ -21,22 +21,22 @@ public class OpponentsPanel extends JPanel {
   }
 
   /* Methods */
-  public void addOpponent(ClientInfo opponent) {
+  public void addOpponent(DTOClient opponent) {
     OpponentHandWidget oHWidget = new OpponentHandWidget(
         ClientGUIConstants.OPPONENT_FONT, ClientGUIConstants.CARD_BACK, opponent);
     this.add(oHWidget);
   }
 
-  public void removeOpponent(ClientInfo opponent) {
+  public void removeOpponent(DTOClient opponent) {
     final OpponentHandWidget widget = findOpponentHandWidget(opponent);
     if(widget != null)
       this.remove(widget);
   }
 
-  private OpponentHandWidget findOpponentHandWidget(ClientInfo info) {
+  private OpponentHandWidget findOpponentHandWidget(DTOClient info) {
     for (Component component : getComponents()) {
       final OpponentHandWidget widget = (OpponentHandWidget) component;
-      final ClientInfo opponent = widget.getOpponent();
+      final DTOClient opponent = widget.getOpponent();
       if(opponent.ipAddress.equals(info.ipAddress) && opponent.port == info.port)
         return widget;
     }
@@ -44,8 +44,8 @@ public class OpponentsPanel extends JPanel {
     return null;
   }
 
-  public void updateOpponents(List<ClientInfo> opponents) {
-    for (ClientInfo opponent : opponents) {
+  public void updateOpponents(List<DTOClient> opponents) {
+    for (DTOClient opponent : opponents) {
       final OpponentHandWidget widget = findOpponentHandWidget(opponent);
       if(widget != null) {
         widget.getOpponent().cardCount = opponent.cardCount;

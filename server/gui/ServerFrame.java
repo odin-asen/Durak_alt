@@ -1,6 +1,6 @@
 package server.gui;
 
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.dto.message.GUIObserverType;
 import common.dto.message.MessageObject;
 import common.i18n.I18nSupport;
@@ -55,8 +55,8 @@ public class ServerFrame extends JFrame implements Observer {
   private JPanel statusPanel;
   private JLabel statusBar;
 
-  private JList<ClientInfo> clientList;
-  private DefaultListModel<ClientInfo> listModel;
+  private JList<DTOClient> clientList;
+  private DefaultListModel<DTOClient> listModel;
   private JComboBox<Integer> stackSizeCombo;
   private JPanel gameSettingsPanel;
 
@@ -92,9 +92,9 @@ public class ServerFrame extends JFrame implements Observer {
     handleUpdate(object);
   }
 
-  public void refreshClientList(List<ClientInfo> newClients) {
+  public void refreshClientList(List<DTOClient> newClients) {
     listModel.clear();
-    for (ClientInfo client : newClients)
+    for (DTOClient client : newClients)
       listModel.add(listModel.size(), client);
   }
 
@@ -107,7 +107,7 @@ public class ServerFrame extends JFrame implements Observer {
     }
   }
 
-  private void removeClient(ClientInfo client) {
+  private void removeClient(DTOClient client) {
     for (int i = 0; i < listModel.size(); i++) {
       if(listModel.get(i).equals(client)) {
         listModel.remove(i);
@@ -213,8 +213,8 @@ public class ServerFrame extends JFrame implements Observer {
       return clientListPanel;
 
     clientListPanel = new JScrollPane();
-    listModel = new DefaultListModel<ClientInfo>();
-    clientList = new JList<ClientInfo>(listModel);
+    listModel = new DefaultListModel<DTOClient>();
+    clientList = new JList<DTOClient>(listModel);
     clientList.setCellRenderer(new DefaultListCellRenderer());
     clientList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     clientListPanel.setPreferredSize(new Dimension(LIST_WIDTH, clientListPanel.getPreferredSize().height));
@@ -243,8 +243,8 @@ public class ServerFrame extends JFrame implements Observer {
     return gameSettingsPanel;
   }
 
-  public DefaultListModel<ClientInfo> getClientList() {
-    return (DefaultListModel<ClientInfo>) clientList.getModel();
+  public DefaultListModel<DTOClient> getClientList() {
+    return (DefaultListModel<DTOClient>) clientList.getModel();
   }
 
   /* Inner Classes */

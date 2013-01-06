@@ -1,6 +1,6 @@
 package server.business.rmiImpl;
 
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.dto.message.BroadcastType;
 import common.dto.message.ChatMessage;
 import common.rmi.ChatHandler;
@@ -16,7 +16,7 @@ import java.rmi.RemoteException;
 public class ChatHandlerImpl implements ChatHandler {
   /* Constructors */
   /* Methods */
-  public void sendMessage(ClientInfo client, String message) throws RemoteException {
+  public void sendMessage(DTOClient client, String message) throws RemoteException {
     ChatMessage chatMessage = new ChatMessage(new Long(System.currentTimeMillis()),
         client, message);
     GameServer.getServerInstance().broadcastMessage(BroadcastType.CHAT_MESSAGE, chatMessage);

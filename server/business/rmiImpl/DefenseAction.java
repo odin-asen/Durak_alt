@@ -1,6 +1,6 @@
 package server.business.rmiImpl;
 
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.dto.DTOCard;
 import common.game.GameProcess;
 import common.game.rules.RuleException;
@@ -25,7 +25,7 @@ public class DefenseAction implements GameAction {
 
   /* Constructors */
   /* Methods */
-  public boolean doAction(ClientInfo client, FinishAction finish, DTOCard ...cards) throws RemoteException {
+  public boolean doAction(DTOClient client, FinishAction finish, DTOCard ...cards) throws RemoteException {
     Boolean actionDone = false;
     final List<List<DTOCard>> cardLists = setCards(cards);
 

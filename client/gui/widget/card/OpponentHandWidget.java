@@ -1,6 +1,6 @@
 package client.gui.widget.card;
 
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,9 +20,9 @@ public class OpponentHandWidget extends JComponent {
   private ImageIcon statusIcon;
   private Font nameFont;
 
-  private ClientInfo opponent;
+  private DTOClient opponent;
 
-  public OpponentHandWidget(Font nameFont, ImageIcon cardBack, ClientInfo opponent) {
+  public OpponentHandWidget(Font nameFont, ImageIcon cardBack, DTOClient opponent) {
     this.nameFont = nameFont;
     this.cardBack = cardBack;
     this.opponent = opponent;
@@ -65,11 +65,11 @@ public class OpponentHandWidget extends JComponent {
   }
 
   /* Getter and Setter */
-  public ClientInfo getOpponent() {
+  public DTOClient getOpponent() {
     return opponent;
   }
 
-  public void setOpponent(ClientInfo opponent) {
+  public void setOpponent(DTOClient opponent) {
     this.opponent = opponent;
   }
 

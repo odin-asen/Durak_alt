@@ -1,7 +1,7 @@
 package client.business.client;
 
 import client.business.ConnectionInfo;
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.dto.DTOCard;
 import common.dto.message.MessageObject;
 import common.rmi.*;
@@ -85,7 +85,7 @@ public class GameClient extends Observable {
     this.notifyObservers(object);
   }
 
-  public void connect(ClientInfo info, String password)
+  public void connect(DTOClient info, String password)
       throws GameClientException {
     if (!isConnected()) {
       try {
@@ -111,7 +111,7 @@ public class GameClient extends Observable {
     }
   }
 
-  public void disconnect(ClientInfo client) {
+  public void disconnect(DTOClient client) {
     if(isConnected()) {
       try {
         connected = false;
@@ -134,7 +134,7 @@ public class GameClient extends Observable {
    * @return True or false, if the server accepts this action or not.
    * @throws RemoteException
    */
-  public Boolean sendAction(ClientInfo info, DTOCard... cards) throws RemoteException {
+  public Boolean sendAction(DTOClient info, DTOCard... cards) throws RemoteException {
     if(info.playerType.equals(PlayerConstants.PlayerType.FIRST_ATTACKER) ||
        info.playerType.equals(PlayerConstants.PlayerType.SECOND_ATTACKER))
       return getGameActionAttack().doAction(info, FinishAction.NOT_FINISHING, cards);
@@ -143,7 +143,7 @@ public class GameClient extends Observable {
           getGameActionDefend().doAction(info, FinishAction.NOT_FINISHING, cards);
   }
 
-  public Boolean finishRound(ClientInfo info, Boolean takeCards) throws RemoteException {
+  public Boolean finishRound(DTOClient info, Boolean takeCards) throws RemoteException {
     final FinishAction finish;
     if(takeCards)
       finish = FinishAction.TAKE_CARDS;
@@ -152,7 +152,7 @@ public class GameClient extends Observable {
     return getGameActionRound().doAction(info, finish);
   }
 
-  public String getActionDeniedReason(ClientInfo info) throws RemoteException {
+  public String getActionDeniedReason(DTOClient info) throws RemoteException {
     if(info.playerType.equals(PlayerConstants.PlayerType.FIRST_ATTACKER) ||
         info.playerType.equals(PlayerConstants.PlayerType.SECOND_ATTACKER))
       return getGameActionAttack().getRefusedReason();

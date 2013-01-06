@@ -1,6 +1,6 @@
 package server.business;
 
-import common.dto.ClientInfo;
+import common.dto.DTOClient;
 import common.dto.DTOCard;
 import common.dto.message.*;
 import common.game.GameCardStack;
@@ -37,7 +37,7 @@ public class GameServer extends Observable {
   private Map<RMIService,Remote> services;
   private Registry registry;
 
-  private InGameSpectatorHolder<RMIObserver,ClientInfo> clientHolder;
+  private InGameSpectatorHolder<RMIObserver,DTOClient> clientHolder;
 
   private Integer port;
   private Boolean running;
@@ -66,7 +66,7 @@ public class GameServer extends Observable {
   private GameServer() {
     port = Registry.REGISTRY_PORT;
     services = new HashMap<RMIService,Remote>();
-    clientHolder = new InGameSpectatorHolder<RMIObserver,ClientInfo>();
+    clientHolder = new InGameSpectatorHolder<RMIObserver,DTOClient>();
     running = false;
   }
 
@@ -220,7 +220,7 @@ public class GameServer extends Observable {
    * @throws NotBoundException If the client observer service is not bound
    * for the specified ip address and port.
    */
-  public void addClient(ClientInfo client)
+  public void addClient(DTOClient client)
       throws NotBoundException, RemoteException, GameServerException {
     final Boolean inProcess = GameProcess.getInstance().isGameInProcess();
     if(Miscellaneous.containsClientAddress(clientHolder.getAllValues(),client))
@@ -237,7 +237,7 @@ public class GameServer extends Observable {
     notifyClientLists(observer, client);
   }
 
-  public void removeClient(ClientInfo client) {
+  public void removeClient(DTOClient client) {
     final GameProcess process = GameProcess.getInstance();
     if(process.removePlayer(client.toString())) {
       if(process.isGameInProcess())
@@ -251,7 +251,7 @@ public class GameServer extends Observable {
     }
   }
 
-  private RMIObserver addObserver(ClientInfo client)
+  private RMIObserver addObserver(DTOClient client)
       throws NotBoundException, RemoteException {
     final Registry registry = LocateRegistry.getRegistry(client.ipAddress, client.port);
     final RMIObserver observer =
@@ -260,9 +260,9 @@ public class GameServer extends Observable {
     return observer;
   }
 
-  private RMIObserver findObserver(ClientInfo client) {
+  private RMIObserver findObserver(DTOClient client) {
     for (RMIObserver observer : clientHolder.getAllKeys()) {
-      final ClientInfo info = clientHolder.getValue(observer);
+      final DTOClient info = clientHolder.getValue(observer);
       if(info.toString().equals(client.toString())) {
         return observer;
       }
@@ -276,7 +276,7 @@ public class GameServer extends Observable {
    * If this parameter is null, only all other clients and the server gui will
    * be notified.
    */
-  private void notifyClientLists(RMIObserver observer, ClientInfo addedClient) {
+  private void notifyClientLists(RMIObserver observer, DTOClient addedClient) {
     setChangedAndNotify(GUIObserverType.REFRESH_CLIENT_LIST);
     if(observer != null)
       sendMessage(observer, new MessageObject(MessageType.OWN_CLIENT_INFO, addedClient));
@@ -285,8 +285,8 @@ public class GameServer extends Observable {
 
   /* sends to each client a list with all the other logged in clients */
   void broadcastOtherClients(Enum<?> type) {
-    final List<ClientInfo> clients = clientHolder.getAllValues();
-    ClientInfo currentClient;
+    final List<DTOClient> clients = clientHolder.getAllValues();
+    DTOClient currentClient;
 
     /* iterate the clients so that the original sequence is not changed */
     for (RMIObserver rmiObserver : clientHolder.getAllKeys()) {
@@ -328,7 +328,7 @@ public class GameServer extends Observable {
     return password;
   }
 
-  public List<ClientInfo> getClients() {
+  public List<DTOClient> getClients() {
     return clientHolder.getAllValues();
   }
 
@@ -340,10 +340,10 @@ class GameUpdater {
   private Integer stackSize;
   private GameProcess process;
   private GameServer server;
-  private InGameSpectatorHolder<RMIObserver,ClientInfo> clientHolder;
+  private InGameSpectatorHolder<RMIObserver,DTOClient> clientHolder;
 
   public GameUpdater(Integer stackSize,
-                     InGameSpectatorHolder<RMIObserver,ClientInfo> clientHolder) {
+                     InGameSpectatorHolder<RMIObserver,DTOClient> clientHolder) {
     this.stackSize = stackSize;
     this.clientHolder = clientHolder;
     this.process = GameProcess.getInstance();
@@ -364,7 +364,7 @@ class GameUpdater {
   }
 
   private void updateClients() {
-    for (ClientInfo info : clientHolder.getAllValues()) {
+    for (DTOClient info : clientHolder.getAllValues()) {
       info.cardCount = process.getPlayerCards(info.toString()).size();
       info.playerType = process.getPlayerType(info.toString());
     }
@@ -395,7 +395,7 @@ class GameUpdater {
   /* sends each client his player info */
   private void sendPlayersInfos() {
     for (RMIObserver rmiObserver : clientHolder.getInGameKeys()) {
-      final ClientInfo client = clientHolder.getInGameValue(rmiObserver);
+      final DTOClient client = clientHolder.getInGameValue(rmiObserver);
       server.sendMessage(rmiObserver, new MessageObject(GameUpdateType.CLIENT_CARDS,
           process.getPlayerCards(client.toString())));
       server.sendMessage(rmiObserver, new MessageObject(MessageType.OWN_CLIENT_INFO, client));
