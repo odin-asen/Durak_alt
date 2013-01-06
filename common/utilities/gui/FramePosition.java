@@ -25,7 +25,7 @@ public class FramePosition {
     rectangle = new Rectangle(posX,posY,breite,hoehe);
   }
 
-  public static FramePosition createFensterPositionen(float screenSizeFensterBreite, float screenSizeFensterHoehe) {
+  public static FramePosition createFramePositions(float screenSizeFensterBreite, float screenSizeFensterHoehe) {
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     return new FramePosition(screenSize, screenSizeFensterBreite, screenSizeFensterHoehe);
   }
@@ -46,7 +46,7 @@ public class FramePosition {
     return hoehe;
   }
 
-  @SuppressWarnings("")
+  @SuppressWarnings({"", "HardCodedStringLiteral"})
   public String toString() {
     return "" +posX+"; "+
         "PosY: "+posY+"; "+

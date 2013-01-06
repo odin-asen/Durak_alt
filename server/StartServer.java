@@ -13,7 +13,9 @@ import javax.swing.*;
 public class StartServer {
   public static void main(String[] args) {
     loadLaF();
-    LoggingUtility.setFirstTimeLoggingFile("serverLog.txt"); //NON-NLS
+    String loggingPath = System.getProperty("user.dir")
+        +System.getProperty("file.separator")+"serverLog.txt"; //NON-NLS
+    LoggingUtility.setFirstTimeLoggingFile(loggingPath);
     final ServerFrame frame = new ServerFrame();
     frame.setVisible(true);
   }

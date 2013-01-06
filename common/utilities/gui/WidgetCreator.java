@@ -33,9 +33,10 @@ public class WidgetCreator {
     return comboBox;
   }
 
-  public static JTextField makeTextField(Class<? extends JTextField> fieldClass, int preferredWidth, String toolTipText)
+  public static <T extends JTextField> T makeTextField(Class<T> fieldClass,
+      int preferredWidth, String toolTipText)
       throws IllegalAccessException, InstantiationException {
-    JTextField field = fieldClass.newInstance();
+    final T field = fieldClass.newInstance();
     field.setPreferredSize(new Dimension(preferredWidth, field.getPreferredSize().height));
     field.setMaximumSize(new Dimension(Integer.MAX_VALUE, field.getPreferredSize().height));
     field.setToolTipText(toolTipText);
@@ -83,6 +84,8 @@ public class WidgetCreator {
     button.setActionCommand(actionCommand);
     button.setIcon(icon);
     button.addActionListener(listener);
+    button.setPreferredSize(button.getPreferredSize());
+    button.setMaximumSize(button.getPreferredSize());
 
     return button;
   }

@@ -13,9 +13,12 @@ import javax.swing.*;
 public class StartClient {
   public static void main(String[] args) {
     loadLaF();
-    LoggingUtility.setFirstTimeLoggingFile("clientLog.txt"); //NON-NLS
-    final ClientFrame frame = new ClientFrame();
-    frame.setVisible(true);
+    String loggingPath = System.getProperty("user.dir")
+        +System.getProperty("file.separator")+"clientLog.txt"; //NON-NLS
+    LoggingUtility.setFirstTimeLoggingFile(loggingPath);
+    final ClientFrame mainFrame = ClientFrame.getInstance();
+    mainFrame.init();
+    mainFrame.setVisible(true);
   }
 
   public static void loadLaF() {

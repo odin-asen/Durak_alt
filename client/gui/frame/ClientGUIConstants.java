@@ -25,7 +25,7 @@ public interface ClientGUIConstants {
   int STATUS_BAR_HEIGHT = 20;
 
   /* SetUpFrame constants */
-  float SETUP_FRAME_SCREEN_SIZE_HEIGHT = 0.3f;
+  float SETUP_FRAME_SCREEN_SIZE_HEIGHT = 0.5f;
   float SETUP_FRAME_SCREEN_SIZE_WIDTH = 0.25f;
   int PREFERRED_FIELD_WIDTH = 150;
 

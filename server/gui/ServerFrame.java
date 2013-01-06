@@ -62,7 +62,7 @@ public class ServerFrame extends JFrame implements Observer {
 
   /* Constructors */
   public ServerFrame() {
-    FramePosition position = FramePosition.createFensterPositionen(
+    FramePosition position = FramePosition.createFramePositions(
         MAIN_FRAME_SCREEN_SIZE, MAIN_FRAME_SCREEN_SIZE);
 
     setBounds(position.getRectangle());

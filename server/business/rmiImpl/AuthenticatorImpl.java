@@ -47,7 +47,7 @@ public class AuthenticatorImpl implements Authenticator  {
         return false;
       }
     } else {
-      reason = I18nSupport.getValue(BUNDLE_NAME,"wrong.password");
+      reason = I18nSupport.getValue(BUNDLE_NAME,"status.permission.denied");
       return false;
     }
 

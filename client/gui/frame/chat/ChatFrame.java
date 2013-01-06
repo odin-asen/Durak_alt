@@ -1,7 +1,7 @@
 package client.gui.frame.chat;
 
 import client.business.client.GameClient;
-import client.gui.frame.setup.SetupFrame;
+import client.gui.frame.ConnectionDialog;
 import common.dto.ClientInfo;
 import common.i18n.I18nSupport;
 import common.utilities.gui.FramePosition;
@@ -40,7 +40,7 @@ public class ChatFrame extends JDialog {
 
   /* Constructors */
   public ChatFrame() {
-    final FramePosition position = FramePosition.createFensterPositionen(
+    final FramePosition position = FramePosition.createFramePositions(
         CHAT_FRAME_SCREEN_SIZE_WIDTH, CHAT_FRAME_SCREEN_SIZE_HEIGHT);
     buttonListener = new ButtonListener();
     chatMessageHandler = new ChatMessageHandler();
@@ -176,7 +176,7 @@ public class ChatFrame extends JDialog {
 
     public void sendChatMessage(String text) {
       if (!text.isEmpty()) {
-        ClientInfo info = SetupFrame.getInstance().getClientInfo();
+        ClientInfo info = ConnectionDialog.getInstance().getClientInfo();
         try {
           GameClient.getClient().getChatHandler().sendMessage(info, text);
           chatWriteArea.setText("");
