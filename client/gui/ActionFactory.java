@@ -14,6 +14,7 @@ import common.utilities.LoggingUtility;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
 /**
@@ -38,6 +39,18 @@ public class ActionFactory {
         (String) action.getValue(Action.ACTION_COMMAND_KEY));
     action.actionPerformed(event);
   }
+
+  public static void initialiseAction(Action action, KeyStroke accelerator,
+    String longDescription, Integer mnemonicVirtualKey, String actionCommand, String text,
+    String shortDescription, Icon smallIcon) {
+    action.putValue(Action.ACCELERATOR_KEY, accelerator);
+    action.putValue(Action.LONG_DESCRIPTION, longDescription);
+    action.putValue(Action.MNEMONIC_KEY, mnemonicVirtualKey);
+    action.putValue(Action.ACTION_COMMAND_KEY, actionCommand);
+    action.putValue(Action.NAME, text);
+    action.putValue(Action.SHORT_DESCRIPTION, shortDescription);
+    action.putValue(Action.SMALL_ICON, smallIcon);
+  }
 }
 
 class ConnectionAction extends AbstractAction {
@@ -53,32 +66,14 @@ class ConnectionAction extends AbstractAction {
   ConnectionAction(boolean connect) {
     mainFrame = ClientFrame.getInstance();
     if(connect)
-      putConnectValues();
-    else putDisconnectValues();
-  }
-
-  private void putConnectValues() {
-    putValue(ACCELERATOR_KEY, null);
-    putValue(LONG_DESCRIPTION, null);
-    putValue(MNEMONIC_KEY, null);
-    putValue(ACTION_COMMAND_KEY, AC_CONNECT); //NON-NLS
-    putValue(NAME, I18nSupport.getValue(CLIENT_BUNDLE, "action.name.connect"));
-    putValue(SHORT_DESCRIPTION,
-        I18nSupport.getValue(CLIENT_BUNDLE, "action.short.description.connect"));
-    putValue(SMALL_ICON, ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_NETWORK,
-        I18nSupport.getValue(CLIENT_BUNDLE, "image.description.connect")));
-  }
-
-  private void putDisconnectValues() {
-    putValue(ACCELERATOR_KEY, null);
-    putValue(LONG_DESCRIPTION, null);
-    putValue(MNEMONIC_KEY, null);
-    putValue(ACTION_COMMAND_KEY, AC_DISCONNECT); //NON-NLS
-    putValue(NAME, I18nSupport.getValue(CLIENT_BUNDLE, "action.name.disconnect"));
-    putValue(SHORT_DESCRIPTION,
-        I18nSupport.getValue(CLIENT_BUNDLE, "action.short.description.disconnect"));
-    putValue(SMALL_ICON, ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_NETWORK_CLOSE,
-        I18nSupport.getValue(CLIENT_BUNDLE, "image.description.disconnect")));
+      ActionFactory.initialiseAction(this, null, null, null, AC_CONNECT,
+          I18nSupport.getValue(CLIENT_BUNDLE, "action.name.connect"),
+          I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.connect"),
+          ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_NETWORK, ""));
+    else ActionFactory.initialiseAction(this, null, null, null, AC_DISCONNECT,
+        I18nSupport.getValue(CLIENT_BUNDLE, "action.name.disconnect"),
+        I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.disconnect"),
+        ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_NETWORK_CLOSE, ""));
   }
 
   public void actionPerformed(ActionEvent e) {

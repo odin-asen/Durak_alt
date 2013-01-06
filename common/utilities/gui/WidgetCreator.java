@@ -90,11 +90,13 @@ public class WidgetCreator {
     return button;
   }
 
-  public static void changeButton(AbstractButton button, String pictureName, String actionCommand,
-                            String toolTipText, String alternativeText) {
+  public static void changeButton(AbstractButton button, String pictureName, String text,
+                                  String actionCommand, String toolTipText,
+                                  String alternativeText) {
     if(button == null)
       return;
 
+    button.setText(text);
     button.setActionCommand(actionCommand);
     if(pictureName != null) {
       ImageIcon icon = ResourceGetter.getImage(pictureName, alternativeText);

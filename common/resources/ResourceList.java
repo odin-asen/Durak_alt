@@ -22,6 +22,8 @@ public interface ResourceList {
   String IMAGE_TOOLBAR_GAME_START = TOOLBAR_ROOT + "Games.png";
   String IMAGE_TOOLBAR_NETWORK = TOOLBAR_ROOT + "Network.png";
   String IMAGE_TOOLBAR_NETWORK_CLOSE = TOOLBAR_ROOT + "Network_Close.png";
+  String IMAGE_TOOLBAR_NETWORK_EDIT = TOOLBAR_ROOT + "Network_Edit.png";
+  String IMAGE_TOOLBAR_NETWORK_INFO = TOOLBAR_ROOT + "Network_Info.png";
   String IMAGE_TOOLBAR_PINION = TOOLBAR_ROOT + "Pinion.png";
   String IMAGE_TOOLBAR_PLAY = TOOLBAR_ROOT + "Play.png";
   String IMAGE_TOOLBAR_STOP_PLAYER = TOOLBAR_ROOT + "Stop Player.png";

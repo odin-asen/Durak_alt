@@ -30,49 +30,65 @@ public class ConnectionDialog extends JDialog {
   private static final String ACTION_COMMAND_CONNECT = "connect"; //NON-NLS
   private static final String ACTION_COMMAND_CANCEL = "cancel";  //NON-NLS
   private static final String ACTION_COMMAND_CLOSE_SAVE = "closeSave";  //NON-NLS
+  private static final String ACTION_COMMAND_CLOSE = "close"; //NON-NLS
   private static final int STRUT_HEIGHT = 5;
   private static final int STRUT_WIDTH = 5;
 
+  /* Some parameters have a component that will be used to edit this parameter and
+   * another component if the parameter should be not editable. E.g. for the
+   * server address, the editable component is a combo box and the non editable is a
+   * label. */
   private JComboBox<String> serverAddressCombo;
+  private JLabel serverAddressLabel;
   private JTextField serverPortField;
+  private JLabel serverPortLabel;
   private JTextField passwordField;
   private JComboBox<String> clientAddressCombo;
+  private JLabel clientAddressLabel;
   private JTextField clientPortField;
+  private JLabel clientPortLabel;
   private JTextField nameField;
+  private JLabel nameLabel;
   private JCheckBox spectatorCheckBox;
+  private JLabel spectatorLabel;
   private JPanel buttonPanel;
   private ButtonListener buttonListener;
 
+  private boolean editable;
+
   /* Constructors */
-  public ConnectionDialog(boolean editable) { //TODO editable = true -> alles editierbar, ansonsten nur anzeigen
+
+  public ConnectionDialog(boolean editable) {
     super();
+
+    this.editable = editable;
 
     /* initialise gui stuff */
     buttonListener = new ButtonListener();
 
+    /* initialise fields */
     getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
     getContentPane().add(getServerInfoPanel());
     getContentPane().add(Box.createGlue());
-    getContentPane().add(getClientPanel());
+    getContentPane().add(getClientInfoPanel());
     getContentPane().add(Box.createGlue());
     getContentPane().add(getButtonPanel());
+    resetFields();
 
+    /* initialise frame */
     final FramePosition position = FramePosition.createFramePositions(
-        ClientGUIConstants.SETUP_FRAME_SCREEN_SIZE_WIDTH,
-        ClientGUIConstants.SETUP_FRAME_SCREEN_SIZE_HEIGHT);
+        getContentPane().getPreferredSize().width,
+        getContentPane().getPreferredSize().height);
 
     this.setBounds(position.getRectangle());
-    if(position.getWidth() < buttonPanel.getPreferredSize().width)
-      this.setSize(buttonPanel.getPreferredSize().width, position.getHeight());
 
     this.setTitle(I18nSupport.getValue(CLIENT_BUNDLE, "frame.title.setup"));
     this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-
-    resetFields();
   }
 
   public static void main(String[] args) {
     new ConnectionDialog(true).setVisible(true);
+    new ConnectionDialog(false).setVisible(true);
   }
 
 
@@ -100,63 +116,17 @@ public class ConnectionDialog extends JDialog {
   private JPanel getServerInfoPanel() {
     final JPanel mainPanel = new JPanel();
 
-    JLabel label;
-    JPanel panel;
-
     mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.PAGE_AXIS));
     mainPanel.setBorder(BorderFactory.createTitledBorder(
         I18nSupport.getValue(CLIENT_BUNDLE,"border.title.server.settings")));
 
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-
-    /* server address panel */
-    panel = new JPanel();
-    panel.setLayout(new GridLayout(1,2));
-    label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.address"));
-    label.setMaximumSize(label.getPreferredSize());
-    final Vector<String> comboBoxContent = new Vector<String>();
-    serverAddressCombo = WidgetCreator.makeComboBox(comboBoxContent, 3,
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-        I18nSupport.getValue(CLIENT_BUNDLE, "combo.box.tooltip.server.address"));
-    serverAddressCombo.setMaximumSize(serverAddressCombo.getPreferredSize());
-    serverAddressCombo.addActionListener(new IPComboBoxListener(serverAddressCombo,comboBoxContent));
-    panel.add(label);
-    panel.add(serverAddressCombo);
-    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
-    mainPanel.add(panel);
-
+    mainPanel.add(getServerAddressPanel());
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-
-    /* server port panel */
-    panel = new JPanel();
-    panel.setLayout(new GridLayout(1,2));
-    label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.port"));
-    label.setMaximumSize(label.getPreferredSize());
-    serverPortField = WidgetCreator.makeIntegerTextField("",
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-        I18nSupport.getValue(CLIENT_BUNDLE, "field.tooltip.server.port"));
-    panel.add(label);
-    panel.add(serverPortField);
-    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
-    mainPanel.add(panel);
-
-    mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-
-    /* password panel */
-    try {
-      panel = new JPanel();
-      panel.setLayout(new GridLayout(1,2));
-      label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.password"));
-      label.setMaximumSize(label.getPreferredSize());
-      passwordField = WidgetCreator.makeTextField(JPasswordField.class,
-          ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-          I18nSupport.getValue(CLIENT_BUNDLE, "check.box.tooltip.show.password"));
-      panel.add(label);
-      panel.add(passwordField);
-      panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
-      mainPanel.add(panel);
-    } catch (Exception e) {
-      LOGGER.severe("Error creating password panel.\nMessage: "+e.getMessage());
+    mainPanel.add(getServerPortPanel());
+    if(editable) {
+      mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
+      mainPanel.add(getPasswordPanel());
     }
 
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
@@ -164,80 +134,163 @@ public class ConnectionDialog extends JDialog {
     return mainPanel;
   }
 
-  private JPanel getClientPanel() {
-    final JPanel mainPanel = new JPanel();
+  private JPanel getPasswordPanel() {
+    final JPanel panel = new JPanel();
+    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.password"));
+    label.setMaximumSize(label.getPreferredSize());
+    try {
+      passwordField = WidgetCreator.makeTextField(JPasswordField.class,
+          ClientGUIConstants.PREFERRED_FIELD_WIDTH,
+          I18nSupport.getValue(CLIENT_BUNDLE, "check.box.tooltip.show.password"));
+      panel.setLayout(new GridLayout(1, 2));
+      panel.add(label);
+      panel.add(passwordField);
+      panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
+    } catch (Exception e) {
+      LOGGER.severe("Error creating password panel.\nMessage: "+e.getMessage());
+    }
+    return panel;
+  }
 
-    JLabel label;
-    JPanel panel;
+  private JPanel getServerPortPanel() {
+    final JPanel panel = new JPanel();
+    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.port"));
+    label.setMaximumSize(label.getPreferredSize());
+    serverPortField = WidgetCreator.makeIntegerTextField("",
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH,
+        I18nSupport.getValue(CLIENT_BUNDLE, "field.tooltip.server.port"));
+    serverPortLabel = new JLabel("");
+
+    panel.setLayout(new GridLayout(1, 2));
+    panel.add(label);
+    if(editable)
+      panel.add(serverPortField);
+    else panel.add(serverPortLabel);
+
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
+    return panel;
+  }
+
+  private JPanel getServerAddressPanel() {
+    final JPanel panel = new JPanel();
+    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.address"));
+    label.setMaximumSize(label.getPreferredSize());
+    final Vector<String> comboBoxContent = new Vector<String>();
+    serverAddressCombo = WidgetCreator.makeComboBox(comboBoxContent, 3,
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH,
+        I18nSupport.getValue(CLIENT_BUNDLE, "combo.box.tooltip.server.address"));
+    serverAddressCombo.setMaximumSize(serverAddressCombo.getPreferredSize());
+    serverAddressCombo.addActionListener(new IPComboBoxListener(serverAddressCombo, comboBoxContent));
+    serverAddressLabel = new JLabel("");
+
+    panel.setLayout(new GridLayout(1,2));
+    panel.add(label);
+    if(editable)
+      panel.add(serverAddressCombo);
+    else panel.add(serverAddressLabel);
+
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
+    return panel;
+  }
+
+  private JPanel getClientInfoPanel() {
+    final JPanel mainPanel = new JPanel();
 
     mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.PAGE_AXIS));
     mainPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_BUNDLE,"border.title.client.settings")));
+        I18nSupport.getValue(CLIENT_BUNDLE, "border.title.client.settings")));
 
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-
-    /* client address panel */
-    panel = new JPanel();
-    panel.setLayout(new GridLayout(1,2));
-    final Vector<String> comboBoxContent = new Vector<String>(3);
-    label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.address"));
-    label.setMaximumSize(label.getPreferredSize());
-    clientAddressCombo = WidgetCreator.makeComboBox(comboBoxContent,3,
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-        I18nSupport.getValue(CLIENT_BUNDLE, "combo.box.tooltip.client.address"));
-    clientAddressCombo.addActionListener(new IPComboBoxListener(clientAddressCombo,comboBoxContent));
-    panel.add(label);
-    panel.add(clientAddressCombo);
-    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
-    mainPanel.add(panel);
-
+    mainPanel.add(getClientAddressPanel());
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-
-    /* client port panel */
-    panel = new JPanel();
-    panel.setLayout(new GridLayout(1,2));
-    label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.port"));
-    label.setMaximumSize(label.getPreferredSize());
-    clientPortField = WidgetCreator.makeIntegerTextField("",
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-        I18nSupport.getValue(CLIENT_BUNDLE, "field.tooltip.client.port"));
-    panel.add(label);
-    panel.add(clientPortField);
-    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
-    mainPanel.add(panel);
-
+    mainPanel.add(getClientPortPanel());
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-
-    /* client name panel */
-    panel = new JPanel();
-    panel.setLayout(new GridLayout(1,2));
-    label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.player.name"));
-    label.setMaximumSize(label.getPreferredSize());
-    nameField = new JTextField(Client.getOwnInstance().getName());
-    panel.add(label);
-    panel.add(nameField);
-    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
-    mainPanel.add(panel);
-
+    mainPanel.add(getClientNamePanel());
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-
-    /* spectator check box */
-    panel = new JPanel();
-    panel.setLayout(new GridLayout(1,2));
-    spectatorCheckBox = new JCheckBox(
-        I18nSupport.getValue(CLIENT_BUNDLE,"check.box.spectator"));
-    spectatorCheckBox.setSelected(false);
-
-    panel.add(Box.createHorizontalStrut(STRUT_WIDTH));
-    panel.add(spectatorCheckBox);
-    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
-    mainPanel.add(panel);
+    mainPanel.add(getSpectatorPanel());
 
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
 
     return mainPanel;
   }
-  //TODO neues Bild für Verbindungsdialog öffnen, kleinere Bilder für Toolbar,
+
+  private JPanel getSpectatorPanel() {
+    final JPanel panel = new JPanel();
+    spectatorCheckBox = new JCheckBox(
+        I18nSupport.getValue(CLIENT_BUNDLE,"check.box.spectator"));
+    spectatorCheckBox.setSelected(false);
+    spectatorLabel = new JLabel("");
+
+    panel.setLayout(new GridLayout(1,2));
+    if(editable) {
+      panel.add(Box.createHorizontalStrut(STRUT_WIDTH));
+      panel.add(spectatorCheckBox);
+    } else {
+      panel.add(new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.status")));
+      panel.add(spectatorLabel);
+    }
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
+
+    return panel;
+  }
+
+  private JPanel getClientNamePanel() {
+    final JPanel panel = new JPanel();
+    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.player.name"));
+    label.setMaximumSize(label.getPreferredSize());
+    nameField = new JTextField(Client.getOwnInstance().getName());
+    nameLabel = new JLabel("");
+
+    panel.setLayout(new GridLayout(1, 2));
+    panel.add(label);
+    if(editable)
+      panel.add(nameField);
+    else panel.add(nameLabel);
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
+
+    return panel;
+  }
+
+  private JPanel getClientPortPanel() {
+    final JPanel panel = new JPanel();
+    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.port"));
+    label.setMaximumSize(label.getPreferredSize());
+    clientPortField = WidgetCreator.makeIntegerTextField("",
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH,
+        I18nSupport.getValue(CLIENT_BUNDLE, "field.tooltip.client.port"));
+    clientPortLabel = new JLabel("");
+
+    panel.setLayout(new GridLayout(1,2));
+    panel.add(label);
+    if(editable)
+      panel.add(clientPortField);
+    else panel.add(clientPortLabel);
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
+
+    return panel;
+  }
+
+  private JPanel getClientAddressPanel() {
+    final JPanel panel = new JPanel();
+    final Vector<String> comboBoxContent = new Vector<String>(3);
+    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.address"));
+    label.setMaximumSize(label.getPreferredSize());
+    clientAddressCombo = WidgetCreator.makeComboBox(comboBoxContent,3,
+        ClientGUIConstants.PREFERRED_FIELD_WIDTH,
+        I18nSupport.getValue(CLIENT_BUNDLE, "combo.box.tooltip.client.address"));
+    clientAddressCombo.addActionListener(new IPComboBoxListener(clientAddressCombo, comboBoxContent));
+    clientAddressLabel = new JLabel("");
+
+    panel.setLayout(new GridLayout(1,2));
+    panel.add(label);
+    if(editable)
+      panel.add(clientAddressCombo);
+    else panel.add(clientAddressLabel);
+
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
+    return panel;
+  }
+
   private JPanel getButtonPanel() {
     if(buttonPanel != null)
       return buttonPanel;
@@ -245,49 +298,81 @@ public class ConnectionDialog extends JDialog {
     buttonPanel = new JPanel();
 
     buttonPanel.setLayout(new FlowLayout(FlowLayout.TRAILING));
-    buttonPanel.add(new JButton(ActionFactory.getConnectAction()));
-    buttonPanel.add(WidgetCreator.makeButton(null,
-        I18nSupport.getValue(CLIENT_BUNDLE, "button.text.close.save"),
-        I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.close.save"),
-        ACTION_COMMAND_CLOSE_SAVE, buttonListener));
-    buttonPanel.add(WidgetCreator.makeButton(null,
-        I18nSupport.getValue(CLIENT_BUNDLE, "button.text.cancel"),
-        I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.cancel"), ACTION_COMMAND_CANCEL,
-        buttonListener));
+    if(editable) {
+      /* It seems that the action listener that will be added last, will be executed first.
+       * Therefore the fill-methods listener will be added last. */
+      JButton connectButton = new JButton(ActionFactory.getConnectAction());
+      connectButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          fillClientInfo();
+          fillConnectionInfo();
+        }
+      });
+      buttonPanel.add(connectButton);
+      buttonPanel.add(WidgetCreator.makeButton(null,
+          I18nSupport.getValue(CLIENT_BUNDLE, "button.text.close.save"),
+          I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.close.save"),
+          ACTION_COMMAND_CLOSE_SAVE, buttonListener));
+      buttonPanel.add(WidgetCreator.makeButton(null,
+          I18nSupport.getValue(CLIENT_BUNDLE, "button.text.cancel"),
+          I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.cancel"),
+          ACTION_COMMAND_CANCEL, buttonListener));
+    } else {
+      buttonPanel.add(WidgetCreator.makeButton(null,
+          I18nSupport.getValue(CLIENT_BUNDLE, "button.text.close"), null,
+          ACTION_COMMAND_CLOSE, buttonListener));
+    }
 
     buttonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, buttonPanel.getPreferredSize().height));
 
     return buttonPanel;
   }
 
-  public void resetFields() {
-    /* server fields */
-    final ConnectionInfo connectionInfo = ConnectionInfo.getOwnInstance();
-    serverAddressCombo.setSelectedItem(connectionInfo.getServerAddress());
-    serverPortField.setText(connectionInfo.getServerPort().toString());
-    passwordField.setText(connectionInfo.getPassword());
+  private void saveAndClose() {
+    fillClientInfo();
+    fillConnectionInfo();
+    setVisible(false);
+    dispose();
+  }
 
-    /* client fields */
+  public void resetFields() {
+    final ConnectionInfo connectionInfo = ConnectionInfo.getOwnInstance();
     final Client client = Client.getOwnInstance();
-    clientAddressCombo.setSelectedItem(client.getIpAddress());
-    clientPortField.setText(Integer.toString(client.getPort()));
-    nameField.setText(client.getName());
-    spectatorCheckBox.setSelected(client.getSpectating());
+
+    if(editable) {
+      /* server fields */
+      serverAddressCombo.setSelectedItem(connectionInfo.getServerAddress());
+      serverPortField.setText(connectionInfo.getServerPort().toString());
+      passwordField.setText(connectionInfo.getPassword());
+      /* client fields */
+      clientAddressCombo.setSelectedItem(client.getIpAddress());
+      clientPortField.setText(Integer.toString(client.getPort()));
+      nameField.setText(client.getName());
+      spectatorCheckBox.setSelected(client.getSpectating());
+    } else {
+      /* server fields */
+      serverAddressLabel.setText(connectionInfo.getServerAddress());
+      serverPortLabel.setText(connectionInfo.getServerPort().toString());
+      /* client fields */
+      clientAddressLabel.setText(client.getIpAddress());
+      clientPortLabel.setText(client.getPort().toString());
+      nameLabel.setText(client.getName());
+      String key = "label.text.spectator."+client.getSpectating().toString(); //NON-NLS
+      spectatorLabel.setText(I18nSupport.getValue(CLIENT_BUNDLE, key));
+    }
   }
 
   /* Inner Classes */
 
   private class ButtonListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
-      if(e.getActionCommand().equals(ACTION_COMMAND_CANCEL)) {
+      if(e.getActionCommand().equals(ACTION_COMMAND_CANCEL) ||
+         e.getActionCommand().equals(ACTION_COMMAND_CLOSE)) {
         resetFields();
         setVisible(false);
         dispose();
       } else if(e.getActionCommand().equals(ACTION_COMMAND_CLOSE_SAVE)) {
-        fillClientInfo();
-        fillConnectionInfo();
-        setVisible(false);
-        dispose();
+        saveAndClose();
       }
     }
   }
