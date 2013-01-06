@@ -1,12 +1,10 @@
 package client.gui.frame;
 
 import client.business.ConnectionInfo;
+import client.business.client.Client;
 import client.gui.ActionFactory;
-import common.dto.DTOClient;
 import common.i18n.I18nSupport;
 import common.utilities.LoggingUtility;
-import common.utilities.Miscellaneous;
-import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.gui.FramePosition;
 import common.utilities.gui.WidgetCreator;
 
@@ -14,7 +12,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
@@ -26,7 +23,6 @@ import java.util.logging.Logger;
  * Time: 22:15
  */
 public class ConnectionDialog extends JDialog {
-  private static ConnectionDialog DIALOG;
   private static final Logger LOGGER =
       LoggingUtility.getLogger(ConnectionDialog.class.getName());
 
@@ -36,9 +32,6 @@ public class ConnectionDialog extends JDialog {
   private static final String ACTION_COMMAND_CLOSE_SAVE = "closeSave";  //NON-NLS
   private static final int STRUT_HEIGHT = 5;
   private static final int STRUT_WIDTH = 5;
-
-  private DTOClient clientInfo;
-  private ConnectionInfo connectionInfo;
 
   private JComboBox<String> serverAddressCombo;
   private JTextField serverPortField;
@@ -51,14 +44,8 @@ public class ConnectionDialog extends JDialog {
   private ButtonListener buttonListener;
 
   /* Constructors */
-  private ConnectionDialog() {
+  public ConnectionDialog(boolean editable) { //TODO editable = true -> alles editierbar, ansonsten nur anzeigen
     super();
-    /* initialise client info and connection info */
-    String defaultName = System.getProperty("user.name");
-    if (defaultName == null)
-      defaultName = I18nSupport.getValue(CLIENT_BUNDLE,"default.player.name");
-    clientInfo = new DTOClient(defaultName);
-    connectionInfo = new ConnectionInfo();
 
     /* initialise gui stuff */
     buttonListener = new ButtonListener();
@@ -66,7 +53,7 @@ public class ConnectionDialog extends JDialog {
     getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
     getContentPane().add(getServerInfoPanel());
     getContentPane().add(Box.createGlue());
-    getContentPane().add(getClientInfoPanel(defaultName));
+    getContentPane().add(getClientPanel());
     getContentPane().add(Box.createGlue());
     getContentPane().add(getButtonPanel());
 
@@ -75,37 +62,24 @@ public class ConnectionDialog extends JDialog {
         ClientGUIConstants.SETUP_FRAME_SCREEN_SIZE_HEIGHT);
 
     this.setBounds(position.getRectangle());
+    if(position.getWidth() < buttonPanel.getPreferredSize().width)
+      this.setSize(buttonPanel.getPreferredSize().width, position.getHeight());
+
     this.setTitle(I18nSupport.getValue(CLIENT_BUNDLE, "frame.title.setup"));
     this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-    fillConnectionInfo();
-    fillClientInfo();
-  }
-
-  public static ConnectionDialog getInstance() {
-    if(DIALOG == null) {
-      DIALOG = new ConnectionDialog();
-    }
-    return DIALOG;
-  }
-
-  public static ConnectionDialog getInstance(boolean editable) {
-    final ConnectionDialog dialog = getInstance();
-
-    if(!editable) //TODO verbindungsinformationen nur anzeigen lassen
-      return dialog;
-
-    return dialog;
+    resetFields();
   }
 
   public static void main(String[] args) {
-    ConnectionDialog.getInstance().setVisible(true);
+    new ConnectionDialog(true).setVisible(true);
   }
 
 
   /* Methods */
 
   private void fillConnectionInfo() {
+    final ConnectionInfo connectionInfo = ConnectionInfo.getOwnInstance();
     connectionInfo.setServerAddress(serverAddressCombo.getSelectedItem().toString());
     connectionInfo.setServerPort(Integer.parseInt(serverPortField.getText()));
     connectionInfo.setPassword(passwordField.getText());
@@ -114,10 +88,11 @@ public class ConnectionDialog extends JDialog {
   }
 
   private void fillClientInfo() {
-    clientInfo.name = nameField.getText();
-    clientInfo.spectating = spectatorCheckBox.isSelected();
-    clientInfo.ipAddress = clientAddressCombo.getSelectedItem().toString();
-    clientInfo.port = Integer.parseInt(clientPortField.getText());
+    final Client client = Client.getOwnInstance();
+    client.setName(nameField.getText());
+    client.setSpectating(spectatorCheckBox.isSelected());
+    client.setIpAddress(clientAddressCombo.getSelectedItem().toString());
+    client.setPort(Integer.parseInt(clientPortField.getText()));
   }
 
   /* Getter and Setter */
@@ -145,12 +120,6 @@ public class ConnectionDialog extends JDialog {
         I18nSupport.getValue(CLIENT_BUNDLE, "combo.box.tooltip.server.address"));
     serverAddressCombo.setMaximumSize(serverAddressCombo.getPreferredSize());
     serverAddressCombo.addActionListener(new IPComboBoxListener(serverAddressCombo,comboBoxContent));
-    try {
-      final InetAddress address = Miscellaneous.getHostInetAddress(Inet4Address.class);
-      serverAddressCombo.addItem(address.getHostAddress());
-    } catch (Exception e) {
-      serverAddressCombo.addItem(InetAddress.getLoopbackAddress().getHostAddress());
-    }
     panel.add(label);
     panel.add(serverAddressCombo);
     panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
@@ -163,8 +132,7 @@ public class ConnectionDialog extends JDialog {
     panel.setLayout(new GridLayout(1,2));
     label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.port"));
     label.setMaximumSize(label.getPreferredSize());
-    serverPortField = WidgetCreator.makeIntegerTextField(
-        GameConfigurationConstants.DEFAULT_PORT_STRING,
+    serverPortField = WidgetCreator.makeIntegerTextField("",
         ClientGUIConstants.PREFERRED_FIELD_WIDTH,
         I18nSupport.getValue(CLIENT_BUNDLE, "field.tooltip.server.port"));
     panel.add(label);
@@ -181,7 +149,8 @@ public class ConnectionDialog extends JDialog {
       label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.password"));
       label.setMaximumSize(label.getPreferredSize());
       passwordField = WidgetCreator.makeTextField(JPasswordField.class,
-          ClientGUIConstants.PREFERRED_FIELD_WIDTH, I18nSupport.getValue(CLIENT_BUNDLE, "check.box.tooltip.show.password"));
+          ClientGUIConstants.PREFERRED_FIELD_WIDTH,
+          I18nSupport.getValue(CLIENT_BUNDLE, "check.box.tooltip.show.password"));
       panel.add(label);
       panel.add(passwordField);
       panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
@@ -195,7 +164,7 @@ public class ConnectionDialog extends JDialog {
     return mainPanel;
   }
 
-  private JPanel getClientInfoPanel(String nameText) {
+  private JPanel getClientPanel() {
     final JPanel mainPanel = new JPanel();
 
     JLabel label;
@@ -217,12 +186,6 @@ public class ConnectionDialog extends JDialog {
         ClientGUIConstants.PREFERRED_FIELD_WIDTH,
         I18nSupport.getValue(CLIENT_BUNDLE, "combo.box.tooltip.client.address"));
     clientAddressCombo.addActionListener(new IPComboBoxListener(clientAddressCombo,comboBoxContent));
-    try {
-      final InetAddress address = Miscellaneous.getHostInetAddress(Inet4Address.class);
-      clientAddressCombo.addItem(address.getHostAddress());
-    } catch (Exception e) {
-      clientAddressCombo.addItem(InetAddress.getLoopbackAddress().getHostAddress());
-    }
     panel.add(label);
     panel.add(clientAddressCombo);
     panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
@@ -235,8 +198,7 @@ public class ConnectionDialog extends JDialog {
     panel.setLayout(new GridLayout(1,2));
     label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.port"));
     label.setMaximumSize(label.getPreferredSize());
-    clientPortField = WidgetCreator.makeIntegerTextField(
-        GameConfigurationConstants.DEFAULT_PORT_STRING,
+    clientPortField = WidgetCreator.makeIntegerTextField("",
         ClientGUIConstants.PREFERRED_FIELD_WIDTH,
         I18nSupport.getValue(CLIENT_BUNDLE, "field.tooltip.client.port"));
     panel.add(label);
@@ -251,7 +213,7 @@ public class ConnectionDialog extends JDialog {
     panel.setLayout(new GridLayout(1,2));
     label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.player.name"));
     label.setMaximumSize(label.getPreferredSize());
-    nameField = new JTextField(nameText);
+    nameField = new JTextField(Client.getOwnInstance().getName());
     panel.add(label);
     panel.add(nameField);
     panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
@@ -276,7 +238,6 @@ public class ConnectionDialog extends JDialog {
     return mainPanel;
   }
   //TODO neues Bild für Verbindungsdialog öffnen, kleinere Bilder für Toolbar,
-  //TODO Bug: Abbrechen Knopf wird am Anfang nicht gezeigt
   private JPanel getButtonPanel() {
     if(buttonPanel != null)
       return buttonPanel;
@@ -290,8 +251,8 @@ public class ConnectionDialog extends JDialog {
         I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.close.save"),
         ACTION_COMMAND_CLOSE_SAVE, buttonListener));
     buttonPanel.add(WidgetCreator.makeButton(null,
-        I18nSupport.getValue(CLIENT_BUNDLE,"button.text.cancel"),
-        I18nSupport.getValue(CLIENT_BUNDLE,"button.tooltip.cancel"), ACTION_COMMAND_CANCEL,
+        I18nSupport.getValue(CLIENT_BUNDLE, "button.text.cancel"),
+        I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.cancel"), ACTION_COMMAND_CANCEL,
         buttonListener));
 
     buttonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, buttonPanel.getPreferredSize().height));
@@ -299,25 +260,19 @@ public class ConnectionDialog extends JDialog {
     return buttonPanel;
   }
 
-  public DTOClient getClientInfo() {
-    return clientInfo;
-  }
-
-  public ConnectionInfo getConnectionInfo() {
-    return connectionInfo;
-  }
-
   public void resetFields() {
     /* server fields */
+    final ConnectionInfo connectionInfo = ConnectionInfo.getOwnInstance();
     serverAddressCombo.setSelectedItem(connectionInfo.getServerAddress());
     serverPortField.setText(connectionInfo.getServerPort().toString());
     passwordField.setText(connectionInfo.getPassword());
 
     /* client fields */
-    clientAddressCombo.setSelectedItem(clientInfo.ipAddress);
-    clientPortField.setText(Integer.toString(clientInfo.port));
-    nameField.setText(clientInfo.name);
-    spectatorCheckBox.setSelected(clientInfo.spectating);
+    final Client client = Client.getOwnInstance();
+    clientAddressCombo.setSelectedItem(client.getIpAddress());
+    clientPortField.setText(Integer.toString(client.getPort()));
+    nameField.setText(client.getName());
+    spectatorCheckBox.setSelected(client.getSpectating());
   }
 
   /* Inner Classes */
@@ -326,13 +281,13 @@ public class ConnectionDialog extends JDialog {
     public void actionPerformed(ActionEvent e) {
       if(e.getActionCommand().equals(ACTION_COMMAND_CANCEL)) {
         resetFields();
-        DIALOG.setVisible(false);
-        DIALOG.dispose();
+        setVisible(false);
+        dispose();
       } else if(e.getActionCommand().equals(ACTION_COMMAND_CLOSE_SAVE)) {
         fillClientInfo();
         fillConnectionInfo();
-        DIALOG.setVisible(false);
-        DIALOG.dispose();
+        setVisible(false);
+        dispose();
       }
     }
   }

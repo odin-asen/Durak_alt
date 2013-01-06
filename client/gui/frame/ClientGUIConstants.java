@@ -34,4 +34,5 @@ public interface ClientGUIConstants {
   float CHAT_FRAME_SCREEN_SIZE_WIDTH = 0.25f;
 
   int CHAT_WRITE_AREA_HEIGHT = 70;
+  String DEFAULT_IP_ADDRESS = "127.0.0.1";
 }

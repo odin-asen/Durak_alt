@@ -1,19 +1,23 @@
 package client.gui.widget.card;
 
+import client.business.client.Client;
 import client.business.client.GameClient;
 import client.gui.frame.ClientFrame;
-import client.gui.frame.ConnectionDialog;
 import client.gui.frame.gamePanel.CombatCardPanel;
 import client.gui.frame.gamePanel.GamePanel;
 import common.dto.DTOClient;
 import common.i18n.I18nSupport;
 import common.utilities.Converter;
+import common.utilities.LoggingUtility;
 import common.utilities.gui.Compute;
 
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.rmi.RemoteException;
+import java.sql.ClientInfoStatus;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * User: Timm Herrmann
@@ -22,6 +26,7 @@ import java.util.List;
  */
 public class DefenseCardMoveListener extends CardMoveListener {
   private static final String BUNDLE_NAME = "user.messages"; //NON-NLS
+  private static final Logger LOGGER = LoggingUtility.getLogger(DefenseCardMoveListener.class.getName());
   private CombatCardPanel curtainPanel;
   private List<CombatCardPanel> combatPanels;
 
@@ -91,13 +96,14 @@ public class DefenseCardMoveListener extends CardMoveListener {
       return null;
 
     try {
-      final DTOClient clientInfo = ConnectionDialog.getInstance().getClientInfo();
-      GameClient.getClient().sendAction(clientInfo, Converter.toDTO(widget.getCardInfo()),
+      final Client client = Client.getOwnInstance();
+      final DTOClient dtoClient = client.toDTO();
+      GameClient.getClient().sendAction(dtoClient, Converter.toDTO(widget.getCardInfo()),
          Converter.toDTO(currentPanel.getAttackerCard().getCardInfo()));
-      result = GameClient.getClient().getActionDeniedReason(clientInfo);
+      result = GameClient.getClient().getActionDeniedReason(dtoClient);
     } catch (RemoteException e) {
-      e.printStackTrace();
       result = I18nSupport.getValue(BUNDLE_NAME,"network.error");
+      LoggingUtility.printStackTrace(LOGGER, Level.SEVERE, e.getStackTrace());
     }
 
     return result;

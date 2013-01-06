@@ -130,7 +130,7 @@ public class DurakToolBar extends JToolBar {
           frame.setVisible(true);
         else frame.setVisible(false);
       } else if(ACTION_COMMAND_CONNECTION_SETTINGS.equals(e.getActionCommand())) {
-        ConnectionDialog dialog = ConnectionDialog.getInstance(!GameClient.getClient().isConnected());
+        ConnectionDialog dialog = new ConnectionDialog(!GameClient.getClient().isConnected());
         dialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
         dialog.setVisible(true);
       }

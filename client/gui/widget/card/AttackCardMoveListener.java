@@ -1,5 +1,6 @@
 package client.gui.widget.card;
 
+import client.business.client.Client;
 import client.business.client.GameClient;
 import client.gui.frame.ClientFrame;
 import client.gui.frame.ConnectionDialog;
@@ -134,9 +135,9 @@ public class AttackCardMoveListener extends CardMoveListener {
         cards[index] = Converter.toDTO(pointedWidgets.widgets.get(index).getCardInfo());
       }
 
-      final DTOClient clientInfo = ConnectionDialog.getInstance().getClientInfo();
-      GameClient.getClient().sendAction(clientInfo, cards);
-      result = GameClient.getClient().getActionDeniedReason(clientInfo);
+      final DTOClient dtoClient = Client.getOwnInstance().toDTO();
+      GameClient.getClient().sendAction(dtoClient, cards);
+      result = GameClient.getClient().getActionDeniedReason(dtoClient);
     } catch (RemoteException e) {
       e.printStackTrace();
       result = I18nSupport.getValue(BUNDLE_NAME,"network.error");

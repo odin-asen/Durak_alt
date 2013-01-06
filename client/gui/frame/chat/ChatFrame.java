@@ -1,5 +1,6 @@
 package client.gui.frame.chat;
 
+import client.business.client.Client;
 import client.business.client.GameClient;
 import client.gui.frame.ConnectionDialog;
 import common.dto.DTOClient;
@@ -176,9 +177,9 @@ public class ChatFrame extends JDialog {
 
     public void sendChatMessage(String text) {
       if (!text.isEmpty()) {
-        DTOClient info = ConnectionDialog.getInstance().getClientInfo();
+        DTOClient dtoClient = Client.getOwnInstance().toDTO();
         try {
-          GameClient.getClient().getChatHandler().sendMessage(info, text);
+          GameClient.getClient().getChatHandler().sendMessage(dtoClient, text);
           chatWriteArea.setText("");
         } catch (Exception e) {
           JOptionPane.showMessageDialog(CHAT_FRAME, I18nSupport.getValue(BUNDLE_NAME,"dialog.text.error.chat.message.not.send"),

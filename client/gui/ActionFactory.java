@@ -1,10 +1,12 @@
 package client.gui;
 
 import client.business.ConnectionInfo;
+import client.business.client.Client;
 import client.business.client.GameClient;
 import client.business.client.GameClientException;
 import client.gui.frame.ClientFrame;
 import client.gui.frame.ConnectionDialog;
+import common.dto.DTOClient;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
 import common.resources.ResourceList;
@@ -88,32 +90,33 @@ class ConnectionAction extends AbstractAction {
   }
 
   private void disconnectClient() {
-    final GameClient client = GameClient.getClient();
-    final ConnectionDialog dialog = ConnectionDialog.getInstance();
+    final GameClient gameClient = GameClient.getClient();
 
-    client.disconnect(dialog.getClientInfo());
+    gameClient.disconnect(Client.getOwnInstance().toDTO());
     mainFrame.setStatus(I18nSupport.getValue(MSGS_BUNDLE, "status.has.been.disconnected"),
         false, "");
     mainFrame.clearClients();
   }
 
   private void connectClient() {
-    final GameClient client = GameClient.getClient();
-    final ConnectionDialog dialog = ConnectionDialog.getInstance();
+    final GameClient gameClient = GameClient.getClient();
+    final Client client = Client.getOwnInstance();
+    final DTOClient dtoClient = client.toDTO();
 
-    if(client.isConnected())
-      client.disconnect(dialog.getClientInfo());
+    if(gameClient.isConnected())
+      gameClient.disconnect(dtoClient);
 
     try {
-      final ConnectionInfo connection = dialog.getConnectionInfo();
-      client.setConnection(connection);
+      final ConnectionInfo connection = ConnectionInfo.getOwnInstance();
+      gameClient.setConnection(connection.getServerAddress(),connection.getServerPort(),
+          connection.getClientAddress(),connection.getClientPort());
 
-      dialog.getClientInfo().ipAddress = connection.getClientAddress();
-      dialog.getClientInfo().port = connection.getClientPort();
+      dtoClient.ipAddress = connection.getClientAddress();
+      dtoClient.port = connection.getClientPort();
 
       final String socketString =
           "["+connection.getServerAddress()+":"+ connection.getServerPort()+"]";
-      client.connect(dialog.getClientInfo(), connection.getPassword());
+      gameClient.connect(dtoClient, connection.getPassword());
       mainFrame.setStatus(I18nSupport.getValue(MSGS_BUNDLE, "status.connected"),
           true, socketString);
     } catch (GameClientException e) {

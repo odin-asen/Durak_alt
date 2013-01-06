@@ -1,7 +1,15 @@
 package client.business.client;
 
+import client.gui.frame.ClientGUIConstants;
 import common.dto.DTOClient;
+import common.i18n.I18nSupport;
+import common.utilities.Miscellaneous;
+import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.constants.PlayerConstants;
+
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.sql.ClientInfoStatus;
 
 /**
  * User: Timm Herrmann
@@ -12,8 +20,8 @@ import common.utilities.constants.PlayerConstants;
  * client object.
  */
 public class Client {
+  private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
   private static Client ownClient;
-  private static final String DEFAULT_IP_ADDRESS = "127.0.0.1";
 
   private String name;
   private Integer cardCount;
@@ -25,12 +33,20 @@ public class Client {
   /* Constructors */
 
   private Client() {
-    setName("");
+    String name = System.getProperty("user.name", //NON-NLS
+        I18nSupport.getValue(CLIENT_BUNDLE, "default.player.name"));
+    setName(name);
     setCardCount(0);
     setPlayerType(PlayerConstants.PlayerType.DEFAULT);
     setSpectating(false);
-    setIpAddress(DEFAULT_IP_ADDRESS);
-    setPort(0);
+    try {
+      /* get the clients lan addresses from the network card */
+      final InetAddress address = Miscellaneous.getHostInetAddress(Inet4Address.class);
+      setIpAddress(address.getHostAddress());
+    } catch (Exception e) {
+      setIpAddress(InetAddress.getLoopbackAddress().getHostAddress());
+    }
+    setPort(Integer.valueOf(GameConfigurationConstants.DEFAULT_PORT_STRING));
   }
 
   public static Client getOwnInstance() {
@@ -57,8 +73,8 @@ public class Client {
     return cardCount;
   }
 
-  public void setCardCount(int cardCount) {
-    if(cardCount < 0)
+  public void setCardCount(Integer cardCount) {
+    if(cardCount < 0 || cardCount == null)
       cardCount = 0;
     this.cardCount = cardCount;
   }
@@ -69,7 +85,7 @@ public class Client {
 
   public void setIpAddress(String ipAddress) {
     if(ipAddress == null)
-      ipAddress = DEFAULT_IP_ADDRESS;
+      ipAddress = ClientGUIConstants.DEFAULT_IP_ADDRESS;
     this.ipAddress = ipAddress;
   }
 
@@ -95,8 +111,8 @@ public class Client {
     return port;
   }
 
-  public void setPort(int port) {
-    if(port < 0)
+  public void setPort(Integer port) {
+    if(port < 0 || port == null)
       port = 0;
     this.port = port;
   }
@@ -105,7 +121,26 @@ public class Client {
     return spectating;
   }
 
-  public void setSpectating(boolean spectating) {
+  public void setSpectating(Boolean spectating) {
+    if(spectating == null)
+      spectating = true;
     this.spectating = spectating;
+  }
+
+  public DTOClient toDTO() {
+    final DTOClient client = new DTOClient(name);
+    client.cardCount = cardCount;
+    client.playerType = playerType;
+    client.spectating = spectating;
+    client.ipAddress = ipAddress;
+    client.port = port;
+    return client;
+  }
+
+  /* Sets only from the server changeble values of the clients information */
+  public void setClientInfo(DTOClient dtoClient) {
+    setCardCount(dtoClient.cardCount);
+    setPlayerType(dtoClient.playerType);
+    setSpectating(dtoClient.spectating);
   }
 }

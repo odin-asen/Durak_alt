@@ -1,10 +1,8 @@
 package common.utilities;
 
 import java.io.IOException;
-import java.util.logging.FileHandler;
-import java.util.logging.Handler;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.io.PrintStream;
+import java.util.logging.*;
 
 /**
  * User: Timm Herrmann
@@ -69,5 +67,14 @@ public class LoggingUtility {
     if(!handlerExists)
       logger.addHandler(handler);
     return logger;
+  }
+
+  public static void printStackTrace(Logger logger, Level level,
+                                     StackTraceElement[] elements) {
+    String text = "";
+    for (StackTraceElement element : elements)
+      text = text + element.toString();
+
+    logger.log(level, text);
   }
 }

@@ -166,11 +166,12 @@ public class GameClient extends Observable {
     return serverAddress + ":" + serverPort;
   }
 
-  public void setConnection(ConnectionInfo info) {
-    serverAddress = info.getServerAddress();
-    serverPort = info.getServerPort();
-    clientAddress = info.getClientAddress();
-    clientPort = info.getClientPort();
+  public void setConnection(String serverAddress, int serverPort,
+                            String clientAddress, int clientPort) {
+    this.serverAddress = serverAddress;
+    this.serverPort = serverPort;
+    this.clientAddress = clientAddress;
+    this.clientPort = clientPort;
   }
 
   public Boolean isConnected() {

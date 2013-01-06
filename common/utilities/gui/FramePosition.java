@@ -10,24 +10,26 @@ import java.awt.*;
 public class FramePosition {
   private final int posX;
   private final int posY;
-  private final int breite;
-  private final int hoehe;
+  private final int width;
+  private final int height;
   private final Rectangle rectangle;
 
-  private FramePosition(Dimension screenSize, float screenSizeFensterBreite, float screenSizeFensterHoehe) {
+  private FramePosition(Dimension screenSize, float screenSizeFrameWidth,
+                        float screenSizeFrameHeight) {
     if(screenSize == null)
       screenSize = new Dimension(1366,768);
 
-    breite = (int) (screenSize.width* Math.abs(screenSizeFensterBreite));
-    hoehe= (int) (screenSize.height* Math.abs(screenSizeFensterHoehe));
-    posX = (int) (screenSize.width*0.5f-breite*0.5f);
-    posY = (int) (screenSize.height*0.5f-hoehe*0.5f);
-    rectangle = new Rectangle(posX,posY,breite,hoehe);
+    width = (int) (screenSize.width* Math.abs(screenSizeFrameWidth));
+    height = (int) (screenSize.height* Math.abs(screenSizeFrameHeight));
+    posX = (int) (screenSize.width*0.5f- width *0.5f);
+    posY = (int) (screenSize.height*0.5f- height *0.5f);
+    rectangle = new Rectangle(posX,posY, width, height);
   }
 
-  public static FramePosition createFramePositions(float screenSizeFensterBreite, float screenSizeFensterHoehe) {
+  public static FramePosition createFramePositions(float screenSizeFrameWidth,
+                                                   float screenSizeFrameHeight) {
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    return new FramePosition(screenSize, screenSizeFensterBreite, screenSizeFensterHoehe);
+    return new FramePosition(screenSize, screenSizeFrameWidth, screenSizeFrameHeight);
   }
 
   public int getPosX() {
@@ -38,20 +40,20 @@ public class FramePosition {
     return posY;
   }
 
-  public int getBreite() {
-    return breite;
+  public int getWidth() {
+    return width;
   }
 
-  public int getHoehe() {
-    return hoehe;
+  public int getHeight() {
+    return height;
   }
 
   @SuppressWarnings({"", "HardCodedStringLiteral"})
   public String toString() {
-    return "" +posX+"; "+
+    return "PosX" +posX+"; "+
         "PosY: "+posY+"; "+
-        "Breite: "+breite+"; "+
-        "Hoehe: "+hoehe+"; ";
+        "Width: "+ width +"; "+
+        "Height: "+ height +"; ";
   }
 
   public Rectangle getRectangle() {

@@ -1,5 +1,6 @@
 package client.gui.widget.card;
 
+import client.business.client.Client;
 import common.dto.DTOClient;
 
 import javax.swing.*;
