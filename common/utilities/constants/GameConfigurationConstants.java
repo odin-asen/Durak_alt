@@ -12,5 +12,5 @@ public interface GameConfigurationConstants {
 
   String REGISTRY_NAME_SERVER = "durakserver"; //NON-NLS
   String DEFAULT_IP_ADDRESS = "127.0.0.1";
-  int DEFAULT_PORT = 10000;
+  Integer DEFAULT_PORT = 10000;
 }

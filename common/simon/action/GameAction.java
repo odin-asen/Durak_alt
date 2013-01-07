@@ -35,7 +35,7 @@ public abstract class GameAction implements Serializable {
 
   public DTOClient getExecutor() {
     final DTOClient other = new DTOClient("");
-    other.setClientInfo(other);
+    other.setClientInfo(this.executor);
     return other;
   }
 }

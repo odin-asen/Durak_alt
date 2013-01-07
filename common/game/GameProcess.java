@@ -161,9 +161,9 @@ public class GameProcess {
 
     if(action instanceof FinishAction) {
       finishAction = (FinishAction) action;
-      if(finishAction.equals(FinishAction.FinishType.GO_TO_NEXT_ROUND)) {
+      if(FinishAction.FinishType.GO_TO_NEXT_ROUND.equals(finishAction.getFinishType())) {
         goToNextRound = nextRound(action.getExecutor().playerType, false);
-      } else if(finishAction.equals(FinishAction.FinishType.TAKE_CARDS)) {
+      } else if(FinishAction.FinishType.TAKE_CARDS.equals(finishAction.getFinishType())) {
         goToNextRound = nextRound(action.getExecutor().playerType, true);
       } else goToNextRound = false;
     }

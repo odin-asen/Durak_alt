@@ -55,13 +55,12 @@ public class Miscellaneous {
     return builder.replace(1,message.indexOf(MESSAGE_START),newInBrackets).toString();
   }
 
-  public static <T> void addAllToCollection(Collection<T> addIn,
-                              Collection<T> collectionToAdd) {
-    if(collectionToAdd == null)
+  public static <T> void addAllToCollection(Collection<T> to, Collection<T> from) {
+    if(from == null)
       return;
 
-    for (T element : collectionToAdd) {
-      addIn.add(element);
+    for (T element : from) {
+      to.add(element);
     }
   }
 

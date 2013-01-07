@@ -8,6 +8,7 @@ import common.resources.ResourceGetter;
 import common.resources.ResourceList;
 import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
+import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.gui.Constraints;
 import common.utilities.gui.FramePosition;
 import common.utilities.gui.WidgetCreator;
@@ -18,9 +19,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.text.MessageFormat;
@@ -197,7 +200,7 @@ public class ServerFrame extends JFrame implements Observer {
     format.setGroupingUsed(false);
 
     portField = new JFormattedTextField(format);
-    portField.setText("1025");
+    portField.setText(GameConfigurationConstants.DEFAULT_PORT.toString());
     portField.setPreferredSize(new Dimension(PREFERRED_FIELD_WIDTH, portField.getPreferredSize().height));
     portField.setMaximumSize(new Dimension(Integer.MAX_VALUE, portField.getPreferredSize().height));
 
@@ -287,13 +290,7 @@ public class ServerFrame extends JFrame implements Observer {
     }
 
     private void closeServer() {
-      try {
-        GameServer.getServerInstance().shutdownServer();
-      } catch (NotBoundException e) {
-        LOGGER.info(e.getMessage());
-      } catch (RemoteException e) {
-        LOGGER.info(e.getMessage());
-      }
+      GameServer.getServerInstance().shutdownServer();
     }
 
     private void closeFrame(ActionEvent e) {
@@ -304,7 +301,7 @@ public class ServerFrame extends JFrame implements Observer {
     }
 
     private void startGameServer() {
-      final GameServer gameServer = GameServer.getServerInstance(getPortValue(), "");
+      final GameServer gameServer = GameServer.getServerInstance(getPortValue());
 
       try {
         String ipAddress;
@@ -313,17 +310,14 @@ public class ServerFrame extends JFrame implements Observer {
         } catch (SocketException e) {
           ipAddress = InetAddress.getLoopbackAddress().getHostAddress();
         }
-        gameServer.startServer(ipAddress);
+        gameServer.startServer(""); //TODO hier passwort setzen
         setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "status.server.running"));
-      } catch (IllegalAccessException e) {
+      } catch (UnknownHostException e) {
         setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "network.error"));
-        LOGGER.severe(e.getClass()+" "+e.getMessage());
-      } catch (InstantiationException e) {
+        LOGGER.severe(e.getMessage());
+      } catch (IOException e) {
         setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "network.error"));
-        LOGGER.severe(e.getClass()+" "+e.getMessage());
-      } catch (RemoteException e) {
-        setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "network.error"));
-        LOGGER.severe(e.getClass() + " Could not register services");
+        LOGGER.severe(e.getMessage());
       }
     }
   }

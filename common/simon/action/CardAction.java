@@ -24,14 +24,16 @@ public final class CardAction extends GameAction implements Serializable {
   private CardActionType cardActionType;
 
   /* Constructors */
-  public CardAction(CardActionType cardActionType, List<DTOCard> attackCards, List<DTOCard> defenderCards,
-                    DTOClient executor, GameAction.ActionType type) {
+  public CardAction(CardActionType cardActionType, List<DTOCard> attackCards,
+                    List<DTOCard> defenderCards, DTOClient executor, GameAction.ActionType type) {
     super(executor, type);
     this.cardActionType = cardActionType;
-    this.attackCards = new ArrayList<DTOCard>(attackCards.size());
-    this.defenderCards = new ArrayList<DTOCard>(defenderCards.size());
-    Collections.copy(this.attackCards, attackCards);
-    Collections.copy(this.defenderCards, defenderCards);
+    int size = attackCards != null ? attackCards.size() : 0;
+    this.attackCards = new ArrayList<DTOCard>(size);
+    size = defenderCards != null ? defenderCards.size() : 0;
+    this.defenderCards = new ArrayList<DTOCard>(size);
+    Miscellaneous.addAllToCollection(this.attackCards, attackCards);
+    Miscellaneous.addAllToCollection(this.defenderCards, defenderCards);
   }
 
   /* Methods */
@@ -39,13 +41,13 @@ public final class CardAction extends GameAction implements Serializable {
 
   public List<DTOCard> getAttackCards() {
     final List<DTOCard> other = new ArrayList<DTOCard>(attackCards.size());
-    Collections.copy(other,attackCards);
+    Miscellaneous.addAllToCollection(other,attackCards);
     return other;
   }
 
   public List<DTOCard> getDefenderCards() {
     final List<DTOCard> other = new ArrayList<DTOCard>(defenderCards.size());
-    Collections.copy(other,defenderCards);
+    Miscellaneous.addAllToCollection(other,defenderCards);
     return other;
   }
 

@@ -22,6 +22,7 @@ import de.root1.simon.exceptions.NameBindingException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -68,12 +69,16 @@ public class GameServer extends Observable {
 
   /* Methods */
 
-  public void startServer(String password) throws IOException, NameBindingException {
+  public void startServer(String password) throws UnknownHostException, IOException {
     if(!isServerRunning()) {
       durakServices = new DurakServices(password);
       registry = Simon.createRegistry(port);
-      registry.bind(GameConfigurationConstants.REGISTRY_NAME_SERVER, durakServices);
-      running = true;
+      try {
+        registry.bind(GameConfigurationConstants.REGISTRY_NAME_SERVER, durakServices);
+        running = true;
+      } catch (NameBindingException e) {
+        LOGGER.severe("Name already bound!");
+      }
     }
   }
 

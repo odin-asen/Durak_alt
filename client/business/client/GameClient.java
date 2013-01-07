@@ -96,7 +96,11 @@ public class GameClient extends Observable {
 
   public void disconnect() {
     if(isConnected()) {
-      server.logoff(messageReceiver);
+      try {
+        server.logoff(messageReceiver);
+      } catch (Exception e) {
+        LOGGER.info("Server was shut down without notifying me :-(\n"+e.getMessage());
+      }
       nameLookup.release(server);
       connected = false;
     }
@@ -129,7 +133,9 @@ public class GameClient extends Observable {
   public Boolean sendAction(DTOClient dtoClient, DTOCard attackCard, DTOCard defenseCard) {
     final List<DTOCard> attackCards = new ArrayList<DTOCard>(1);
     final List<DTOCard> defenseCards = new ArrayList<DTOCard>(1);
-    return sendAction(dtoClient, attackCard, defenseCard);
+    attackCards.add(attackCard);
+    defenseCards.add(defenseCard);
+    return sendAction(dtoClient, attackCards, defenseCards);
   }
 
   public Boolean finishRound(DTOClient dtoClient, FinishAction.FinishType type) {
