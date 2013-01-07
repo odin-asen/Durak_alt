@@ -63,7 +63,7 @@ public class LoggingUtility {
       handler = createDefaultHandler();
 
     for (Handler h : logger.getHandlers())
-      handlerExists = handlerExists | h.equals(handler);
+      handlerExists = handlerExists || h.equals(handler);
     if(!handlerExists)
       logger.addHandler(handler);
     return logger;

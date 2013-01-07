@@ -9,5 +9,6 @@ package common.dto.message;
  */
 public enum MessageType {
   OWN_CLIENT_INFO,
-  SERVER_PING
+  RULE_MESSAGE,
+  STATUS_MESSAGE
 }

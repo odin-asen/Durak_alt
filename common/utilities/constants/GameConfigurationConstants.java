@@ -11,5 +11,5 @@ public interface GameConfigurationConstants {
   Integer MAXIMUM_COLOUR_CARD_COUNT = 13;
   Integer DEFAULT_COLOUR_CARD_COUNT = 9;
   Integer INITIAL_CARD_COUNT = 6;
-  String DEFAULT_PORT_STRING = "1025";
+  int DEFAULT_PORT = 10000;
 }

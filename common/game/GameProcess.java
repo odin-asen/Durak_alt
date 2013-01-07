@@ -1,6 +1,9 @@
 package common.game;
 
 import common.dto.DTOCard;
+import common.simon.action.CardAction;
+import common.simon.action.FinishAction;
+import common.simon.action.GameAction;
 import common.game.rules.RuleChecker;
 import common.game.rules.RuleException;
 import common.game.rules.RuleFactory;
@@ -9,8 +12,10 @@ import common.utilities.Miscellaneous;
 import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.constants.PlayerConstants;
 
-import java.rmi.RemoteException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 
 /**
  * User: Timm Herrmann
@@ -126,34 +131,58 @@ public class GameProcess {
    * Validates a surpassed action with the current settings of the RuleChecker
    * object.
    * @param action Action to validate.
+   * @param playerID Identifier for the player that does the action.
+   * @return Returns true, if the next round has started, else false.
    * @throws RuleException If a rule has been broken, a
    * {@link game.rules.RuleException} will be thrown with a message for the client.
    * @throws IllegalArgumentException If {@code action} is not instanceof
-   * {@link server.business.rmiImpl.AttackAction} or {@link server.business.rmiImpl.DefenseAction}
+   * {@link common.simon.action.CardAction} or {@link common.simon.action.FinishAction}
    */
-  public void validateAction(ValidationAction validation, String playerID,
-                             List<List<DTOCard>> cards)
-      throws RuleException, RemoteException {
-    if(validation.equals(ValidationAction.ATTACK)) {
-      validateAttack(playerID, cards.get(0));
-    } else if(validation.equals(ValidationAction.DEFENSE)) {
-      validateDefense(playerID, cards);
-    } else throw new IllegalArgumentException("The first parameter is neither\n" +
-      ValidationAction.ATTACK +" nor\n"+ValidationAction.DEFENSE);
+  public boolean validateAction(GameAction action, String playerID)
+      throws RuleException, IllegalArgumentException {
+    boolean nextRound = false;
+    if(action instanceof CardAction) {
+      final CardAction cardAction = (CardAction) action;
+      if(cardAction.getCardActionType().equals(CardAction.CardActionType.ATTACK))
+        validateAttack(playerID, (CardAction) action);
+      else if(cardAction.getCardActionType().equals(CardAction.CardActionType.DEFENSE))
+        validateDefense(playerID, (CardAction) action);
+    } else if(action instanceof FinishAction) {
+      nextRound = validateFinish(playerID, action);
+    } else throw new IllegalArgumentException("GameAction must be either " +
+        "instance of "+CardAction.class.getName()+" or "+FinishAction.class.getName());
+
+    return nextRound;
   }
 
-  private void validateDefense(String playerID, List<List<DTOCard>> cards) throws RuleException, RemoteException {
-    final GameCard defenderCard = Converter.fromDTO(cards.get(0).get(0));
-    final GameCard attackerCard = Converter.fromDTO(cards.get(1).get(0));
+  private boolean validateFinish(String playerID, GameAction action) {
+    final FinishAction finishAction;
+    Boolean goToNextRound = false;
+
+    if(action instanceof FinishAction) {
+      finishAction = (FinishAction) action;
+      if(finishAction.equals(FinishAction.FinishType.GO_TO_NEXT_ROUND)) {
+        goToNextRound = nextRound(action.getExecutor().playerType, false);
+      } else if(finishAction.equals(FinishAction.FinishType.TAKE_CARDS)) {
+        goToNextRound = nextRound(action.getExecutor().playerType, true);
+      } else goToNextRound = false;
+    }
+
+    return goToNextRound;
+  }
+
+  private void validateDefense(String playerID, CardAction action) throws RuleException {
+    final GameCard defenderCard = Converter.fromDTO(action.getDefenderCards().get(0));
+    final GameCard attackerCard = Converter.fromDTO(action.getAttackCards().get(0));
     ruleChecker.doDefenseMove(playerHolder.get(playerID),
         pairCardHolder.getFirstElements().isEmpty(),
         defenderCard, attackerCard);
     pairCardHolder.joinElements(attackerCard, defenderCard);
   }
 
-  private void validateAttack(String playerID, List<DTOCard> attackCards)
-      throws RuleException, RemoteException {
-    List<GameCard> cards = Converter.fromDTO(attackCards);
+  private void validateAttack(String playerID, CardAction action)
+      throws RuleException {
+    List<GameCard> cards = Converter.fromDTO(action.getAttackCards());
     ruleChecker.doAttackMove(playerHolder.get(playerID), cards,
         pairCardHolder.getFirstElements(), pairCardHolder.getSecondElements());
 
@@ -318,10 +347,6 @@ public class GameProcess {
   }
 
   /* Inner Classes */
-
-  public static enum ValidationAction {
-    ATTACK, DEFENSE
-  }
 }
 
 class ElementPairHolder<T> {
@@ -471,7 +496,7 @@ class ListMap<K,V> {
 
   boolean remove(K key) {
     boolean removed = (map.remove(key) != null);
-    removed = removed | list.remove(key);
+    removed = removed || list.remove(key);
     return removed;
   }
 

@@ -1,24 +1,27 @@
 package server.business;
 
-import common.dto.DTOClient;
 import common.dto.DTOCard;
+import common.dto.DTOClient;
 import common.dto.message.*;
 import common.game.GameCardStack;
 import common.game.GameProcess;
-import common.rmi.RMIObserver;
-import common.rmi.RMIService;
+import common.game.rules.RuleException;
+import common.i18n.I18nSupport;
+import common.simon.Callbackable;
+import common.simon.ServerInterface;
+import common.simon.action.GameAction;
 import common.utilities.Converter;
 import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
 import common.utilities.constants.GameCardConstants;
-import server.business.rmiImpl.*;
+import common.utilities.constants.GameConfigurationConstants;
+import de.root1.simon.Registry;
+import de.root1.simon.Simon;
+import de.root1.simon.annotation.SimonRemote;
+import de.root1.simon.exceptions.NameBindingException;
 
-import java.rmi.NotBoundException;
-import java.rmi.Remote;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -28,22 +31,19 @@ import java.util.logging.Logger;
  * Time: 21:57
  */
 public class GameServer extends Observable {
+  private static final String REGISTRY_NAME_SERVER = "durakserver"; //NON-NLS
+
   private static Logger LOGGER = LoggingUtility.getLogger(GameServer.class.getName());
 
   private static GameServer gameServer;
 
-  private static final String RMI_SERVER_HOST = "java.rmi.server.hostname"; //NON-NLS
-
-  private Map<RMIService,Remote> services;
-  private Registry registry;
-
-  private InGameSpectatorHolder<RMIObserver,DTOClient> clientHolder;
-
   private Integer port;
   private Boolean running;
-  private String password;
 
+  private DurakServices durakServices;
+  private InGameSpectatorHolder<Callbackable,DTOClient> clientHolder;
   private GameUpdater gameUpdater;
+  private Registry registry;
 
   /* Constructors */
   public static GameServer getServerInstance() {
@@ -53,95 +53,46 @@ public class GameServer extends Observable {
     return gameServer;
   }
 
-  public static GameServer getServerInstance(Integer port, String password) {
+  public static GameServer getServerInstance(Integer port) {
     if(gameServer == null) {
       gameServer = new GameServer();
     }
     gameServer.setPort(port);
-    gameServer.setPassword(password);
 
     return gameServer;
   }
 
   private GameServer() {
-    port = Registry.REGISTRY_PORT;
-    services = new HashMap<RMIService,Remote>();
-    clientHolder = new InGameSpectatorHolder<RMIObserver,DTOClient>();
+    port = GameConfigurationConstants.DEFAULT_PORT;
+    this.clientHolder = new InGameSpectatorHolder<Callbackable, DTOClient>();
     running = false;
   }
 
   /* Methods */
-  private void registerService(Registry registry, String serverAddress,
-                               Class implementationClass, RMIService service)
-      throws RemoteException, IllegalAccessException, InstantiationException {
-    final Object implementation = implementationClass.newInstance();
-    if(implementation instanceof Remote) {
-      Remote stub = UnicastRemoteObject.exportObject((Remote) implementation, 0);
-      registry.rebind(service.getServiceName(serverAddress), stub);
-      services.put(service, (Remote) implementation);
-    }
-  }
 
-  private void initServices(Registry registry, String serverAddress)
-      throws RemoteException, IllegalAccessException, InstantiationException {
-    registerService(registry, serverAddress, AttackAction.class, RMIService.ATTACK_ACTION);
-    registerService(registry, serverAddress, AuthenticatorImpl.class, RMIService.AUTHENTICATION);
-    registerService(registry, serverAddress, ChatHandlerImpl.class, RMIService.CHAT);
-    registerService(registry, serverAddress, DefenseAction.class, RMIService.DEFENSE_ACTION);
-    registerService(registry, serverAddress, RoundStateAction.class, RMIService.ROUND_STATE_ACTION);
-    registerService(registry, serverAddress, RMIObservableImpl.class, RMIService.OBSERVABLE);
-  }
-
-  private void initImplementations() {
-    Object implementation = services.get(RMIService.AUTHENTICATION);
-    if(implementation != null) {
-      AuthenticatorImpl impl = (AuthenticatorImpl) implementation;
-      impl.setPassword(password);
-    }
-  }
-
-  private void unregisterServices(Registry registry, String serverAddress) throws RemoteException, NotBoundException {
-    for (RMIService rmiService : services.keySet()) {
-      registry.unbind(rmiService.getServiceName(serverAddress));
-      UnicastRemoteObject.unexportObject(services.get(rmiService), true);
-    }
-    UnicastRemoteObject.unexportObject(registry,true);
-  }
-
-  public void startServer(String serverAddress) throws InstantiationException, IllegalAccessException, RemoteException {
+  public void startServer(String password) throws IOException, NameBindingException {
     if(!isServerRunning()) {
-      System.setProperty(RMI_SERVER_HOST, serverAddress);
-      registry = getSafeRegistry(port);
-      initServices(registry, serverAddress);
-      initImplementations();
+      durakServices = new DurakServices(password);
+      registry = Simon.createRegistry(port);
+      registry.bind(REGISTRY_NAME_SERVER, durakServices);
       running = true;
     }
   }
 
-  private Registry getSafeRegistry(Integer port) throws RemoteException {
-    Registry registry;
-
-    try {
-      registry = LocateRegistry.createRegistry(port);
-    } catch (RemoteException e) {
-      LOGGER.info("Port " + port + " already used, getting this registry.");
-      registry = LocateRegistry.getRegistry(port);
-    }
-
-    return registry;
-  }
-
-  public void shutdownServer() throws NotBoundException, RemoteException {
+  public void shutdownServer() {
     if(isServerRunning()) {
-      getRMIObservable().notifyObservers(new MessageObject(BroadcastType.SERVER_SHUTDOWN));
-      unregisterServices(registry, System.getProperty(RMI_SERVER_HOST, "127.0.0.1"));
+      broadcastMessage(BroadcastType.SERVER_SHUTDOWN);
+      registry.unbind(REGISTRY_NAME_SERVER);
+      registry.stop();
       running = false;
     }
   }
 
   public void startGame(Integer stackSize) {
-    gameUpdater = new GameUpdater(stackSize, clientHolder);
-    gameUpdater.invoke();
+    if(!GameProcess.getInstance().isGameInProcess()) {
+      gameUpdater = new GameUpdater(stackSize, clientHolder);
+      gameUpdater.invoke();
+    }
   }
 
   /**
@@ -165,10 +116,9 @@ public class GameServer extends Observable {
   }
 
   public void broadcastMessage(Enum<?> type, Object sendingObject) {
-    try {
-      getRMIObservable().notifyObservers(new MessageObject(type, sendingObject));
-    } catch (RemoteException e) {
-      LOGGER.severe("Could not notify observer: "+e.getMessage()+" occured!");
+    List<Callbackable> clients = clientHolder.getAllKeys();
+    for (Callbackable client : clients) {
+      sendMessage(client,new MessageObject(type, sendingObject));
     }
   }
 
@@ -180,12 +130,9 @@ public class GameServer extends Observable {
     broadcastMessage(type, null);
   }
 
-  public void sendMessage(RMIObserver observer, MessageObject messageObject) {
-    try {
-      getRMIObservable().notifyObserver(observer, messageObject);
-    } catch (RemoteException e) {
-      LOGGER.severe("Could not notify observer: " + e.getMessage() + " occured!");
-    }
+  public void sendMessage(Callbackable callbackable, MessageObject messageObject) {
+    InetSocketAddress socketAddress = Simon.getRemoteInetSocketAddress(callbackable);
+    callbackable.callback(messageObject);
   }
 
   /**
@@ -193,93 +140,66 @@ public class GameServer extends Observable {
    * object contains as sendingObject the corresponding object of the list
    * {@code sendingObjects}.
    * @param type Type of the message.
+   * @param client Clients to send the messages to.
    * @param sendingObjects Sending objects for the clients.
-   * @throws GameServerException The number of server threads and the size of
-   * {@code sendingObjects} is not equal.
+   * @throws GameServerException {@code clients} and {@code sendingObjects} have different sizes.
    */
-  public void broadcastArray(Enum<?> type, Collection<RMIObserver> clients,
+  public void broadcastArray(Enum<?> type, Collection<Callbackable> clients,
                              Collection<?> sendingObjects)
       throws GameServerException {
     if(sendingObjects.size() != clients.size())
-      throw new GameServerException("The number of server threads and sending objects is not equal!");
-    final Iterator<RMIObserver> observers = clients.iterator();
+      throw new GameServerException("The number of clients and sending objects is not equal!");
+
+    final Iterator<Callbackable> callbackableIterator = clients.iterator();
     final Iterator<?> objects = sendingObjects.iterator();
-    while (observers.hasNext()) {
-      try {
-        getRMIObservable().notifyObserver(observers.next(),
-          new MessageObject(type, objects.next()));
-      } catch (RemoteException e) {
-        LOGGER.severe("Could not notify observer: " + e.getMessage() + " occured!");
-      }
+    while (callbackableIterator.hasNext()) {
+      sendMessage(callbackableIterator.next(), new MessageObject(type, objects.next()));
     }
   }
 
   /**
-   * Adds the client to the server.
+   * Adds the client to the server list if it does not exist already.
    * @param client The client.
-   * @throws NotBoundException If the client observer service is not bound
-   * for the specified ip address and port.
+   * @return Returns true if the client was added, else false.
    */
-  public void addClient(DTOClient client)
-      throws NotBoundException, RemoteException, GameServerException {
-    final Boolean inProcess = GameProcess.getInstance().isGameInProcess();
-    if(Miscellaneous.containsClientAddress(clientHolder.getAllValues(),client))
-      throw new GameServerException("Client already exists!");
+  boolean addClient(Callbackable callbackable, DTOClient client) {
+    if(clientHolder.containsKey(callbackable))
+      return false;
 
-    RMIObserver observer = addObserver(client);
+    final Boolean inProcess = GameProcess.getInstance().isGameInProcess();
 
     if(inProcess || client.spectating) {
-      clientHolder.addSpectator(observer,client);
+      clientHolder.addSpectator(callbackable,client);
     } else {
-      clientHolder.addInGameValue(observer,client);
-      GameProcess.getInstance().setPlayer(client.toString());
+      clientHolder.addInGameValue(callbackable,client);
+      GameProcess.getInstance().setPlayer(client.toString()); //TODO für Player eine andere ID finden als DTOClient.toString()
     }
-    notifyClientLists(observer, client);
+    notifyClientLists(callbackable, client);
+
+    return true;
   }
 
-  public void removeClient(DTOClient client) {
+  void removeClient(Callbackable callbackable) {
     final GameProcess process = GameProcess.getInstance();
+    final DTOClient client = clientHolder.getValue(callbackable);
     if(process.removePlayer(client.toString())) {
       if(process.isGameInProcess())
         process.abortGame();
-      final RMIObserver observer = findObserver(client);
-      if(observer != null) {
-        clientHolder.removeKey(observer);
-        getRMIObservable().removeObserver(observer);
-      }
-      notifyClientLists(null,null);
+      clientHolder.removeKey(callbackable);
+      GameServer.getServerInstance().notifyClientLists(null,null);
     }
-  }
-
-  private RMIObserver addObserver(DTOClient client)
-      throws NotBoundException, RemoteException {
-    final Registry registry = LocateRegistry.getRegistry(client.ipAddress, client.port);
-    final RMIObserver observer =
-        (RMIObserver) registry.lookup(RMIService.OBSERVER.getServiceName(client.ipAddress));
-    getRMIObservable().registerInterest(observer);
-    return observer;
-  }
-
-  private RMIObserver findObserver(DTOClient client) {
-    for (RMIObserver observer : clientHolder.getAllKeys()) {
-      final DTOClient info = clientHolder.getValue(observer);
-      if(info.toString().equals(client.toString())) {
-        return observer;
-      }
-    }
-    return null;
   }
 
   /**
    * Notifies the server gui and all clients which clients are currently in the list.
-   * The first parameter is the observer of the client that was added.
-   * If this parameter is null, only all other clients and the server gui will
-   * be notified.
+   * The first parameter is the remote object of the client that was added.
+   * If this parameter is null, all clients and the server gui will
+   * be notified. The second parameter will then be ignored.
    */
-  private void notifyClientLists(RMIObserver observer, DTOClient addedClient) {
+  private void notifyClientLists(Callbackable callbackable, DTOClient addedClient) {
     setChangedAndNotify(GUIObserverType.REFRESH_CLIENT_LIST);
-    if(observer != null)
-      sendMessage(observer, new MessageObject(MessageType.OWN_CLIENT_INFO, addedClient));
+    if(callbackable != null)
+      sendMessage(callbackable, new MessageObject(MessageType.OWN_CLIENT_INFO, addedClient));
     broadcastOtherClients(BroadcastType.LOGIN_LIST);
   }
 
@@ -289,7 +209,7 @@ public class GameServer extends Observable {
     DTOClient currentClient;
 
     /* iterate the clients so that the original sequence is not changed */
-    for (RMIObserver rmiObserver : clientHolder.getAllKeys()) {
+    for (Callbackable rmiObserver : clientHolder.getAllKeys()) {
       currentClient = clientHolder.getValue(rmiObserver);
       final int index = Miscellaneous.findIndex(clients,currentClient,
           Miscellaneous.CLIENT_COMPARATOR);
@@ -302,10 +222,6 @@ public class GameServer extends Observable {
   }
 
   /* Getter and Setter */
-
-  public RMIObservableImpl getRMIObservable() {
-    return (RMIObservableImpl) services.get(RMIService.OBSERVABLE);
-  }
 
   public void setPort(int port) {
     if(!isServerRunning())
@@ -320,6 +236,69 @@ public class GameServer extends Observable {
     return running;
   }
 
+  public List<DTOClient> getClients() {
+    return clientHolder.getAllValues();
+  }
+
+  public DTOClient getClient(Callbackable callbackable) {
+    return clientHolder.getValue(callbackable);
+  }
+}
+
+/******************************************/
+/********** Simon Implementation **********/
+/******************************************/
+@SimonRemote(value={ServerInterface.class})
+class DurakServices implements ServerInterface {
+  private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
+
+  private String password;
+
+  DurakServices(String password) {
+    this.password = password;
+  }
+
+  public boolean login(Callbackable callbackable, DTOClient client, String password) {
+    boolean result = false;
+    final GameServer server = GameServer.getServerInstance();
+
+    if(this.password.equals(password)) {
+      result = server.addClient(callbackable, client);
+    } else {
+      server.sendMessage(callbackable, new MessageObject(MessageType.STATUS_MESSAGE,
+          I18nSupport.getValue(MSGS_BUNDLE,"status.permission.denied")));
+    }
+
+    return result;
+  }
+
+  public void logoff(Callbackable callbackable) {
+    GameServer.getServerInstance().removeClient(callbackable);
+  }
+
+  public void sendChatMessage(Callbackable callbackable, String message) {
+    final DTOClient client = GameServer.getServerInstance().getClient(callbackable);
+    if(client != null) {
+      ChatMessage chatMessage = new ChatMessage(new Long(System.currentTimeMillis()),
+          client, message);
+      GameServer.getServerInstance().broadcastMessage(BroadcastType.CHAT_MESSAGE, chatMessage);
+    }
+  }
+
+  public void doAction(Callbackable callbackable, GameAction action) {
+    final GameProcess process = GameProcess.getInstance();
+    final GameServer server = GameServer.getServerInstance();
+    try {
+      boolean nextRound = process.validateAction(action, action.getExecutor().toString());
+      server.sendProcessUpdate(nextRound);
+    } catch (RuleException e) {
+      server.sendMessage(callbackable,
+          new MessageObject(MessageType.RULE_MESSAGE, e.getMessage()));
+    }
+  }
+
+  /* Getter and Setter */
+
   public void setPassword(String password) {
     this.password = password;
   }
@@ -327,12 +306,6 @@ public class GameServer extends Observable {
   public String getPassword() {
     return password;
   }
-
-  public List<DTOClient> getClients() {
-    return clientHolder.getAllValues();
-  }
-
-  /* Inner classes */
 }
 
 class GameUpdater {
@@ -340,10 +313,10 @@ class GameUpdater {
   private Integer stackSize;
   private GameProcess process;
   private GameServer server;
-  private InGameSpectatorHolder<RMIObserver,DTOClient> clientHolder;
+  private InGameSpectatorHolder<Callbackable,DTOClient> clientHolder;
 
   public GameUpdater(Integer stackSize,
-                     InGameSpectatorHolder<RMIObserver,DTOClient> clientHolder) {
+                     InGameSpectatorHolder<Callbackable,DTOClient> clientHolder) {
     this.stackSize = stackSize;
     this.clientHolder = clientHolder;
     this.process = GameProcess.getInstance();
@@ -394,7 +367,7 @@ class GameUpdater {
 
   /* sends each client his player info */
   private void sendPlayersInfos() {
-    for (RMIObserver rmiObserver : clientHolder.getInGameKeys()) {
+    for (Callbackable rmiObserver : clientHolder.getInGameKeys()) {
       final DTOClient client = clientHolder.getInGameValue(rmiObserver);
       server.sendMessage(rmiObserver, new MessageObject(GameUpdateType.CLIENT_CARDS,
           process.getPlayerCards(client.toString())));
@@ -487,5 +460,9 @@ class InGameSpectatorHolder<K,V> {
 
   public Collection<V> getSpectatorValues() {
     return spectatorMap.values();
+  }
+
+  public boolean containsKey(K key) {
+    return inGameMap.containsKey(key) || spectatorMap.containsKey(key);
   }
 }
