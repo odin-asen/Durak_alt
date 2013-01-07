@@ -12,6 +12,7 @@ import common.dto.DTOClient;
 import common.dto.message.*;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
+import common.simon.action.FinishAction;
 import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
 import common.utilities.gui.Constraints;
@@ -95,10 +96,10 @@ public class ClientFrame extends JFrame implements Observer {
     }).start();
   }
 
-  public static void showRuleException(Component parent, String ruleException) {
+  public static void showRuleException(Component parent, Object ruleException) {
     final Rectangle bounds = frameInstance.getBounds();
     final DurakPopup rulePopup = WidgetCreator.createPopup(
-        ClientGUIConstants.GAME_TABLE_COLOUR, ruleException, bounds, 3);
+        ClientGUIConstants.GAME_TABLE_COLOUR, ruleException.toString(), bounds, 3);
     rulePopup.setVisible(true);
   }
 
@@ -357,15 +358,18 @@ public class ClientFrame extends JFrame implements Observer {
       }
     }
 
-    private Boolean nextRoundRequest(DTOClient clientInfo, Boolean takeCards) {
+    private Boolean nextRoundRequest(DTOClient dtoClient, Boolean takeCards) {
       if(takeCards == null)
         return false;
 
-      try {
-        return GameClient.getClient().finishRound(clientInfo, takeCards);
-      } catch (RemoteException ex) {
-        JOptionPane.showMessageDialog(null, I18nSupport.getValue(BUNDLE_NAME,"dialog.text.error.lost.connection"));
-      }
+      FinishAction.FinishType type = FinishAction.FinishType.GO_TO_NEXT_ROUND;
+      if(dtoClient.playerType.equals(PlayerType.DEFENDER)) {
+        if(takeCards)
+          type = FinishAction.FinishType.TAKE_CARDS;
+        return GameClient.getClient().finishRound(dtoClient, type);
+      } else if(dtoClient.playerType.equals(PlayerType.FIRST_ATTACKER) ||
+          dtoClient.playerType.equals(PlayerType.SECOND_ATTACKER))
+        return GameClient.getClient().finishRound(dtoClient, type);
 
       return false;
     }
@@ -398,6 +402,11 @@ class ClientFrameMessageHandler {
       final Client client = Client.getOwnInstance();
       client.setClientInfo((DTOClient) object.getSendingObject());
       ClientFrame.getInstance().updateSubComponents();
+    } else if(MessageType.RULE_MESSAGE.equals(object.getType())) {
+      ClientFrame.showRuleException(ClientFrame.getInstance(), object.getSendingObject());
+    } else if(MessageType.STATUS_MESSAGE.equals(object.getType())) {
+      ClientFrame.getInstance().setStatus(object.getSendingObject().toString(),true,
+          ConnectionInfo.getOwnInstance().getServerAddress()); //TODO statusbar besser zugreifbar machen
     }
   }
 
@@ -529,7 +538,7 @@ class UserMessageDistributor {
       final Client client = Client.getOwnInstance();
       final GameClient gameClient = GameClient.getClient();
       client.setSpectating(spectate);
-      gameClient.disconnect(client.toDTO());
+      gameClient.disconnect();
       gameClient.connect(client.toDTO(), ConnectionInfo.getOwnInstance().getPassword());
     } catch (GameClientException e) {
       ClientFrame.getInstance().setStatus(e.getMessage(), false, "");

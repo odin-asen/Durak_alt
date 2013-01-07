@@ -63,14 +63,8 @@ public class DefenseCardMoveListener extends CardMoveListener {
 
   public void mouseReleased(MouseEvent e) {
     final GameCardWidget widget = (GameCardWidget) e.getComponent();
-    final String invalidString = moveIsValid(widget, curtainPanel);
-    if(invalidString != null) {
-      if(invalidString.isEmpty()) {
-        removeClientCard(widget);
-      } else {
-        ClientFrame.showRuleException(parent, invalidString);
-        setWidgetToLastPlace(widget);
-      }
+    if(moveIsValid(widget, curtainPanel)) {
+      removeClientCard(widget);
     } else {
       setWidgetToLastPlace(widget);
     }
@@ -86,25 +80,18 @@ public class DefenseCardMoveListener extends CardMoveListener {
   /**
    * @param widget Widget of this defense move.
    * @param currentPanel Current panel the widget stands over.
-   * @return Returns an empty string if the move is valid. If the reason is clear, when
-   * the move is not valid, the string has a content. If the reason is not clear, the string
-   * is null.
+   * @return Returns true, if the move is valid or the current panel is null, else false.
    */
-  private String moveIsValid(GameCardWidget widget, CombatCardPanel currentPanel) {
-    String result;
+  private boolean moveIsValid(GameCardWidget widget, CombatCardPanel currentPanel) {
+    boolean result;
     if(currentPanel == null)
-      return null;
+      return false;
 
-    try {
-      final Client client = Client.getOwnInstance();
-      final DTOClient dtoClient = client.toDTO();
-      GameClient.getClient().sendAction(dtoClient, Converter.toDTO(widget.getCardInfo()),
-         Converter.toDTO(currentPanel.getAttackerCard().getCardInfo()));
-      result = GameClient.getClient().getActionDeniedReason(dtoClient);
-    } catch (RemoteException e) {
-      result = I18nSupport.getValue(BUNDLE_NAME,"network.error");
-      LoggingUtility.printStackTrace(LOGGER, Level.SEVERE, e.getStackTrace());
-    }
+    final Client client = Client.getOwnInstance();
+    final DTOClient dtoClient = client.toDTO();
+    result = GameClient.getClient().sendAction(dtoClient,
+        Converter.toDTO(currentPanel.getAttackerCard().getCardInfo()),
+        Converter.toDTO(widget.getCardInfo()));
 
     return result;
   }

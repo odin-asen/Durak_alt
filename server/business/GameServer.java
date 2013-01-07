@@ -31,8 +31,6 @@ import java.util.logging.Logger;
  * Time: 21:57
  */
 public class GameServer extends Observable {
-  private static final String REGISTRY_NAME_SERVER = "durakserver"; //NON-NLS
-
   private static Logger LOGGER = LoggingUtility.getLogger(GameServer.class.getName());
 
   private static GameServer gameServer;
@@ -74,7 +72,7 @@ public class GameServer extends Observable {
     if(!isServerRunning()) {
       durakServices = new DurakServices(password);
       registry = Simon.createRegistry(port);
-      registry.bind(REGISTRY_NAME_SERVER, durakServices);
+      registry.bind(GameConfigurationConstants.REGISTRY_NAME_SERVER, durakServices);
       running = true;
     }
   }
@@ -82,7 +80,7 @@ public class GameServer extends Observable {
   public void shutdownServer() {
     if(isServerRunning()) {
       broadcastMessage(BroadcastType.SERVER_SHUTDOWN);
-      registry.unbind(REGISTRY_NAME_SERVER);
+      registry.unbind(GameConfigurationConstants.REGISTRY_NAME_SERVER);
       registry.stop();
       running = false;
     }
@@ -285,16 +283,20 @@ class DurakServices implements ServerInterface {
     }
   }
 
-  public void doAction(Callbackable callbackable, GameAction action) {
+  public boolean doAction(Callbackable callbackable, GameAction action) {
+    boolean actionDone = false;
     final GameProcess process = GameProcess.getInstance();
     final GameServer server = GameServer.getServerInstance();
     try {
       boolean nextRound = process.validateAction(action, action.getExecutor().toString());
       server.sendProcessUpdate(nextRound);
+      actionDone = true;
     } catch (RuleException e) {
       server.sendMessage(callbackable,
           new MessageObject(MessageType.RULE_MESSAGE, e.getMessage()));
     }
+
+    return actionDone;
   }
 
   /* Getter and Setter */

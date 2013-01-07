@@ -177,12 +177,13 @@ public class ChatFrame extends JDialog {
 
     public void sendChatMessage(String text) {
       if (!text.isEmpty()) {
-        DTOClient dtoClient = Client.getOwnInstance().toDTO();
-        try {
-          GameClient.getClient().getChatHandler().sendMessage(dtoClient, text);
+        final GameClient client = GameClient.getClient();
+        if(client.isConnected()) {
+          GameClient.getClient().sendChatMessage(text);
           chatWriteArea.setText("");
-        } catch (Exception e) {
-          JOptionPane.showMessageDialog(CHAT_FRAME, I18nSupport.getValue(BUNDLE_NAME,"dialog.text.error.chat.message.not.send"),
+        } else {
+          JOptionPane.showMessageDialog(CHAT_FRAME,
+              I18nSupport.getValue(BUNDLE_NAME,"dialog.text.error.chat.message.not.send"),
               I18nSupport.getValue(BUNDLE_NAME,"dialog.title.error"), JOptionPane.ERROR_MESSAGE);
         }
       }

@@ -39,8 +39,8 @@ public class ConnectionInfo {
     } catch (Exception e) {
       setServerAddress(InetAddress.getLoopbackAddress().getHostAddress());
     }
-    setClientPort(Integer.valueOf(GameConfigurationConstants.DEFAULT_PORT_STRING));
-    setServerPort(Integer.valueOf(GameConfigurationConstants.DEFAULT_PORT_STRING));
+    setClientPort(GameConfigurationConstants.DEFAULT_PORT);
+    setServerPort(GameConfigurationConstants.DEFAULT_PORT);
     setPassword("");
   }
 

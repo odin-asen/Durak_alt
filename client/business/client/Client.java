@@ -46,7 +46,7 @@ public class Client {
     } catch (Exception e) {
       setIpAddress(InetAddress.getLoopbackAddress().getHostAddress());
     }
-    setPort(Integer.valueOf(GameConfigurationConstants.DEFAULT_PORT_STRING));
+    setPort(GameConfigurationConstants.DEFAULT_PORT);
   }
 
   public static Client getOwnInstance() {

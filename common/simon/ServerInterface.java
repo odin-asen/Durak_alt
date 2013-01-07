@@ -35,6 +35,7 @@ public interface ServerInterface {
    * Executes the action with the specified cards.
    * @param callbackable Remote object that should be an implemented SIMON object.
    * @param action Contains information of the action, e.g. which type, which cards, etc...
+   * @return True, action was made, else false.
    */
-  public void doAction(Callbackable callbackable, GameAction action);
+  public boolean doAction(Callbackable callbackable, GameAction action);
 }

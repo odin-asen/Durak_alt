@@ -80,12 +80,8 @@ public class AttackCardMoveListener extends CardMoveListener {
   public void mouseReleased(MouseEvent e) {
     final GameCardWidget widget = (GameCardWidget) e.getComponent();
     if(dragged) {
-      final String inValidString = moveIsValid(widget);
-      if(inValidString != null) {
-        if(!inValidString.isEmpty()) {
-          ClientFrame.showRuleException(parent, inValidString);
-          setWidgetToLastPlace(widget);
-        } else removeClientCards(widget);
+      if(moveIsValid(widget)) {
+        removeClientCards(widget);
       } else {
         setWidgetToLastPlace(widget);
       }
@@ -121,27 +117,21 @@ public class AttackCardMoveListener extends CardMoveListener {
    * the move is not valid, the string has a content. If the reason is not clear, the string
    * is null.
    */
-  private String moveIsValid(GameCardWidget widget) {
-    String result;
+  private boolean moveIsValid(GameCardWidget widget) {
+    boolean result;
     if(!isWidgetInArea(widget, parent.getInGameArea()))
-      return null;
+      return false;
 
-    try {
-      if(!pointedWidgets.widgets.contains(widget))
-        pointedWidgets.widgets.add(widget);
+    if(!pointedWidgets.widgets.contains(widget))
+      pointedWidgets.widgets.add(widget);
 
-      final DTOCard[] cards = new DTOCard[pointedWidgets.widgets.size()];
-      for (int index = 0, cardsLength = cards.length; index < cardsLength; index++) {
-        cards[index] = Converter.toDTO(pointedWidgets.widgets.get(index).getCardInfo());
-      }
-
-      final DTOClient dtoClient = Client.getOwnInstance().toDTO();
-      GameClient.getClient().sendAction(dtoClient, cards);
-      result = GameClient.getClient().getActionDeniedReason(dtoClient);
-    } catch (RemoteException e) {
-      e.printStackTrace();
-      result = I18nSupport.getValue(BUNDLE_NAME,"network.error");
+    final List<DTOCard> cards = new ArrayList<DTOCard>(pointedWidgets.widgets.size());
+    for (GameCardWidget cardWidget : pointedWidgets.widgets) {
+      cards.add(Converter.toDTO(cardWidget.getCardInfo()));
     }
+
+    final DTOClient dtoClient = Client.getOwnInstance().toDTO();
+    result = GameClient.getClient().sendAction(dtoClient, cards, null);
 
     return result;
   }

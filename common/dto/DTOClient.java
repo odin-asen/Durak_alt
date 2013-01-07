@@ -1,5 +1,6 @@
 package common.dto;
 
+import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.constants.PlayerConstants;
 
 import java.io.OutputStream;
@@ -31,7 +32,7 @@ public class DTOClient implements Serializable {
     this.cardCount = 0;
     this.playerType = PlayerConstants.PlayerType.DEFAULT;
     this.spectating = false;
-    this.ipAddress = "127.0.0.1";
+    this.ipAddress = GameConfigurationConstants.DEFAULT_IP_ADDRESS;
     this.port = 0;
   }
 
