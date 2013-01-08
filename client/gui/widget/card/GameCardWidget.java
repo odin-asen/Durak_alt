@@ -36,8 +36,7 @@ public class GameCardWidget extends JComponent {
     this.movable = false;
 
     this.setToolTipText(dtoCard.getColourAndValue());
-    this.cardImage = ResourceGetter.getCardImage(dtoCard.cardColour,
-        dtoCard.cardValue,dtoCard.getColourAndValue()).getImage();
+    this.cardImage = ResourceGetter.getCardImage(dtoCard.cardColour, dtoCard.cardValue).getImage();
   }
 
   /* Methods */

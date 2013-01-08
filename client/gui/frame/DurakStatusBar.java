@@ -27,12 +27,14 @@ public class DurakStatusBar extends JPanel implements Runnable {
   private static final String MESSAGE_BUNDLE = "user.messages"; //NON-NLS
   private static final Logger LOGGER = LoggingUtility.getLogger(DurakStatusBar.class.getName());
 
-  private static final DateFormat format = new SimpleDateFormat(I18nSupport.getValue(CLIENT_BUNDLE,"format.date"), Locale.getDefault());
+  private static final DateFormat format =
+      new SimpleDateFormat(I18nSupport.getValue(CLIENT_BUNDLE,"format.date"),
+          Locale.getDefault());
   private static final Calendar calendar = GregorianCalendar.getInstance(Locale.getDefault());
-  private static final ImageIcon connectedIcon = ResourceGetter.getImage(ResourceList.IMAGE_STATUS_CONNECTED,
-      I18nSupport.getValue(CLIENT_BUNDLE,"image.description.connected"));
-  private static final ImageIcon disconnectedIcon = ResourceGetter.getImage(ResourceList.IMAGE_STATUS_DISCONNECTED,
-      I18nSupport.getValue(CLIENT_BUNDLE,"image.description.disconnected"));
+  private static final ImageIcon connectedIcon =
+      ResourceGetter.getImage(ResourceList.IMAGE_STATUS_CONNECTED);
+  private static final ImageIcon disconnectedIcon =
+      ResourceGetter.getImage(ResourceList.IMAGE_STATUS_DISCONNECTED);
 
   private JPanel besideLabelPanel;
   private JLabel mainStatusLabel;

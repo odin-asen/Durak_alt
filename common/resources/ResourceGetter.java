@@ -30,12 +30,13 @@ public class ResourceGetter {
   private static final int CARD_STRIPE_X_AXIS_GAP = 1;
   private static final int MAGIC_X_AXIS_GAP_CONSTANT = 2;
 
-  public static ImageIcon getCardImage(GameCardConstants.CardColour colour, GameCardConstants.CardValue cardValue, String alternativeText) {
+  public static ImageIcon getCardImage(GameCardConstants.CardColour colour,
+                                       GameCardConstants.CardValue cardValue) {
     ImageIcon image = null;
 
     try {
       final String path = CARDS_ROOT + getStringCardColour(colour);
-      image = getCardFromStripe(loadImage(path, alternativeText), cardValue.getValue());
+      image = getCardFromStripe(loadImage(path, null), cardValue.getValue());
     } catch (ResourceGetterException e) {
       LOGGER.warning(e.getMessage());
     }
@@ -71,11 +72,11 @@ public class ResourceGetter {
     return new ImageIcon(imagePart);
   }
 
-  public static ImageIcon getImage(String imageName, String alternativeText) {
+  public static ImageIcon getImage(String imageName) {
     ImageIcon image = null;
 
     try {
-      image = loadImage(imageName, alternativeText);
+      image = loadImage(imageName, null);
     } catch (ResourceGetterException e) {
       LOGGER.warning(e.getMessage());
     }
@@ -115,25 +116,24 @@ public class ResourceGetter {
 
   public static ImageIcon getBackCard() {
     final String back = "Back"; //NON-NLS
-    final ImageIcon icon = getImage(CARDS_ROOT+CARD_BACK, back);
+    final ImageIcon icon = getImage(CARDS_ROOT+CARD_BACK);
     if(icon != null)
       return icon;
     else return new ImageIcon("", back);
   }
 
   public static ImageIcon getPlayerTypeIcon(PlayerConstants.PlayerType type, Integer height) {
-    final String text = type.getDescription();
     final ImageIcon statusIcon;
     if (PlayerConstants.PlayerType.FIRST_ATTACKER.equals(type))
-      statusIcon = getImage(IMAGE_STAR_GREEN, text);
+      statusIcon = getImage(IMAGE_STAR_GREEN);
     else if (PlayerConstants.PlayerType.SECOND_ATTACKER.equals(type))
-      statusIcon = getImage(IMAGE_STAR_RED, text);
+      statusIcon = getImage(IMAGE_STAR_RED);
     else if (PlayerConstants.PlayerType.DEFENDER.equals(type))
-      statusIcon = getImage(IMAGE_DEFENDER, text);
+      statusIcon = getImage(IMAGE_DEFENDER);
     else if (PlayerConstants.PlayerType.NOT_LOSER.equals(type))
-      statusIcon = getImage(IMAGE_CROWN, text);
+      statusIcon = getImage(IMAGE_CROWN);
     else if (PlayerConstants.PlayerType.LOSER.equals(type))
-      statusIcon = getImage(IMAGE_RED_CROSS, text);
+      statusIcon = getImage(IMAGE_RED_CROSS);
     else statusIcon = null;
 
     if(statusIcon != null) {

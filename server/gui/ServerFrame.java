@@ -149,13 +149,13 @@ public class ServerFrame extends JFrame implements Observer {
     final ToolBarComponentAL listener = new ToolBarComponentAL();
     JButton startStopButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_PLAY,
         I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.start.server"), ACTION_COMMAND_START,
-        I18nSupport.getValue(SERVER_BUNDLE,"image.description.start.server"), listener, KeyEvent.VK_G);
+        listener, KeyEvent.VK_G);
     JButton gameStartButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_GAME_START,
         I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.start.game"), ACTION_COMMAND_START_GAME,
-        I18nSupport.getValue(SERVER_BUNDLE,"image.description.start.game"), listener, KeyEvent.VK_S);
+        listener, KeyEvent.VK_S);
     JButton closeButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_CLOSE,
         I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.close"), ACTION_COMMAND_CLOSE,
-        I18nSupport.getValue(SERVER_BUNDLE,"image.description.close"), listener, KeyEvent.VK_Q);
+        listener, KeyEvent.VK_Q);
 
     toolBar.setMargin(new Insets(5, 5, 5, 5));
     toolBar.setRollover(true);
@@ -253,27 +253,17 @@ public class ServerFrame extends JFrame implements Observer {
         closeFrame(e);
       } else if (ACTION_COMMAND_START.equals(e.getActionCommand())) {
         startGameServer();
-        changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_STOP_PLAYER,
-            ACTION_COMMAND_STOP, I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.stop.server"),
-            I18nSupport.getValue(SERVER_BUNDLE,"image.description.stop.server"));
+        WidgetCreator.changeButton((JButton) e.getSource(),
+            ResourceList.IMAGE_TOOLBAR_STOP_PLAYER, "", ACTION_COMMAND_STOP,
+            I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.stop.server"));
       } else if (ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
         stopGameServer();
-        changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_PLAY,
-            ACTION_COMMAND_START, I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.start.server"),
-            I18nSupport.getValue(SERVER_BUNDLE,"image.description.start.server"));
+        WidgetCreator.changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_PLAY,
+            "", ACTION_COMMAND_START,
+            I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.start.server"));
       } else if (ACTION_COMMAND_START_GAME.equals(e.getActionCommand())) {
         startGame();
       }
-    }
-
-    private void changeButton(JButton button, String pictureName, String actionCommand,
-                              String toolTipText, String alternativeText) {
-      button.setActionCommand(actionCommand);
-      if(pictureName != null) {
-        ImageIcon icon = ResourceGetter.getImage(pictureName, alternativeText);
-        button.setIcon(icon);
-      }
-      button.setToolTipText(toolTipText);
     }
 
     private void startGame() {

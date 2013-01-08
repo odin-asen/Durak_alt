@@ -84,7 +84,7 @@ public class DurakToolBar extends JToolBar {
     addSeparator();
     add(new JButton(new CloseApplicationAction()));
   }
-                       //TODO image.description aus properties entfernen, da unnötig
+
   public void setConnection(boolean connected) {
     if(connected) {
       connectionMenuItem.setAction(new OpenDialogAction(false));
@@ -97,7 +97,6 @@ public class DurakToolBar extends JToolBar {
     }
   }
 
-  //TODO alle ClientInfo.toString().equals(ClientInfo.toString()) durch Miscalaneous.CLIENT_COMPARATOR.compare ersetzen
 
   /***************************/
   /***** Toolbar actions *****/
@@ -107,7 +106,7 @@ public class DurakToolBar extends JToolBar {
     private OpenSetupAction() {
       ActionFactory.initialiseAction(this, null, null, KeyEvent.VK_E, ACTION_COMMAND_SETUP,
           "", I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.open.setup"),
-          ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_PINION, ""));
+          ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_PINION));
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -119,7 +118,7 @@ public class DurakToolBar extends JToolBar {
     private OpenChatAction() {
       ActionFactory.initialiseAction(this, null, null, KeyEvent.VK_C, ACTION_COMMAND_CHAT,
           "", I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.open.chat.frame"),
-          ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_CHAT, ""));
+          ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_CHAT));
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -134,7 +133,7 @@ public class DurakToolBar extends JToolBar {
     private CloseApplicationAction() {
       ActionFactory.initialiseAction(this, null, null, KeyEvent.VK_Q, ACTION_COMMAND_CLOSE,
           "", I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.close.application"),
-          ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_CLOSE, ""));
+          ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_CLOSE));
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -159,7 +158,7 @@ public class DurakToolBar extends JToolBar {
       ActionFactory.initialiseAction(this,null,null, virtualKey,
           ACTION_COMMAND_CONNECTION_SETTINGS,
           I18nSupport.getValue(CLIENT_BUNDLE, "action.name.connection.information"),
-          null, ResourceGetter.getImage(iconString, ""));
+          null, ResourceGetter.getImage(iconString));
     }
 
     public void actionPerformed(ActionEvent e) {

@@ -41,9 +41,7 @@ public class CardStackWidget extends JComponent {
    */
   public CardStackWidget(int orientation) {
     cardBack = ClientGUIConstants.CARD_BACK;
-    cardBack.setDescription(I18nSupport.getValue(BUNDLE_NAME,"image.description.card.back"));
     trumpCard = new ImageIcon();
-    trumpCard.setDescription(I18nSupport.getValue(BUNDLE_NAME,"image.description.card.trump"));
     trump = new DTOCard();
     this.orientation = orientation;
     cardBackTransform = new AffineTransform();
@@ -170,7 +168,7 @@ public class CardStackWidget extends JComponent {
 
   public void setTrumpCard(DTOCard trump) {
     final String text = trump.cardColour + " "+trump.cardValue;
-    this.trumpCard = ResourceGetter.getCardImage(trump.cardColour,trump.cardValue, text);
+    this.trumpCard = ResourceGetter.getCardImage(trump.cardColour,trump.cardValue);
     this.trump = trump;
     updateTooltip();
   }

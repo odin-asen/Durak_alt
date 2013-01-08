@@ -67,11 +67,11 @@ class ConnectionAction extends AbstractAction {
       ActionFactory.initialiseAction(this, null, null, null, AC_CONNECT,
           I18nSupport.getValue(CLIENT_BUNDLE, "action.name.connect"),
           I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.connect"),
-          ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_NETWORK, ""));
+          ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_NETWORK));
     else ActionFactory.initialiseAction(this, null, null, null, AC_DISCONNECT,
         I18nSupport.getValue(CLIENT_BUNDLE, "action.name.disconnect"),
         I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.disconnect"),
-        ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_NETWORK_CLOSE, ""));
+        ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_NETWORK_CLOSE));
   }
 
   public void actionPerformed(ActionEvent e) {
