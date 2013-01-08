@@ -1,7 +1,7 @@
 package client.gui.frame;
 
 import client.business.ConnectionInfo;
-import client.business.client.Client;
+import client.business.Client;
 import client.business.client.GameClient;
 import client.business.client.GameClientException;
 import client.gui.frame.chat.ChatFrame;
@@ -24,7 +24,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.rmi.RemoteException;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Observable;
@@ -541,8 +540,8 @@ class UserMessageDistributor {
       gameClient.disconnect();
       gameClient.connect(client.toDTO(), ConnectionInfo.getOwnInstance().getPassword());
     } catch (GameClientException e) {
+      LOGGER.info("Reconnect failed: "+e.getMessage());
       ClientFrame.getInstance().setStatus(e.getMessage(), false, "");
-      LOGGER.severe(e.getMessage());
     }
   }
 }

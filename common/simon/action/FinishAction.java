@@ -19,6 +19,14 @@ public final class FinishAction extends GameAction {
     this.finishType = finishType;
   }
 
+  @SuppressWarnings("HardCodedStringLiteral")
+  public String toString() {
+    return "FinishAction{" +
+        "executor=" + executor +
+        ", finishType=" + finishType +
+        '}';
+  }
+
   public FinishType getFinishType() {
     return finishType;
   }

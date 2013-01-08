@@ -13,6 +13,7 @@ public class LoggingUtility {
   private static final String DEFAULT_NAME = "defaultLog.txt"; //NON-NLS
   private static Handler handler = null;
   private static boolean logFileChangable = true;
+  private static final Logger LOGGER = Logger.getLogger(LoggingUtility.class.getName());
 
   /**
    * Sets the file name for the logging file handler. It can be set only one time. Once the
@@ -31,7 +32,8 @@ public class LoggingUtility {
       handler.setFormatter(formatter);
       logFileChangable = false;
     } catch (IOException e) {
-      e.printStackTrace();
+      LOGGER.severe("Error opening file \"" + fileName + "\": "+e.getMessage());
+      return false;
     }
 
     return true;
@@ -43,7 +45,9 @@ public class LoggingUtility {
       handler = new FileHandler(DEFAULT_NAME);
       handler.setFormatter(new SimpleFormatter());
       return handler;
-    } catch (IOException e) {e.printStackTrace();}
+    } catch (IOException e) {
+      LOGGER.severe("Error opening file \"" + DEFAULT_NAME + "\": "+e.getMessage());
+    }
     return null;
   }
 

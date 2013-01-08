@@ -1,20 +1,16 @@
 package client.gui.widget.card;
 
-import client.business.client.Client;
+import client.business.Client;
 import client.business.client.GameClient;
-import client.gui.frame.ClientFrame;
-import client.gui.frame.ConnectionDialog;
 import client.gui.frame.gamePanel.GamePanel;
 import common.dto.DTOClient;
 import common.dto.DTOCard;
-import common.i18n.I18nSupport;
 import common.utilities.Converter;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 

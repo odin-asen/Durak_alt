@@ -1,4 +1,4 @@
-package client.business.client;
+package client.business;
 
 import client.gui.frame.ClientGUIConstants;
 import common.dto.DTOClient;
@@ -9,7 +9,6 @@ import common.utilities.constants.PlayerConstants;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.sql.ClientInfoStatus;
 
 /**
  * User: Timm Herrmann

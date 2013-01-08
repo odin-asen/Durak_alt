@@ -2,6 +2,7 @@ package common.simon.action;
 
 import common.dto.DTOCard;
 import common.dto.DTOClient;
+import common.utilities.Converter;
 import common.utilities.Miscellaneous;
 
 import java.io.Serializable;
@@ -37,6 +38,18 @@ public final class CardAction extends GameAction implements Serializable {
   }
 
   /* Methods */
+
+  @SuppressWarnings("HardCodedStringLiteral")
+  public String toString() {
+    return "CardAction{" +
+        "executor=" + executor +
+        ", actionType=" + type +
+        ", attackCards=" + Converter.getCollectionString(attackCards) +
+        ", defenderCards=" + Converter.getCollectionString(defenderCards) +
+        ", cardActionType=" + cardActionType +
+        '}';
+  }
+
   /* Getter and Setter */
 
   public List<DTOCard> getAttackCards() {

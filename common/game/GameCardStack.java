@@ -11,22 +11,15 @@ import static common.utilities.constants.GameCardConstants.*;
  * Date: 07.10.12
  * Time: 19:49
  *
- * This represents the card stack of the game. Its implemented as Singleton
- * thus there should be only one card stack in a game session.
+ * This class represents the card stack of the game.
  */
 public class GameCardStack extends Observable {
-  private static final GameCardStack gameCardStack = new GameCardStack();
-
   private Integer stackSize;
 
   private Deque<GameCard> cardStack;
   private GameCard trumpCard;
 
-  public static GameCardStack getInstance() {
-    return gameCardStack;
-  }
-
-  private GameCardStack() {
+  public GameCardStack() {
     cardStack = new ArrayDeque<GameCard>();
     trumpCard = null;
   }

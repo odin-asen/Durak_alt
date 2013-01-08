@@ -1,22 +1,17 @@
 package client.gui.widget.card;
 
-import client.business.client.Client;
+import client.business.Client;
 import client.business.client.GameClient;
-import client.gui.frame.ClientFrame;
 import client.gui.frame.gamePanel.CombatCardPanel;
 import client.gui.frame.gamePanel.GamePanel;
 import common.dto.DTOClient;
-import common.i18n.I18nSupport;
 import common.utilities.Converter;
 import common.utilities.LoggingUtility;
 import common.utilities.gui.Compute;
 
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
-import java.rmi.RemoteException;
-import java.sql.ClientInfoStatus;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**

@@ -1,8 +1,11 @@
 package common.utilities.gui;
 
+import common.utilities.LoggingUtility;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.logging.Logger;
 
 /**
  * User: Timm Herrmann
@@ -53,6 +56,7 @@ public class DurakPopup extends JWindow {
 }
 
 class PopupWindowListener extends WindowAdapter implements MouseListener {
+  private static final Logger LOGGER = LoggingUtility.getLogger(DurakPopup.class.getName());
   private boolean fade;
   private double openSeconds;
   private boolean isFading;
@@ -85,7 +89,9 @@ class PopupWindowListener extends WindowAdapter implements MouseListener {
   private void pause(long time) {
     try {
       Thread.sleep(time);
-    } catch (InterruptedException e) {}
+    } catch (InterruptedException e) {
+      LOGGER.info("Error during thread pause: " + e.getMessage());
+    }
   }
 
   private void startTimer(final Window window) {

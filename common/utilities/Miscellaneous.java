@@ -80,14 +80,6 @@ public class Miscellaneous {
     return -1;
   }
 
-  public static Registry getSafeRegistry(int port) throws RemoteException {
-    try {
-      return LocateRegistry.createRegistry(port);
-    } catch (RemoteException e) {
-      return LocateRegistry.getRegistry(port);
-    }
-  }
-
   /**
    * Looks for the host address of the device and returns the object of the specified class.
    * of the specified class.

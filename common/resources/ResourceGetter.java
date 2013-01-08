@@ -37,7 +37,7 @@ public class ResourceGetter {
       final String path = CARDS_ROOT + getStringCardColour(colour);
       image = getCardFromStripe(loadImage(path, alternativeText), cardValue.getValue());
     } catch (ResourceGetterException e) {
-      LOGGER.log(Level.WARNING, e.getMessage());
+      LOGGER.warning(e.getMessage());
     }
 
     return image;
@@ -77,7 +77,7 @@ public class ResourceGetter {
     try {
       image = loadImage(imageName, alternativeText);
     } catch (ResourceGetterException e) {
-      LOGGER.info(e.getMessage());
+      LOGGER.warning(e.getMessage());
     }
 
     return image;
@@ -104,12 +104,12 @@ public class ResourceGetter {
           try {
             SoundPlayer.playSound(nummer);
           } catch (Exception e) {
-            LOGGER.warning("Fehler beim Abspielen des Sounds: " + e.getMessage());
+            LOGGER.warning("Error playing the sound! Message: " + e.getMessage());
           }
         }
       }).start();
     } catch (Exception e) {
-      LOGGER.warning("Fehler beim Starten des Soundthreads: " + e.getMessage());
+      LOGGER.warning("Error starting the sound thread! Message: " + e.getMessage());
     }
   }
 
@@ -149,7 +149,7 @@ public class ResourceGetter {
       try {
         images.add(loadImage(APPLICATION_BASE_PATH + size + suffix, "").getImage());
       } catch (ResourceGetterException e) {
-        LOGGER.info(e.getMessage());
+        LOGGER.warning(e.getMessage());
       }
     }
 

@@ -99,7 +99,7 @@ public class GameProcess {
    */
   private void distributeCards(Integer cardsPerColour) {
     initPlayerNeighbours();
-    stack = GameCardStack.getInstance();
+    stack = new GameCardStack();
     stack.initialiseStack(cardsPerColour);
     for(int i = 0; i< GameConfigurationConstants.INITIAL_CARD_COUNT; i++)
       for (Player player : playerHolder.getList())
@@ -344,6 +344,10 @@ public class GameProcess {
 
   public List<GameCard> getDefenseCards() {
     return pairCardHolder.getSecondElements();
+  }
+
+  public GameCardStack getStack() {
+    return stack;
   }
 
   /* Inner Classes */

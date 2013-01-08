@@ -72,6 +72,15 @@ public class GameClient extends Observable {
     this.notifyObservers(object);
   }
 
+  /**
+   * Connects the GameClient to the server depending on the connection settings that are made
+   * either through the default settings at the initialisation or through the
+   * {@link #setConnection} method.
+   * @param dtoClient Specifies the client representation that will be logged in at the server.
+   * @param password Specifies the password that a server might need.
+   * @throws GameClientException Thrown when a connection could not be established. A user
+   * message will be delivered with the Exception.
+   */
   public void connect(DTOClient dtoClient, String password)
       throws GameClientException {
     if (!isConnected()) {
@@ -81,15 +90,16 @@ public class GameClient extends Observable {
             GameConfigurationConstants.REGISTRY_NAME_SERVER);
         connected = server.login(messageReceiver, dtoClient, password);
       } catch (UnknownHostException e) {
-        LOGGER.info("Failed connection try to " + address + ":" + port);
+        LOGGER.warning("Failed connection try to " + address + ":" + port);
         throw new GameClientException(I18nSupport.getValue(MSGS_BUNDLE, "server.0.not.found",
-            address +":"+ port));
+            getSocketAddress()));
       } catch (LookupFailedException e) {
-        LOGGER.severe("LookupFailedException occured while connection: "+e.getMessage());
+        LOGGER.warning("LookupFailedException occured while connection: "+e.getMessage());
         throw new GameClientException(I18nSupport.getValue(MSGS_BUNDLE, "could.not.find.service"));
       } catch (EstablishConnectionFailed e) {
-        LOGGER.severe("EstablishConnectionFailed occured while connecting: " + e.getMessage());
-        throw new GameClientException(I18nSupport.getValue(MSGS_BUNDLE, "could.not.find.service"));
+        LOGGER.warning("EstablishConnectionFailed occured while connecting: " + e.getMessage());
+        throw new GameClientException(I18nSupport.getValue(MSGS_BUNDLE, "server.0.not.found",
+            getSocketAddress()));
       }
     }
   }
@@ -148,13 +158,19 @@ public class GameClient extends Observable {
   }
 
   /* Getter and Setter */
+
   public String getSocketAddress() {
     return address + ":" + port;
   }
 
-  public void setConnection(String serverAddress, int serverPort) {
-    this.address = serverAddress;
-    this.port = serverPort;
+  /**
+   * Sets the server's address and port that will be used for the connection.
+   * @param address IP-Address of the server.
+   * @param port Port of the server.
+   */
+  public void setConnection(String address, int port) {
+    this.address = address;
+    this.port = port;
   }
 
   public Boolean isConnected() {

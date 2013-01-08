@@ -1,11 +1,10 @@
 package client.gui;
 
 import client.business.ConnectionInfo;
-import client.business.client.Client;
+import client.business.Client;
 import client.business.client.GameClient;
 import client.business.client.GameClientException;
 import client.gui.frame.ClientFrame;
-import client.gui.frame.ConnectionDialog;
 import common.dto.DTOClient;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
@@ -14,7 +13,6 @@ import common.utilities.LoggingUtility;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
 /**
@@ -112,11 +110,8 @@ class ConnectionAction extends AbstractAction {
       mainFrame.setStatus(I18nSupport.getValue(MSGS_BUNDLE, "status.connected"),
           true, socketString);
     } catch (GameClientException e) {
+      LOGGER.info("Connect action failed: "+e.getMessage());
       mainFrame.setStatus(e.getMessage(), false, "");
-    } catch (Exception e) {
-      LOGGER.severe(e.getMessage());
-      mainFrame.setStatus(I18nSupport.getValue(MSGS_BUNDLE, "status.connection.failed"),
-          false, "");
     }
   }
 }

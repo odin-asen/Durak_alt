@@ -1,9 +1,6 @@
 package client.gui.frame.chat;
 
-import client.business.client.Client;
 import client.business.client.GameClient;
-import client.gui.frame.ConnectionDialog;
-import common.dto.DTOClient;
 import common.i18n.I18nSupport;
 import common.utilities.gui.FramePosition;
 

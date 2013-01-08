@@ -33,6 +33,7 @@ import java.util.logging.Logger;
  */
 public class GameServer extends Observable {
   private static Logger LOGGER = LoggingUtility.getLogger(GameServer.class.getName());
+  private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
 
   private static GameServer gameServer;
 
@@ -69,15 +70,30 @@ public class GameServer extends Observable {
 
   /* Methods */
 
-  public void startServer(String password) throws UnknownHostException, IOException {
+  /**
+   * Starts the server and sets a password.
+   * @param password Server password.
+   * @throws GameServerException Will be thrown and delivers the apropriate user message if
+   * the server can not be started for a reason.
+   */
+  public void startServer(String password) throws GameServerException {
     if(!isServerRunning()) {
+      final String name = GameConfigurationConstants.REGISTRY_NAME_SERVER;
       durakServices = new DurakServices(password);
-      registry = Simon.createRegistry(port);
+
       try {
-        registry.bind(GameConfigurationConstants.REGISTRY_NAME_SERVER, durakServices);
+        registry = Simon.createRegistry(port);
+        registry.bind(name, durakServices);
         running = true;
       } catch (NameBindingException e) {
-        LOGGER.severe("Name already bound!");
+        LOGGER.warning("Name \"" + name + "\"already bound: " + e.getMessage());
+        throw new GameServerException(I18nSupport.getValue(MSGS_BUNDLE, ""));
+      } catch (UnknownHostException e) {
+        LOGGER.warning("Could not find ip address: "+e.getMessage());
+        throw new GameServerException(I18nSupport.getValue(MSGS_BUNDLE, "network.error"));
+      } catch (IOException e) {
+        LOGGER.severe("I/O exception: " + e.getMessage());
+        throw new GameServerException(I18nSupport.getValue(MSGS_BUNDLE, "network.error"));
       }
     }
   }
@@ -254,6 +270,7 @@ public class GameServer extends Observable {
 @SimonRemote(value={ServerInterface.class})
 class DurakServices implements ServerInterface {
   private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
+  private static final Logger LOGGER = LoggingUtility.getLogger(DurakServices.class.getName());
 
   private String password;
 
@@ -297,6 +314,8 @@ class DurakServices implements ServerInterface {
       server.sendProcessUpdate(nextRound);
       actionDone = true;
     } catch (RuleException e) {
+      LOGGER.info("User \'" + action.getExecutor().name
+          + "\' breaks the rules with action " + action);
       server.sendMessage(callbackable,
           new MessageObject(MessageType.RULE_MESSAGE, e.getMessage()));
     }
@@ -338,7 +357,7 @@ class GameUpdater {
 
   private void sendClientInit() {
     updateClients();
-    server.broadcastMessage(GameUpdateType.STACK_UPDATE, Converter.toDTO(GameCardStack.getInstance()));
+    server.broadcastMessage(GameUpdateType.STACK_UPDATE, Converter.toDTO(process.getStack()));
     sendPlayersInfos();
     server.broadcastOtherClients(GameUpdateType.INITIALISE_PLAYERS);
   }
@@ -358,7 +377,7 @@ class GameUpdater {
       allCards = null;
       sendPlayersInfos();
       server.broadcastMessage(GameUpdateType.STACK_UPDATE,
-          Converter.toDTO(GameCardStack.getInstance()));
+          Converter.toDTO(process.getStack()));
     } else allCards = Converter.toDTO(process.getAttackCards(), process.getDefenseCards());
 
     /* update ingame cards, player list and if the next round is available */

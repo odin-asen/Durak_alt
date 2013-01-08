@@ -1,17 +1,15 @@
 package common.utilities;
 
 
-import common.dto.DTOClient;
 import common.dto.DTOCard;
 import common.dto.DTOCardStack;
+import common.dto.DTOClient;
 import common.game.GameCard;
 import common.game.GameCardStack;
 import common.game.Player;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -72,18 +70,11 @@ public class Converter {
       return null;
 
     final DTOCardStack dto = new DTOCardStack();
-    try {
-      final Deque<GameCard> cardDeque = stack.getCardStack();
-      dto.setCardStack((Deque<DTOCard>) Class.forName(cardDeque.getClass().getName()).newInstance());
-      for (GameCard card  : cardDeque) {
-        dto.getCardStack().add(Converter.toDTO(card));
-      }
-    } catch (InstantiationException e) {
-      LOGGER.severe("Error converting object to dto!");
-    } catch (IllegalAccessException e) {
-      LOGGER.severe("Error converting object to dto!");
-    } catch (ClassNotFoundException e) {
-      LOGGER.severe("Error converting object to dto!");
+
+    final Deque<GameCard> cardDeque = stack.getCardStack();
+    dto.setCardStack(new ArrayDeque<DTOCard>());
+    for (GameCard card  : cardDeque) {
+      dto.getCardStack().add(Converter.toDTO(card));
     }
 
     return dto;
@@ -93,20 +84,12 @@ public class Converter {
     if(dto == null)
       return null;
 
-    final GameCardStack stack = GameCardStack.getInstance();
-    try {
-      final Deque<GameCard> cardDeque = (Deque<GameCard>) Class.forName(dto.getCardStack().getClass().getName()).newInstance();
-      for (DTOCard card  : dto.getCardStack()) {
-        cardDeque.add(Converter.fromDTO(card));
-      }
-      stack.setCardStack(cardDeque);
-    } catch (InstantiationException e) {
-      LOGGER.severe("Error converting object to dto!");
-    } catch (IllegalAccessException e) {
-      LOGGER.severe("Error converting object to dto!");
-    } catch (ClassNotFoundException e) {
-      LOGGER.severe("Error converting object to dto!");
+    final GameCardStack stack = new GameCardStack();
+    final Deque<GameCard> cardDeque = new ArrayDeque<GameCard>();
+    for (DTOCard card  : dto.getCardStack()) {
+      cardDeque.add(Converter.fromDTO(card));
     }
+    stack.setCardStack(cardDeque);
 
     return stack;
   }
@@ -144,12 +127,21 @@ public class Converter {
     return cardLists;
   }
 
-  public static List<?> getList(DefaultListModel<?> listModel) {
-    final List<Object> list = new ArrayList<Object>(listModel.size());
+  public static <T> List<T> getList(DefaultListModel<T> listModel) {
+    final List<T> list = new ArrayList<T>(listModel.size());
     for (int index = 0; index < listModel.size(); index++) {
       list.add(listModel.get(index));
     }
 
     return list;
+  }
+
+  public static <T>String getCollectionString(Collection<T> collection) {
+    String string = "{";
+    for (T t : collection) {
+      string = string + "( " + t.toString() + " )";
+    }
+    string = string + "}";
+    return string;
   }
 }

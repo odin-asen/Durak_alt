@@ -27,6 +27,16 @@ public abstract class GameAction implements Serializable {
     this.type = type;
   }
 
+  /* Methods */
+
+  @SuppressWarnings("HardCodedStringLiteral")
+  public String toString() {
+    return "GameAction{" +
+        "executor=" + executor +
+        ", type=" + type +
+        '}';
+  }
+
   /* Getter and Setter */
 
   public ActionType getActionType() {

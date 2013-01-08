@@ -127,8 +127,8 @@ public class DurakStatusBar extends JPanel implements Runnable {
         this.setTime(millis);
         Thread.sleep(waitingTime);
         millis = millis + waitingTime;
-      } catch (InterruptedException ex) {
-        LOGGER.info("Error while thread pausing!");
+      } catch (InterruptedException e) {
+        LOGGER.info("Error while pausing clock thread: "+e.getMessage());
       }
     }
   }

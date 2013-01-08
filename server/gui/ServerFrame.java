@@ -13,19 +13,16 @@ import common.utilities.gui.Constraints;
 import common.utilities.gui.FramePosition;
 import common.utilities.gui.WidgetCreator;
 import server.business.GameServer;
+import server.business.GameServerException;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.List;
@@ -42,7 +39,7 @@ import static server.gui.ServerGUIConstants.*;
  */
 public class ServerFrame extends JFrame implements Observer {
   private static final String SERVER_BUNDLE = "server.server"; //NON-NLS
-  private static final String MESSAGE_BUNDLE = "user.messages"; //NON-NLS
+  private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
   private static Logger LOGGER = LoggingUtility.getLogger(ServerFrame.class.getName());
 
   private static final String VERSION_NUMBER = "0.1";
@@ -105,8 +102,7 @@ public class ServerFrame extends JFrame implements Observer {
     if (GUIObserverType.REFRESH_CLIENT_LIST.equals(object.getType())) {
       refreshClientList(GameServer.getServerInstance().getClients());
     } else if (GUIObserverType.SERVER_FAIL.equals(object.getType())) {
-      setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "server.port.0.used",
-          portField.getText()));
+
     }
   }
 
@@ -135,7 +131,7 @@ public class ServerFrame extends JFrame implements Observer {
     statusPanel = new JPanel();
     statusBar = new JLabel();
 
-    statusBar.setText(I18nSupport.getValue(MESSAGE_BUNDLE, "status.server.inactive"));
+    statusBar.setText(I18nSupport.getValue(MSGS_BUNDLE, "status.server.inactive"));
     statusPanel.setPreferredSize(new Dimension(0, 16));
 
     statusPanel.setLayout(new BorderLayout());
@@ -286,7 +282,7 @@ public class ServerFrame extends JFrame implements Observer {
 
     private void stopGameServer() {
       closeServer();
-      setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "status.server.inactive"));
+      setStatusBarText(I18nSupport.getValue(MSGS_BUNDLE, "status.server.inactive"));
     }
 
     private void closeServer() {
@@ -311,13 +307,9 @@ public class ServerFrame extends JFrame implements Observer {
           ipAddress = InetAddress.getLoopbackAddress().getHostAddress();
         }
         gameServer.startServer(""); //TODO hier passwort setzen
-        setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "status.server.running"));
-      } catch (UnknownHostException e) {
-        setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "network.error"));
-        LOGGER.severe(e.getMessage());
-      } catch (IOException e) {
-        setStatusBarText(I18nSupport.getValue(MESSAGE_BUNDLE, "network.error"));
-        LOGGER.severe(e.getMessage());
+        setStatusBarText(I18nSupport.getValue(MSGS_BUNDLE, "status.server.running"));
+      } catch (GameServerException e) {
+        setStatusBarText(e.getMessage());
       }
     }
   }

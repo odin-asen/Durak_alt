@@ -1,7 +1,7 @@
 package client.gui.frame;
 
 import client.business.ConnectionInfo;
-import client.business.client.Client;
+import client.business.Client;
 import client.gui.ActionFactory;
 import common.i18n.I18nSupport;
 import common.utilities.LoggingUtility;

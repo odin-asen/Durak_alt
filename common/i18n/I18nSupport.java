@@ -1,7 +1,10 @@
 package common.i18n;
 
+import common.utilities.LoggingUtility;
+
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
+import java.util.logging.Logger;
 
 /**
  * User: Timm Herrmann
@@ -9,6 +12,7 @@ import java.util.ResourceBundle;
  * Time: 20:35
  */
 public class I18nSupport {
+  private static final Logger LOGGER = LoggingUtility.getLogger(I18nSupport.class.getName());
   private static String BUNDLE_NAME = "";
   private static ResourceBundle BUNDLE;
   private static final String I18N_POINT = "common.i18n."; //NON-NLS
@@ -19,6 +23,7 @@ public class I18nSupport {
       if(params.length > 0) return MessageFormat.format(value,  params);
       return value;
     } catch (Exception ex) {
+      LOGGER.warning("Could not find key ~" + key + "~ in bundle ~" + bundleName + "~");
       return "!" +bundleName+"/"+key+"!";
     }
   }
