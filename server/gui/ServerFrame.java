@@ -101,8 +101,8 @@ public class ServerFrame extends JFrame implements Observer {
   private void handleUpdate(MessageObject object) {
     if (GUIObserverType.REFRESH_CLIENT_LIST.equals(object.getType())) {
       refreshClientList(GameServer.getServerInstance().getClients());
-    } else if (GUIObserverType.SERVER_FAIL.equals(object.getType())) {
-
+    } else if (GUIObserverType.REMOVE_CLIENTS.equals(object.getType())) {
+      listModel.clear();
     }
   }
 
@@ -227,7 +227,7 @@ public class ServerFrame extends JFrame implements Observer {
       return gameSettingsPanel;
 
     gameSettingsPanel = new JPanel();
-    stackSizeCombo = new JComboBox<Integer>(new Integer[]{36,40,44,48,52});
+    stackSizeCombo = new JComboBox<Integer>(new Integer[]{12,36,40,44,48,52});
     JLabel stackSizeLabel = new JLabel(I18nSupport.getValue(SERVER_BUNDLE, "label.text.card.number"));
 
     stackSizeCombo.setEditable(false);

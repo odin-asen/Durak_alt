@@ -22,19 +22,17 @@ import java.util.Map;
  * Date: 07.10.12
  * Time: 19:33
  *
- * This class represents the gaming process. The game process can be directed by
- * this class.
+ * This class represents the gaming process. The game can be directed by
+ * this class. The generic type identifies the class for the player identifier.
  */
-public class GameProcess {
-  private static GameProcess gameProcess;
-
+public class GameProcess<ID> {
   /**
    * This object lists pairs of cards where the first card of a pair is
    * the attacker card and the second card is the defender card.
    */
   private ElementPairHolder<GameCard> pairCardHolder;
 
-  private ListMap<String,Player> playerHolder;
+  private ListMap<ID,Player> playerHolder;
 
   private GameCardStack stack;
   private Boolean gameInProcess;
@@ -43,20 +41,14 @@ public class GameProcess {
   private RuleChecker ruleChecker;
 
   /* Constructors */
-  private GameProcess() {
-    initialiseInstance();
-  }
-
-  public static GameProcess getInstance() {
-    if(gameProcess == null) {
-      gameProcess = new GameProcess();
-    }
-    return gameProcess;
+  public GameProcess() {
+    reInitialiseGame();
   }
 
   /* Methods */
-  private void initialiseInstance() {
-    playerHolder = new ListMap<String, Player>();
+
+  public void reInitialiseGame() {
+    playerHolder = new ListMap<ID, Player>();
     pairCardHolder = new ElementPairHolder<GameCard>();
     gameInProcess = false;
     initialiseNew = true;
@@ -138,7 +130,7 @@ public class GameProcess {
    * @throws IllegalArgumentException If {@code action} is not instanceof
    * {@link common.simon.action.CardAction} or {@link common.simon.action.FinishAction}
    */
-  public boolean validateAction(GameAction action, String playerID)
+  public boolean validateAction(GameAction action, ID playerID)
       throws RuleException, IllegalArgumentException {
     boolean nextRound = false;
     if(action instanceof CardAction) {
@@ -155,7 +147,7 @@ public class GameProcess {
     return nextRound;
   }
 
-  private boolean validateFinish(String playerID, GameAction action) {
+  private boolean validateFinish(ID playerID, GameAction action) {
     final FinishAction finishAction;
     Boolean goToNextRound = false;
 
@@ -171,7 +163,7 @@ public class GameProcess {
     return goToNextRound;
   }
 
-  private void validateDefense(String playerID, CardAction action) throws RuleException {
+  private void validateDefense(ID playerID, CardAction action) throws RuleException {
     final GameCard defenderCard = Converter.fromDTO(action.getDefenderCards().get(0));
     final GameCard attackerCard = Converter.fromDTO(action.getAttackCards().get(0));
     ruleChecker.doDefenseMove(playerHolder.get(playerID),
@@ -180,7 +172,7 @@ public class GameProcess {
     pairCardHolder.joinElements(attackerCard, defenderCard);
   }
 
-  private void validateAttack(String playerID, CardAction action)
+  private void validateAttack(ID playerID, CardAction action)
       throws RuleException {
     List<GameCard> cards = Converter.fromDTO(action.getAttackCards());
     ruleChecker.doAttackMove(playerHolder.get(playerID), cards,
@@ -283,7 +275,7 @@ public class GameProcess {
     }
   }
 
-  public void setPlayer(String playerID) {
+  public void setPlayer(ID playerID) {
     if(!gameInProcess) {
       playerHolder.add(playerID, new Player());
     }
@@ -294,7 +286,7 @@ public class GameProcess {
    * @param playerID The player having this id should be removed.
    * @return True, the player existed and is now removed, else false.
    */
-  public boolean removePlayer(String playerID) {
+  public boolean removePlayer(ID playerID) {
     return playerHolder.remove(playerID);
   }
 
@@ -302,12 +294,8 @@ public class GameProcess {
     return Converter.playersCardsToDTO(playerHolder.getList());
   }
 
-  public List<DTOCard> getPlayerCards(String playerID) {
+  public List<DTOCard> getPlayerCards(ID playerID) {
     return Converter.playerCardsToDTO(playerHolder.get(playerID));
-  }
-
-  public void abortGame() {
-    initialiseInstance();
   }
 
   public Boolean nextRoundAvailable() {
@@ -334,7 +322,7 @@ public class GameProcess {
     return types;
   }
 
-  public PlayerConstants.PlayerType getPlayerType(String playerID) {
+  public PlayerConstants.PlayerType getPlayerType(ID playerID) {
     return playerHolder.get(playerID).getType();
   }
 

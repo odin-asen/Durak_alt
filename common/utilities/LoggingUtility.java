@@ -10,6 +10,7 @@ import java.util.logging.*;
  * Time: 19:29
  */
 public class LoggingUtility {
+  public static final String STARS = "********************";
   private static final String DEFAULT_NAME = "defaultLog.txt"; //NON-NLS
   private static Handler handler = null;
   private static boolean logFileChangable = true;
@@ -46,7 +47,7 @@ public class LoggingUtility {
       handler.setFormatter(new SimpleFormatter());
       return handler;
     } catch (IOException e) {
-      LOGGER.severe("Error opening file \"" + DEFAULT_NAME + "\": "+e.getMessage());
+      LOGGER.severe("Error opening file \"" + DEFAULT_NAME + "\": " + e.getMessage());
     }
     return null;
   }

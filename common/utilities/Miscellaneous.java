@@ -30,15 +30,11 @@ public class Miscellaneous {
       if(o1 == null && o2 != null) return -1;
       if(o1 != null && o2 == null) return 1;
 
-      int result = -1;
-      if(o1.ipAddress != null && o2.ipAddress != null) {
-        if(o1.ipAddress.compareTo(o2.ipAddress) == 0)
-          result = o1.port - o2.port;
-      } else if(o1.ipAddress == null && o2.ipAddress == null) {
-        result = o1.port - o2.port;
-      }
-
-      return result;
+      if(o1.name != null && o2.name != null) {
+        return o1.name.compareTo(o2.name);
+      } else if(o1.name == null && o2.name == null) {
+        return 0;
+      } else return -1;
     }
   };
 

@@ -23,7 +23,7 @@ public class I18nSupport {
       if(params.length > 0) return MessageFormat.format(value,  params);
       return value;
     } catch (Exception ex) {
-      LOGGER.warning("Could not find key ~" + key + "~ in bundle ~" + bundleName + "~");
+      LOGGER.warning("Could not find key '" + key + "' in bundle '" + bundleName + "'");
       return "!" +bundleName+"/"+key+"!";
     }
   }

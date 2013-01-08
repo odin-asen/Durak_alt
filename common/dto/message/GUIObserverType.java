@@ -11,5 +11,5 @@ package common.dto.message;
  */
 public enum GUIObserverType {
   REFRESH_CLIENT_LIST,  /* Updates the servers client list to the server frame */
-  SERVER_FAIL,          /* Notfies the user that an error in the server occured */
+  REMOVE_CLIENTS,          /* Notfies the user that an error in the server occured */
 }

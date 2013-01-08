@@ -83,7 +83,7 @@ class ConnectionAction extends AbstractAction {
   }
 
   private void disconnectClient() {
-    GameClient.getClient().disconnect();
+    GameClient.getClient().disconnect(false);
     mainFrame.setStatus(I18nSupport.getValue(MSGS_BUNDLE, "status.has.been.disconnected"),
         false, "");
     mainFrame.clearClients();
@@ -95,20 +95,17 @@ class ConnectionAction extends AbstractAction {
     final DTOClient dtoClient = client.toDTO();
 
     if(gameClient.isConnected())
-      gameClient.disconnect();
+      gameClient.disconnect(false);
 
     try {
       final ConnectionInfo connection = ConnectionInfo.getOwnInstance();
       gameClient.setConnection(connection.getServerAddress(),connection.getServerPort());
 
-      dtoClient.ipAddress = connection.getClientAddress();
-      dtoClient.port = connection.getClientPort();
-
       final String socketString =
           "["+connection.getServerAddress()+":"+ connection.getServerPort()+"]";
-      gameClient.connect(dtoClient, connection.getPassword());
-      mainFrame.setStatus(I18nSupport.getValue(MSGS_BUNDLE, "status.connected"),
-          true, socketString);
+      if(gameClient.connect(dtoClient, connection.getPassword()))
+        mainFrame.setStatus(I18nSupport.getValue(MSGS_BUNDLE, "status.connected"),
+            true, socketString);
     } catch (GameClientException e) {
       LOGGER.info("Connect action failed: "+e.getMessage());
       mainFrame.setStatus(e.getMessage(), false, "");

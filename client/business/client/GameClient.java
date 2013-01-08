@@ -81,16 +81,16 @@ public class GameClient extends Observable {
    * @throws GameClientException Thrown when a connection could not be established. A user
    * message will be delivered with the Exception.
    */
-  public void connect(DTOClient dtoClient, String password)
+  public boolean connect(DTOClient dtoClient, String password)
       throws GameClientException {
-    if (!isConnected()) {
+    if (!connected) {
       try {
         nameLookup = Simon.createNameLookup(address, port);
         server = (ServerInterface) nameLookup.lookup(
             GameConfigurationConstants.REGISTRY_NAME_SERVER);
         connected = server.login(messageReceiver, dtoClient, password);
       } catch (UnknownHostException e) {
-        LOGGER.warning("Failed connection try to " + address + ":" + port);
+        LOGGER.warning("Failed connection try to " + getSocketAddress());
         throw new GameClientException(I18nSupport.getValue(MSGS_BUNDLE, "server.0.not.found",
             getSocketAddress()));
       } catch (LookupFailedException e) {
@@ -102,18 +102,15 @@ public class GameClient extends Observable {
             getSocketAddress()));
       }
     }
+    return connected;
   }
 
-  public void disconnect() {
-    if(isConnected()) {
-      try {
-        server.logoff(messageReceiver);
-      } catch (Exception e) {
-        LOGGER.info("Server was shut down without notifying me :-(\n"+e.getMessage());
-      }
+  public void disconnect(boolean shutdown) {
+    if (connected && !shutdown) {
+      server.logoff(messageReceiver);
       nameLookup.release(server);
-      connected = false;
     }
+    connected = false;
   }
 
   /**
@@ -155,6 +152,11 @@ public class GameClient extends Observable {
 
   public void sendChatMessage(String text) {
     server.sendChatMessage(messageReceiver, text);
+  }
+
+  public void sendClientUpdate(DTOClient dtoClient) {
+    if(connected)
+      server.updateClient(messageReceiver, dtoClient);
   }
 
   /* Getter and Setter */

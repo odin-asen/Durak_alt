@@ -3,7 +3,6 @@ package client.gui.frame;
 import client.business.ConnectionInfo;
 import client.business.Client;
 import client.business.client.GameClient;
-import client.business.client.GameClientException;
 import client.gui.frame.chat.ChatFrame;
 import client.gui.frame.gamePanel.GamePanel;
 import common.dto.DTOCard;
@@ -334,7 +333,7 @@ public class ClientFrame extends JFrame implements Observer {
         foreground = superComponent.getForeground();
         this.setToolTipText(null);
       }
-      this.setText(client.toString());
+      this.setText(client.name);
       this.setBackground(superComponent.getBackground());
       this.setForeground(foreground);
 
@@ -378,7 +377,7 @@ public class ClientFrame extends JFrame implements Observer {
 @SuppressWarnings("unchecked")
 class ClientFrameMessageHandler {
   private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
-  private static final String MSG_BUNDLE = "user.message"; //NON-NLS
+  private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
 
   private static final Logger LOGGER = LoggingUtility.getLogger(ClientFrameMessageHandler.class.getName());
 
@@ -404,8 +403,8 @@ class ClientFrameMessageHandler {
     } else if(MessageType.RULE_MESSAGE.equals(object.getType())) {
       ClientFrame.showRuleException(ClientFrame.getInstance(), object.getSendingObject());
     } else if(MessageType.STATUS_MESSAGE.equals(object.getType())) {
-      ClientFrame.getInstance().setStatus(object.getSendingObject().toString(),true,
-          ConnectionInfo.getOwnInstance().getServerAddress()); //TODO statusbar besser zugreifbar machen
+      ClientFrame.getInstance().setStatus(object.getSendingObject().toString(),
+          GameClient.getClient().isConnected(), ConnectionInfo.getOwnInstance().getServerAddress()); //TODO statusbar besser zugreifbar machen
     }
   }
 
@@ -419,7 +418,8 @@ class ClientFrameMessageHandler {
       final ClientFrame frame = ClientFrame.getInstance();
       frame.clearClients();
       frame.clearGameCards();
-      frame.setStatus(I18nSupport.getValue(MSG_BUNDLE, "status.closed.server"), false, "");
+      frame.setStatus(I18nSupport.getValue(MSGS_BUNDLE, "status.closed.server"), false, "");
+      GameClient.getClient().disconnect(true);
     }
   }
 
@@ -501,7 +501,7 @@ class UserMessageDistributor {
         I18nSupport.getValue(CLIENT_BUNDLE,"dialog.title.game.finished"),
         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[0]);
     if(option != 0) {
-      reconnect(true);
+      updateInformation(true);
     }
   }
 
@@ -509,12 +509,13 @@ class UserMessageDistributor {
     final String message =
         I18nSupport.getValue(CLIENT_BUNDLE,"dialog.text.game.finished.loser");
     final Object[] strings =
-        new Object[]{I18nSupport.getValue(CLIENT_BUNDLE,"dialog.button.play.again.revenge"), I18nSupport.getValue(CLIENT_BUNDLE,"dialog.button.option.no")};
+        new Object[]{I18nSupport.getValue(CLIENT_BUNDLE,"dialog.button.play.again.revenge"),
+            I18nSupport.getValue(CLIENT_BUNDLE,"dialog.button.option.no")};
     int option = JOptionPane.showOptionDialog(ClientFrame.getInstance(), message,
         I18nSupport.getValue(CLIENT_BUNDLE,"dialog.title.game.finished"),
         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[0]);
     if(option != 0) {
-      reconnect(true);
+      updateInformation(true);
     }
   }
 
@@ -528,20 +529,14 @@ class UserMessageDistributor {
         I18nSupport.getValue(CLIENT_BUNDLE,"dialog.title.game.finished"),
         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[1]);
     if(option == 0) {
-      reconnect(false);
+      updateInformation(false);
     }
   }
 
-  private void reconnect(boolean spectate) {
-    try {
-      final Client client = Client.getOwnInstance();
-      final GameClient gameClient = GameClient.getClient();
-      client.setSpectating(spectate);
-      gameClient.disconnect();
-      gameClient.connect(client.toDTO(), ConnectionInfo.getOwnInstance().getPassword());
-    } catch (GameClientException e) {
-      LOGGER.info("Reconnect failed: "+e.getMessage());
-      ClientFrame.getInstance().setStatus(e.getMessage(), false, "");
-    }
+  private void updateInformation(boolean spectate) {
+    final Client client = Client.getOwnInstance();
+    final GameClient gameClient = GameClient.getClient();
+    client.setSpectating(spectate);
+    gameClient.sendClientUpdate(client.toDTO());
   }
 }

@@ -38,4 +38,11 @@ public interface ServerInterface {
    * @return True, action was made, else false.
    */
   public boolean doAction(Callbackable callbackable, GameAction action);
+
+  /**
+   * Updates the client information in the server.
+   * @param callbackable Remote object that should be an implemented SIMON object.
+   * @param dtoClient Client information.
+   */
+  public void updateClient(Callbackable callbackable, DTOClient dtoClient);
 }
