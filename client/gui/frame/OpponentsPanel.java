@@ -3,6 +3,7 @@ package client.gui.frame;
 import client.gui.widget.card.OpponentHandWidget;
 import common.dto.DTOClient;
 import common.resources.ResourceGetter;
+import common.utilities.Miscellaneous;
 import common.utilities.constants.PlayerConstants;
 
 import javax.swing.*;
@@ -37,8 +38,8 @@ public class OpponentsPanel extends JPanel {
     for (Component component : getComponents()) {
       final OpponentHandWidget widget = (OpponentHandWidget) component;
       final DTOClient opponent = widget.getOpponent();
-      if(opponent.ipAddress.equals(info.ipAddress) && opponent.port == info.port)
-        return widget;
+      if(Miscellaneous.CLIENT_COMPARATOR.compare(opponent,info) == 0)
+        return widget;    //TODO comparator funktioniert nur, weil nur der name verglichen wird, andere lösung finden oder comparator alles vom client testen lassen
     }
 
     return null;

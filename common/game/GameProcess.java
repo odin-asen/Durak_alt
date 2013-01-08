@@ -30,9 +30,9 @@ public class GameProcess<ID> {
    * This object lists pairs of cards where the first card of a pair is
    * the attacker card and the second card is the defender card.
    */
-  private ElementPairHolder<GameCard> pairCardHolder;
+  private final ElementPairHolder<GameCard> pairCardHolder;
 
-  private ListMap<ID,Player> playerHolder;
+  private final ListMap<ID,Player> playerHolder;
 
   private GameCardStack stack;
   private Boolean gameInProcess;
@@ -42,14 +42,14 @@ public class GameProcess<ID> {
 
   /* Constructors */
   public GameProcess() {
+    pairCardHolder = new ElementPairHolder<GameCard>();
+    playerHolder = new ListMap<ID, Player>();
     reInitialiseGame();
   }
 
   /* Methods */
 
   public void reInitialiseGame() {
-    playerHolder = new ListMap<ID, Player>();
-    pairCardHolder = new ElementPairHolder<GameCard>();
     gameInProcess = false;
     initialiseNew = true;
   }
@@ -487,8 +487,9 @@ class ListMap<K,V> {
   }
 
   boolean remove(K key) {
-    boolean removed = (map.remove(key) != null);
-    removed = removed || list.remove(key);
+    boolean removed = map.containsKey(key);
+    list.remove(map.get(key));
+    map.remove(key);
     return removed;
   }
 

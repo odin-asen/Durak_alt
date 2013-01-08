@@ -43,10 +43,6 @@ public class ConnectionDialog extends JDialog {
   private JTextField serverPortField;
   private JLabel serverPortLabel;
   private JTextField passwordField;
-  private JComboBox<String> clientAddressCombo;
-  private JLabel clientAddressLabel;
-  private JTextField clientPortField;
-  private JLabel clientPortLabel;
   private JTextField nameField;
   private JLabel nameLabel;
   private JCheckBox spectatorCheckBox;
@@ -59,8 +55,6 @@ public class ConnectionDialog extends JDialog {
   /* Constructors */
 
   public ConnectionDialog(boolean editable) {
-    super();
-
     this.editable = editable;
 
     /* initialise gui stuff */
@@ -84,6 +78,7 @@ public class ConnectionDialog extends JDialog {
 
     this.setTitle(I18nSupport.getValue(CLIENT_BUNDLE, "frame.title.setup"));
     this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+    this.pack();
   }
 
   public static void main(String[] args) {
@@ -99,16 +94,12 @@ public class ConnectionDialog extends JDialog {
     connectionInfo.setServerAddress(serverAddressCombo.getSelectedItem().toString());
     connectionInfo.setServerPort(Integer.parseInt(serverPortField.getText()));
     connectionInfo.setPassword(passwordField.getText());
-    connectionInfo.setClientAddress(clientAddressCombo.getSelectedItem().toString());
-    connectionInfo.setClientPort(Integer.parseInt(clientPortField.getText()));
   }
 
   private void fillClientInfo() {
     final Client client = Client.getOwnInstance();
     client.setName(nameField.getText());
     client.setSpectating(spectatorCheckBox.isSelected());
-    client.setIpAddress(clientAddressCombo.getSelectedItem().toString());
-    client.setPort(Integer.parseInt(clientPortField.getText()));
   }
 
   /* Getter and Setter */
@@ -201,10 +192,6 @@ public class ConnectionDialog extends JDialog {
         I18nSupport.getValue(CLIENT_BUNDLE, "border.title.client.settings")));
 
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-    mainPanel.add(getClientAddressPanel());
-    mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-    mainPanel.add(getClientPortPanel());
-    mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
     mainPanel.add(getClientNamePanel());
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
     mainPanel.add(getSpectatorPanel());
@@ -248,46 +235,6 @@ public class ConnectionDialog extends JDialog {
     else panel.add(nameLabel);
     panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
 
-    return panel;
-  }
-
-  private JPanel getClientPortPanel() {
-    final JPanel panel = new JPanel();
-    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.port"));
-    label.setMaximumSize(label.getPreferredSize());
-    clientPortField = WidgetCreator.makeIntegerTextField("",
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-        I18nSupport.getValue(CLIENT_BUNDLE, "field.tooltip.client.port"));
-    clientPortLabel = new JLabel("");
-
-    panel.setLayout(new GridLayout(1,2));
-    panel.add(label);
-    if(editable)
-      panel.add(clientPortField);
-    else panel.add(clientPortLabel);
-    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
-
-    return panel;
-  }
-
-  private JPanel getClientAddressPanel() {
-    final JPanel panel = new JPanel();
-    final Vector<String> comboBoxContent = new Vector<String>(3);
-    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.address"));
-    label.setMaximumSize(label.getPreferredSize());
-    clientAddressCombo = WidgetCreator.makeComboBox(comboBoxContent,3,
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-        I18nSupport.getValue(CLIENT_BUNDLE, "combo.box.tooltip.client.address"));
-    clientAddressCombo.addActionListener(new IPComboBoxListener(clientAddressCombo, comboBoxContent));
-    clientAddressLabel = new JLabel("");
-
-    panel.setLayout(new GridLayout(1,2));
-    panel.add(label);
-    if(editable)
-      panel.add(clientAddressCombo);
-    else panel.add(clientAddressLabel);
-
-    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
     return panel;
   }
 
@@ -345,8 +292,6 @@ public class ConnectionDialog extends JDialog {
       serverPortField.setText(connectionInfo.getServerPort().toString());
       passwordField.setText(connectionInfo.getPassword());
       /* client fields */
-      clientAddressCombo.setSelectedItem(client.getIpAddress());
-      clientPortField.setText(Integer.toString(client.getPort()));
       nameField.setText(client.getName());
       spectatorCheckBox.setSelected(client.getSpectating());
     } else {
@@ -354,8 +299,6 @@ public class ConnectionDialog extends JDialog {
       serverAddressLabel.setText(connectionInfo.getServerAddress());
       serverPortLabel.setText(connectionInfo.getServerPort().toString());
       /* client fields */
-      clientAddressLabel.setText(client.getIpAddress());
-      clientPortLabel.setText(client.getPort().toString());
       nameLabel.setText(client.getName());
       String key = "label.text.spectator."+client.getSpectating().toString(); //NON-NLS
       spectatorLabel.setText(I18nSupport.getValue(CLIENT_BUNDLE, key));

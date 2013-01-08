@@ -23,8 +23,6 @@ public class DTOClient implements Serializable {
   public int cardCount;
   public boolean spectating;
   public PlayerConstants.PlayerType playerType;
-  public String ipAddress;
-  public int port;
 
   /* Constructors */
   public DTOClient(String name) {
@@ -32,23 +30,15 @@ public class DTOClient implements Serializable {
     this.cardCount = 0;
     this.playerType = PlayerConstants.PlayerType.DEFAULT;
     this.spectating = false;
-    this.ipAddress = GameConfigurationConstants.DEFAULT_IP_ADDRESS;
-    this.port = 0;
   }
 
   /* Methods */
-
-  public String toString() {
-    return ipAddress+":"+port;
-  }
 
   public void setClientInfo(DTOClient info) {
     cardCount = info.cardCount;
     name = info.name;
     playerType = info.playerType;
     spectating = info.spectating;
-    ipAddress = info.ipAddress;
-    port = info.port;
   }
 
   @SuppressWarnings("ALL")
@@ -58,7 +48,5 @@ public class DTOClient implements Serializable {
     out.println("playerType: " + playerType);
     out.println("cardCount: " +cardCount);
     out.println("spectating: " +spectating);
-    out.println("ip address: "+ipAddress);
-    out.println("port: "+port);
   }
 }

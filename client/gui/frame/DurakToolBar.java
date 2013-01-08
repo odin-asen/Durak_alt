@@ -165,7 +165,7 @@ public class DurakToolBar extends JToolBar {
     public void actionPerformed(ActionEvent e) {
       final ConnectionDialog dialog =
           new ConnectionDialog(!GameClient.getClient().isConnected());
-      dialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+      dialog.setModalityType(Dialog.ModalityType.TOOLKIT_MODAL);
       dialog.setVisible(true);
     }
   }

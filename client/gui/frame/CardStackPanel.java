@@ -15,11 +15,14 @@ public class CardStackPanel extends JPanel {
   private CardStackWidget cardStack;
 
   /* Constructors */
+
   public CardStackPanel() {
     this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
-    cardStack = CardStackWidget.getInstance();
+    cardStack = new CardStackWidget(CardStackWidget.ORIENTATION_VERTICAL);
   }
+
   /* Methods */
+
   /**
    * This method is equivalent to {@code setStack(card,null)}.
    * @param cards Number of cards that will be shown on the stack. One of the stack is
@@ -40,7 +43,6 @@ public class CardStackPanel extends JPanel {
   private void setStack(DTOCardStack stack, Object constraints) {
     remove(cardStack);
 
-    cardStack = CardStackWidget.getInstance();
     cardStack.setCardStack(stack);
 
     if(constraints == null)

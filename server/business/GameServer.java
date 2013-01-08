@@ -114,7 +114,7 @@ public class GameServer extends Observable {
   public void startGame(Integer stackSize) {
     if(gameUpdater.invokeGame(stackSize)) {
       LOGGER.info(LoggingUtility.STARS+" Game started "+LoggingUtility.STARS);
-    } else LOGGER.info("Not enogh player for a game");
+    } else LOGGER.info("Not enough player for a game");
   }
 
   public void stopGame() {
@@ -201,9 +201,10 @@ public class GameServer extends Observable {
    */
   boolean removeClient(Callbackable callbackable) {
     final DTOClient client = getClient(callbackable);
-    if(gameUpdater.removeClient(callbackable))
-      GameServer.getServerInstance().notifyClientLists(null);
-    else return false;
+    if(gameUpdater.removeClient(callbackable)) {
+      //TODO gui anpassen, ob spiel noch läuft oder nicht if(gameUpdater.getProcess().isGameInProcess())
+      notifyClientLists(null);
+    } else return false;
 
     LOGGER.info("Removed client: "+client);
     return true;
@@ -219,7 +220,6 @@ public class GameServer extends Observable {
     setChangedAndNotify(GUIObserverType.REFRESH_CLIENT_LIST);
     if(callbackable != null) {
       DTOClient client = gameUpdater.getClient(callbackable);
-      System.out.println("OWN_INFO: "+client.name);
       sendMessage(callbackable, new MessageObject(MessageType.OWN_CLIENT_INFO,
           client));
     }
@@ -237,15 +237,11 @@ public class GameServer extends Observable {
     Miscellaneous.addAllToCollection(callbackables, gameUpdater.getRemoteReferrences());
     for (Callbackable callbackable : callbackables) {
       currentClient = gameUpdater.getClient(callbackable);
-      System.out.println("Broadcast other than "+currentClient.name);
       final int index = Miscellaneous.findIndex(clients,currentClient,
           Miscellaneous.CLIENT_COMPARATOR);
       /* remove the client, send the rest of the list to all clients and add the current
        * client back to the list */
       clients.remove(index);
-      for (DTOClient client : clients) {
-        System.out.println("anderer client: "+client.name);
-      }
       sendMessage(callbackable, new MessageObject(type, clients));
       clients.add(index,currentClient);
     }
@@ -440,18 +436,21 @@ class GameUpdater {
   }
 
   /**
-   * Removes a client from the list if it exists.
+   * Removes a client from the list if it exists and aborts the game if necessary.
    * @param callbackable Remote reference of the client.
-   * @return True if client existed, else false.
+   * @return True if the client was removed, else false.
    */
   boolean removeClient(Callbackable callbackable) {
-    if(process.removePlayer(clientHolder.getValue(callbackable).hashCode())) {
+    boolean removed = false;
+    if (process.removePlayer(clientHolder.getValue(callbackable).hashCode())) {
+      clientHolder.removeKey(callbackable);
+      removed = true;
+
       if(process.isGameInProcess())
         process.reInitialiseGame();
-      clientHolder.removeKey(callbackable);
-    } else return false;
+    }
 
-    return true;
+    return removed;
   }
 
   /**

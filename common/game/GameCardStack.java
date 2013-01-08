@@ -126,4 +126,8 @@ public class GameCardStack extends Observable {
   public void setCardStack(Deque<GameCard> cardStack) {
     this.cardStack = cardStack;
   }
+
+  public void setTrumpCard(GameCard trumpCard) {
+    this.trumpCard = trumpCard;
+  }
 }

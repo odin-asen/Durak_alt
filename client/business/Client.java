@@ -26,8 +26,6 @@ public class Client {
   private Integer cardCount;
   private Boolean spectating;
   private PlayerConstants.PlayerType playerType;
-  private String ipAddress;
-  private Integer port;
 
   /* Constructors */
 
@@ -38,14 +36,6 @@ public class Client {
     setCardCount(0);
     setPlayerType(PlayerConstants.PlayerType.DEFAULT);
     setSpectating(false);
-    try {
-      /* get the clients lan addresses from the network card */
-      final InetAddress address = Miscellaneous.getHostInetAddress(Inet4Address.class);
-      setIpAddress(address.getHostAddress());
-    } catch (Exception e) {
-      setIpAddress(InetAddress.getLoopbackAddress().getHostAddress());
-    }
-    setPort(GameConfigurationConstants.DEFAULT_PORT);
   }
 
   public static Client getOwnInstance() {
@@ -62,8 +52,6 @@ public class Client {
     name = info.name;
     playerType = info.playerType;
     spectating = info.spectating;
-    ipAddress = info.ipAddress;
-    port = info.port;
   }
 
   /* Getter and Setter */
@@ -76,16 +64,6 @@ public class Client {
     if(cardCount < 0 || cardCount == null)
       cardCount = 0;
     this.cardCount = cardCount;
-  }
-
-  public String getIpAddress() {
-    return ipAddress;
-  }
-
-  public void setIpAddress(String ipAddress) {
-    if(ipAddress == null)
-      ipAddress = ClientGUIConstants.DEFAULT_IP_ADDRESS;
-    this.ipAddress = ipAddress;
   }
 
   public String getName() {
@@ -106,16 +84,6 @@ public class Client {
     this.playerType = playerType;
   }
 
-  public Integer getPort() {
-    return port;
-  }
-
-  public void setPort(Integer port) {
-    if(port < 0 || port == null)
-      port = 0;
-    this.port = port;
-  }
-
   public Boolean getSpectating() {
     return spectating;
   }
@@ -131,8 +99,6 @@ public class Client {
     client.cardCount = cardCount;
     client.playerType = playerType;
     client.spectating = spectating;
-    client.ipAddress = ipAddress;
-    client.port = port;
     return client;
   }
 

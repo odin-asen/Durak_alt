@@ -25,8 +25,6 @@ public class CardStackWidget extends JComponent {
   /* Defines the relative distance to the borders */
   public static final float BORDER_MARGIN = 0.05f;
 
-  private static CardStackWidget stackWidget;
-
   private DTOCard trump;
   private ImageIcon cardBack;
   private ImageIcon trumpCard;
@@ -61,13 +59,8 @@ public class CardStackWidget extends JComponent {
     this.trumpCard = trumpCard;
   }
 
-  public static CardStackWidget getInstance() {
-    if(stackWidget == null)
-      stackWidget = new CardStackWidget(CardStackWidget.ORIENTATION_VERTICAL);
-    return stackWidget;
-  }
-
   /* Methods */
+
   private void calculateCardBackTransform(Point backPoint, int width, int height,
                                           int cardWidth, int cardHeight, int cardNumber) {
     double theta = 0.0;
@@ -156,10 +149,14 @@ public class CardStackWidget extends JComponent {
   }
 
   /* Getter and Setter */
-  public void setCardStack(DTOCardStack cardStack) {
-    if(cardStack.getSize() > 0)
-      setTrumpCard(cardStack.getCardStack().getLast());
-    setCardCount(cardStack.getSize());
+
+  /**
+   * Gets the information from the card stack and sets the trump card and the size.
+   * @param dtoStack Cards stack.
+   */
+  public void setCardStack(DTOCardStack dtoStack) {
+    setTrumpCard(dtoStack.trumpCard);
+    setCardCount(dtoStack.cardStack.size());
   }
 
   public void setCardCount(int cardCount) {

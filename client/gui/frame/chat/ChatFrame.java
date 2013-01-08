@@ -19,9 +19,9 @@ import static client.gui.frame.ClientGUIConstants.*;
  * Time: 01:02
  */
 public class ChatFrame extends JDialog {
-  private static String BUNDLE_NAME = "client.client"; //NON-NLS
-  private static String ACTION_COMMAND_SEND = "send"; //NON-NLS
-  private static ChatFrame CHAT_FRAME;
+  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
+  private static final String ACTION_COMMAND_SEND = "send"; //NON-NLS
+  private static ChatFrame chatFrame;
 
   private JPanel centrePanel;
   private JPanel buttonPanel;
@@ -50,11 +50,11 @@ public class ChatFrame extends JDialog {
   }
 
   public static ChatFrame getFrame() {
-    if(CHAT_FRAME == null) {
-      CHAT_FRAME = new ChatFrame();
+    if(chatFrame == null) {
+      chatFrame = new ChatFrame();
     }
 
-    return CHAT_FRAME;
+    return chatFrame;
   }
 
   /* Methods */
@@ -169,7 +169,7 @@ public class ChatFrame extends JDialog {
 
     public void addMessage(String text) {
       chatReadArea.append(text + NEWLINE);
-      scrollPaneRead.getVerticalScrollBar().setValue(CHAT_FRAME.getScrollPaneRead().getVerticalScrollBar().getMaximum());
+      scrollPaneRead.getVerticalScrollBar().setValue(chatFrame.getScrollPaneRead().getVerticalScrollBar().getMaximum());
     }
 
     public void sendChatMessage(String text) {
@@ -179,7 +179,7 @@ public class ChatFrame extends JDialog {
           GameClient.getClient().sendChatMessage(text);
           chatWriteArea.setText("");
         } else {
-          JOptionPane.showMessageDialog(CHAT_FRAME,
+          JOptionPane.showMessageDialog(chatFrame,
               I18nSupport.getValue(BUNDLE_NAME,"dialog.text.error.chat.message.not.send"),
               I18nSupport.getValue(BUNDLE_NAME,"dialog.title.error"), JOptionPane.ERROR_MESSAGE);
         }

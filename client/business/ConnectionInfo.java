@@ -19,27 +19,17 @@ import java.net.InetAddress;
 public class ConnectionInfo {
   private static ConnectionInfo ownConnectionInfo;
 
-  private String clientAddress;
-  private Integer clientPort;
   private String serverAddress;
   private Integer serverPort;
   private String password;
 
   private ConnectionInfo() {
-    /* get the clients lan addresses from the network card */
-    try {
-      final InetAddress address = Miscellaneous.getHostInetAddress(Inet4Address.class);
-      setClientAddress(address.getHostAddress());
-    } catch (Exception e) {
-      setClientAddress(InetAddress.getLoopbackAddress().getHostAddress());
-    }
     try {
       final InetAddress address = Miscellaneous.getHostInetAddress(Inet4Address.class);
       setServerAddress(address.getHostAddress());
     } catch (Exception e) {
       setServerAddress(InetAddress.getLoopbackAddress().getHostAddress());
     }
-    setClientPort(GameConfigurationConstants.DEFAULT_PORT);
     setServerPort(GameConfigurationConstants.DEFAULT_PORT);
     setPassword("");
   }
@@ -79,25 +69,5 @@ public class ConnectionInfo {
     if(serverPort < 0 || serverPort == null)
       serverPort = 0;
     this.serverPort = serverPort;
-  }
-
-  public String getClientAddress() {
-    return clientAddress;
-  }
-
-  public void setClientAddress(String clientAddress) {
-    if(clientAddress == null)
-      clientAddress = ClientGUIConstants.DEFAULT_IP_ADDRESS;
-    this.clientAddress = clientAddress;
-  }
-
-  public Integer getClientPort() {
-    return clientPort;
-  }
-
-  public void setClientPort(Integer clientPort) {
-    if(clientPort < 0 || clientPort == null)
-      clientPort = 0;
-    this.clientPort = clientPort;
   }
 }

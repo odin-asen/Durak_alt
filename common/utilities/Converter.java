@@ -72,10 +72,11 @@ public class Converter {
     final DTOCardStack dto = new DTOCardStack();
 
     final Deque<GameCard> cardDeque = stack.getCardStack();
-    dto.setCardStack(new ArrayDeque<DTOCard>());
+    dto.cardStack = new ArrayDeque<DTOCard>();
     for (GameCard card  : cardDeque) {
-      dto.getCardStack().add(Converter.toDTO(card));
+      dto.cardStack.add(Converter.toDTO(card));
     }
+    dto.trumpCard = toDTO(stack.getTrumpCard());
 
     return dto;
   }
@@ -86,10 +87,11 @@ public class Converter {
 
     final GameCardStack stack = new GameCardStack();
     final Deque<GameCard> cardDeque = new ArrayDeque<GameCard>();
-    for (DTOCard card  : dto.getCardStack()) {
+    for (DTOCard card  : dto.cardStack) {
       cardDeque.add(Converter.fromDTO(card));
     }
     stack.setCardStack(cardDeque);
+    stack.setTrumpCard(fromDTO(dto.trumpCard));
 
     return stack;
   }
