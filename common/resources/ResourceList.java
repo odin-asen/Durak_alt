@@ -20,6 +20,7 @@ public interface ResourceList {
   String IMAGE_TOOLBAR_CHAT = TOOLBAR_ROOT + "Chat.png";
   String IMAGE_TOOLBAR_CLOSE = TOOLBAR_ROOT + "Close.png";
   String IMAGE_TOOLBAR_GAME_START = TOOLBAR_ROOT + "Games.png";
+  String IMAGE_TOOLBAR_GAME_STOP = TOOLBAR_ROOT + "Games_Stop.png";
   String IMAGE_TOOLBAR_NETWORK = TOOLBAR_ROOT + "Network.png";
   String IMAGE_TOOLBAR_NETWORK_CLOSE = TOOLBAR_ROOT + "Network_Close.png";
   String IMAGE_TOOLBAR_NETWORK_EDIT = TOOLBAR_ROOT + "Network_Edit.png";
@@ -39,6 +40,7 @@ public interface ResourceList {
   String IMAGE_STAR_RED = STATUS_ROOT + "StarRed.png";
   String IMAGE_STATUS_CONNECTED = STATUS_ROOT + "Connected.png";
   String IMAGE_STATUS_DISCONNECTED = STATUS_ROOT + "Disconnected.png";
+  String IMAGE_IVAN_DURAK = STATUS_ROOT + "Ivan_Durak.png";
 
   String CARD_BACK = "back.png";
   String CARD_COLOUR_CLUBS = "clubs.png";

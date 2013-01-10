@@ -12,7 +12,7 @@ public interface PlayerConstants {
   
   /* Player Type */
   public static enum PlayerType {
-    DEFAULT(""),
+    DEFAULT(I18nSupport.getValue(BUNDLE_NAME,"default")),
     FIRST_ATTACKER(I18nSupport.getValue(BUNDLE_NAME,"first.attacker")),
     SECOND_ATTACKER(I18nSupport.getValue(BUNDLE_NAME,"second.attacker")),
     DEFENDER(I18nSupport.getValue(BUNDLE_NAME,"defender")),

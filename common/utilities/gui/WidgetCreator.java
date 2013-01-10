@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.Vector;
@@ -124,5 +125,23 @@ public class WidgetCreator {
     popup.setOpenSeconds(openSeconds);
 
     return popup;
+  }
+
+  public static void doAction(Object source, Action action) {
+    final ActionEvent event = new ActionEvent(source, 0,
+        (String) action.getValue(Action.ACTION_COMMAND_KEY));
+    action.actionPerformed(event);
+  }
+
+  public static void initialiseAction(Action action, KeyStroke accelerator,
+                                      String longDescription, Integer mnemonicVirtualKey, String actionCommand, String text,
+                                      String shortDescription, Icon smallIcon) {
+    action.putValue(Action.ACCELERATOR_KEY, accelerator);
+    action.putValue(Action.LONG_DESCRIPTION, longDescription);
+    action.putValue(Action.MNEMONIC_KEY, mnemonicVirtualKey);
+    action.putValue(Action.ACTION_COMMAND_KEY, actionCommand);
+    action.putValue(Action.NAME, text);
+    action.putValue(Action.SHORT_DESCRIPTION, shortDescription);
+    action.putValue(Action.SMALL_ICON, smallIcon);
   }
 }

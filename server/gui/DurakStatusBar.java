@@ -1,10 +1,7 @@
-package client.gui.frame;
+package server.gui;
 
 import common.i18n.I18nSupport;
-import common.resources.ResourceGetter;
-import common.resources.ResourceList;
 import common.utilities.LoggingUtility;
-import common.utilities.constants.PlayerConstants;
 import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
@@ -23,7 +20,7 @@ import java.util.logging.Logger;
  * Time: 19:37
  */
 public class DurakStatusBar extends JPanel implements Runnable {
-  private static final String CLIENT_BUNDLE = "client.client";  //NON-NLS
+  private static final String SERVER_BUNDLE = "server.server"; //NON-NLS
   private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
   private static final String FORMAT_BUNDLE = "general.format"; //NON-NLS
 
@@ -32,15 +29,10 @@ public class DurakStatusBar extends JPanel implements Runnable {
   private static final DateFormat format =
       new SimpleDateFormat(I18nSupport.getValue(FORMAT_BUNDLE,"date"), Locale.getDefault());
   private static final Calendar calendar = GregorianCalendar.getInstance(Locale.getDefault());
-  private static final ImageIcon connectedIcon =
-      ResourceGetter.getImage(ResourceList.IMAGE_STATUS_CONNECTED);
-  private static final ImageIcon disconnectedIcon =
-      ResourceGetter.getImage(ResourceList.IMAGE_STATUS_DISCONNECTED);
 
   private JPanel besideLabelPanel;
   private JLabel mainStatusLabel;
-  private JLabel gameStatusLabel;
-  private JLabel connectionLabel;
+  private JLabel playerCountLabel;
   private JLabel clockLabel;
   private Boolean running;
 
@@ -54,12 +46,11 @@ public class DurakStatusBar extends JPanel implements Runnable {
     setLayout(new BorderLayout());
     add(mainStatusLabel, BorderLayout.CENTER);
     add(getBesideLabelPanel(), BorderLayout.LINE_END);
-    setConnected(false, "");
 
     /* initialise fields */
     setText("");
-    setConnected(false);
-    setPlayerType(PlayerConstants.PlayerType.DEFAULT);
+    setPlayerCount(0,0);
+
     /* start clock */
     new Thread(this).start();
   }
@@ -70,56 +61,34 @@ public class DurakStatusBar extends JPanel implements Runnable {
       return besideLabelPanel;
 
     besideLabelPanel = new JPanel();
+    playerCountLabel = new JLabel();
     clockLabel = new JLabel();
-    gameStatusLabel = new JLabel();
-    connectionLabel = new JLabel();
 
     final Border border = WidgetCreator.createStatusBorder();
+    playerCountLabel.setBorder(border);
+    playerCountLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     clockLabel.setBorder(border);
     clockLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-    gameStatusLabel.setBorder(border);
-    gameStatusLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-    gameStatusLabel.setToolTipText(I18nSupport.getValue(CLIENT_BUNDLE,"label.tooltip.game.status"));
-    connectionLabel.setBorder(border);
-    connectionLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
     besideLabelPanel.setLayout(new BoxLayout(besideLabelPanel, BoxLayout.LINE_AXIS));
-    besideLabelPanel.add(gameStatusLabel);
-    besideLabelPanel.add(connectionLabel);
+    besideLabelPanel.add(playerCountLabel);
     besideLabelPanel.add(clockLabel);
     return besideLabelPanel;
-  }
-  /**
-   * This method changes the icon of the status label dependent on the boolean.
-   * @param connected Sets the corresponding icon to the value
-   * @param serverAddress Will be set to the tooltip as information
-   */
-  public void setConnected(Boolean connected, String serverAddress) {
-    if(connected) {
-      connectionLabel.setIcon(connectedIcon);
-      connectionLabel.setToolTipText(I18nSupport.getValue(MSGS_BUNDLE,"status.connected.with.0", serverAddress));
-    } else {
-      connectionLabel.setIcon(disconnectedIcon);
-      connectionLabel.setToolTipText(I18nSupport.getValue(MSGS_BUNDLE,"status.disconnected"));
-    }
-  }
-
-  public void setConnected(Boolean connected) {
-    if(connected) {
-      connectionLabel.setIcon(connectedIcon);
-    } else setConnected(false, "");
-  }
-
-  public void setPlayerType(PlayerConstants.PlayerType type) {
-    if(!type.getDescription().equals(gameStatusLabel.getText())) {
-      gameStatusLabel.setIcon(ResourceGetter.getPlayerTypeIcon(type,
-          mainStatusLabel.getHeight()-mainStatusLabel.getBorder().getBorderInsets(mainStatusLabel).top*2));
-      gameStatusLabel.setText(type.getDescription());
-    }
   }
 
   public void setText(String text) {
     mainStatusLabel.setText(text);
+  }
+
+  public void setPlayerCount(Integer takers, Integer spectators) {
+    if(takers < 0) takers = 0;
+    if(spectators < 0) spectators = 0;
+
+    String text = takers+"/"+spectators;
+    String tooltip = I18nSupport.getValue(SERVER_BUNDLE, "label.tooltip.takers.spectators",
+        takers, spectators);
+    playerCountLabel.setText(text);
+    playerCountLabel.setToolTipText(tooltip);
   }
 
   private void setTime(long millisSince1970) {

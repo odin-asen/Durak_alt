@@ -25,7 +25,6 @@ public class DurakToolBar extends JToolBar {
 
   private static final Logger LOGGER = LoggingUtility.getLogger(DurakToolBar.class.getName());
   
-  private static final String ACTION_COMMAND_CLOSE = "close";  //NON-NLS
   private static final String ACTION_COMMAND_CONNECTION_SETTINGS = "connection"; //NON-NLS
   private static final String ACTION_COMMAND_SETUP = "setup";  //NON-NLS
   private static final String ACTION_COMMAND_CHAT = "chat";  //NON-NLS
@@ -80,9 +79,6 @@ public class DurakToolBar extends JToolBar {
     add(new JButton(new OpenSetupAction()));
     addSeparator();
     add(new JButton(new OpenChatAction()));
-    add(Box.createGlue());
-    addSeparator();
-    add(new JButton(new CloseApplicationAction()));
   }
 
   public void setConnection(boolean connected) {
@@ -126,21 +122,6 @@ public class DurakToolBar extends JToolBar {
       if(!frame.isVisible())
         frame.setVisible(true);
       else frame.setVisible(false);
-    }
-  }
-
-  private class CloseApplicationAction extends AbstractAction {
-    private CloseApplicationAction() {
-      ActionFactory.initialiseAction(this, null, null, KeyEvent.VK_Q, ACTION_COMMAND_CLOSE,
-          "", I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.close.application"),
-          ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_CLOSE));
-    }
-
-    public void actionPerformed(ActionEvent e) {
-      ActionFactory.doAction(e.getSource(), ActionFactory.getDisconnectAction());
-      ClientFrame.getInstance().setVisible(false);
-      ClientFrame.getInstance().dispose();
-      System.exit(0);
     }
   }
 

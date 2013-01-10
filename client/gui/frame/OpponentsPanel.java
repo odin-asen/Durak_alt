@@ -57,7 +57,11 @@ public class OpponentsPanel extends JPanel {
   }
 
   public void setOpponentStatusIcon(OpponentHandWidget widget, PlayerConstants.PlayerType type) {
-    final ImageIcon statusIcon = ResourceGetter.getPlayerTypeIcon(type, null);
+    final Integer height;
+    if(PlayerConstants.PlayerType.LOSER.equals(type))
+      height = getPreferredSize().height;
+    else height = null;
+    final ImageIcon statusIcon = ResourceGetter.getPlayerTypeIcon(type, height);
     widget.setStatusIcon(statusIcon, type.getDescription());
   }
 

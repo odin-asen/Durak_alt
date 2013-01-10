@@ -176,7 +176,7 @@ public class AttackCardMoveListener extends CardMoveListener {
       for (GameCardWidget widget : widgets) {
         widget.setLocation(widget.getLastLocation());
       }
-      widgets.removeAll(widgets);
+      widgets.clear();
     }
   }
 }

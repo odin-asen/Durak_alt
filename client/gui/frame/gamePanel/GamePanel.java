@@ -142,7 +142,7 @@ public class GamePanel extends JPanel {
     for (GameCardWidget widget : clientWidgets) {
       remove(widget);
     }
-    clientWidgets.removeAll(clientWidgets);
+    clientWidgets.clear();
   }
 
 

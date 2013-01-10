@@ -3,6 +3,7 @@ package client.gui.frame;
 import client.business.ConnectionInfo;
 import client.business.Client;
 import client.business.client.GameClient;
+import client.gui.ActionFactory;
 import client.gui.frame.chat.ChatFrame;
 import client.gui.frame.gamePanel.GamePanel;
 import common.dto.DTOCard;
@@ -23,6 +24,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Observable;
@@ -71,7 +74,15 @@ public class ClientFrame extends JFrame implements Observer {
         I18nSupport.getValue(BUNDLE_NAME,"application.title"),
         I18nSupport.getValue(BUNDLE_NAME,"version"), VERSION_NUMBER));
     setBounds(position.getRectangle());
-    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+    addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        ActionFactory.doAction(e.getSource(), ActionFactory.getDisconnectAction());
+        ClientFrame.getInstance().setVisible(false);
+        ClientFrame.getInstance().dispose();
+        System.exit(0);
+      }
+    });
   }
 
   public static ClientFrame getInstance() {
@@ -178,6 +189,10 @@ public class ClientFrame extends JFrame implements Observer {
     opponentsPanel.updateOpponents(clients);
   }
 
+  /**
+   * Initalises the opponent widgets. Clients must not be null.
+   * @param clients
+   */
   public void initialisePlayers(List<DTOClient> clients) {
     opponentsPanel.removeAll();
     for (DTOClient client : clients) {
@@ -190,6 +205,10 @@ public class ClientFrame extends JFrame implements Observer {
     gamePanel.placeInGameCards(attackerCards, defenderCards);
   }
 
+  /**
+   * Enables the game buttons depending on the players type and the surpassed boolean.
+   * @param roundFinished Surpassed boolean.
+   */
   public void enableButtons(Boolean roundFinished) {
     final Boolean take;
     final Boolean round;
@@ -215,7 +234,7 @@ public class ClientFrame extends JFrame implements Observer {
   public void updateSubComponents() {
     gamePanel.setListenerType(Client.getOwnInstance().getPlayerType());
   }
-
+  //TODO interne component updater Klasse für eine bessere Übersicht
   /* Getter and Setter */
 
   private JPanel getSecondPane() {
@@ -404,7 +423,7 @@ class ClientFrameMessageHandler {
       ClientFrame.showRuleException(ClientFrame.getInstance(), object.getSendingObject());
     } else if(MessageType.STATUS_MESSAGE.equals(object.getType())) {
       ClientFrame.getInstance().setStatus(object.getSendingObject().toString(),
-          GameClient.getClient().isConnected(), ConnectionInfo.getOwnInstance().getServerAddress()); //TODO statusbar besser zugreifbar machen
+        GameClient.getClient().isConnected(), ConnectionInfo.getOwnInstance().getServerAddress()); //TODO statusbar besser zugreifbar machen
     }
   }
 
@@ -424,27 +443,28 @@ class ClientFrameMessageHandler {
   }
 
   private void handleGameUpdateType(MessageObject object) {
+    final ClientFrame frame = ClientFrame.getInstance();
     if(GameUpdateType.INITIALISE_PLAYERS.equals(object.getType())) {
       final List<DTOClient> clients = (List<DTOClient>) object.getSendingObject();
-      final ClientFrame frame = ClientFrame.getInstance();
       frame.initialisePlayers(clients);
       frame.updateStatusBar();
     } else if(GameUpdateType.PLAYERS_UPDATE.equals(object.getType())) {
       final List<DTOClient> clients = (List<DTOClient>) object.getSendingObject();
-      final ClientFrame frame = ClientFrame.getInstance();
       frame.updateOpponents(clients);
       frame.updateStatusBar();
     } else if(GameUpdateType.STACK_UPDATE.equals(object.getType())) {
-      ClientFrame.getInstance().updateStack((DTOCardStack) object.getSendingObject());
+      frame.updateStack((DTOCardStack) object.getSendingObject());
     } else if(GameUpdateType.INGAME_CARDS.equals(object.getType())) {
       final List<List<DTOCard>> cardLists = (List<List<DTOCard>>) object.getSendingObject();
       guiInGameCardsUpdate(cardLists);
     } else if(GameUpdateType.NEXT_ROUND_AVAILABLE.equals(object.getType())) {
-      ClientFrame.getInstance().enableButtons((Boolean) object.getSendingObject());
+      frame.enableButtons((Boolean) object.getSendingObject());
     } else if(GameUpdateType.CLIENT_CARDS.equals(object.getType())) {
-      ClientFrame.getInstance().updateClientCards((List<DTOCard>) object.getSendingObject());
+      frame.updateClientCards((List<DTOCard>) object.getSendingObject());
+    } else if(GameUpdateType.GAME_ABORTED.equals(object.getType())) {
+      frame.clearGameCards();
     } else if(GameUpdateType.GAME_FINISHED.equals(object.getType())) {
-      ClientFrame.getInstance().showGameOverMessage();
+      frame.showGameOverMessage();
     }
   }
 

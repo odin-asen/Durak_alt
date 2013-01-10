@@ -8,6 +8,7 @@ package common.dto.message;
 public enum GameUpdateType {
   CLIENT_CARDS,           /* Sending object: List<DTOCard>
                              cards for the client in the current round */
+  GAME_ABORTED,           /* Sending object: nothing */
   GAME_FINISHED,          /* Sending object: nothing */
                           /* Should be send in case that a match is over */
   INGAME_CARDS,           /* Sending object: List<List<DTOCard>>;
@@ -20,6 +21,6 @@ public enum GameUpdateType {
                              true or false, if the next round can be started or not */
   PLAYERS_UPDATE,         /* Sending object: List<ClientInfo>
                              Updated list of clients that are in the game */
-  STACK_UPDATE;           /* Sending object: DTOCardStack
-                             Information about the current card stack */;
+  STACK_UPDATE,           /* Sending object: DTOCardStack
+                             Information about the current card stack */
 }

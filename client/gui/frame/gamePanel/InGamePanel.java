@@ -61,7 +61,7 @@ public class InGamePanel extends JPanel {
 
   public void clearField() {
     removeAll();
-    cardPanels.removeAll(cardPanels);
+    cardPanels.clear();
     validate();
     repaint();
   }

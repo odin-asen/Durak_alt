@@ -44,12 +44,18 @@ public class GameProcess<ID> {
   public GameProcess() {
     pairCardHolder = new ElementPairHolder<GameCard>();
     playerHolder = new ListMap<ID, Player>();
-    reInitialiseGame();
+    reInitialise();
   }
 
   /* Methods */
 
-  public void reInitialiseGame() {
+  /**
+   * Sets the game to an initialised state. All variables will be reset and all lists
+   * will be emptied.
+   */
+  public void reInitialise() {
+    pairCardHolder.clear();
+    playerHolder.clear();
     gameInProcess = false;
     initialiseNew = true;
   }
@@ -75,7 +81,7 @@ public class GameProcess<ID> {
   }
 
   /**
-   * Determines the first and second attackers and the defender.
+   * Determines the first and second attackers and the defender. //TODO Verändern sich die Spieler nicht, wird der Verlierer als erster Verteidiger eingesetzt
    */
   private void determineInitialPlayers() {
     ruleChecker.setTrumpColour(stack.getTrumpCard().getCardColour());
@@ -201,7 +207,7 @@ public class GameProcess<ID> {
     }
 
     if(result)
-      pairCardHolder.clearPairs();
+      pairCardHolder.clear();
 
     return result;
   }
@@ -288,10 +294,6 @@ public class GameProcess<ID> {
    */
   public boolean removePlayer(ID playerID) {
     return playerHolder.remove(playerID);
-  }
-
-  public List<List<DTOCard>> getPlayersCards() {
-    return Converter.playersCardsToDTO(playerHolder.getList());
   }
 
   public List<DTOCard> getPlayerCards(ID playerID) {
@@ -446,8 +448,8 @@ class ElementPairHolder<T> {
     }
   }
 
-  public void clearPairs() {
-    elementPairs = new ArrayList<List<T>>();
+  public void clear() {
+    elementPairs.clear();
   }
 
   public boolean hasNoNullPairs() {
@@ -499,5 +501,10 @@ class ListMap<K,V> {
 
   public List<V> getList() {
     return list;
+  }
+
+  public void clear() {
+    list.clear();
+    map.clear();
   }
 }

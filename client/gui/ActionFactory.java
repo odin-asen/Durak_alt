@@ -49,7 +49,7 @@ public class ActionFactory {
     action.putValue(Action.SHORT_DESCRIPTION, shortDescription);
     action.putValue(Action.SMALL_ICON, smallIcon);
   }
-}
+}     //TODO diese Klasse in WidgetCreator einbauen, sodass Client und Server sie verwenden kann
 
 class ConnectionAction extends AbstractAction {
   private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS

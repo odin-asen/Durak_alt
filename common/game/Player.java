@@ -102,6 +102,6 @@ public class Player {
   }
 
   public void emptyHand() {
-    cards.removeAll(cards);
+    cards.clear();
   }
 }

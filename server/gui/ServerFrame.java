@@ -1,7 +1,6 @@
 package server.gui;
 
 import common.dto.DTOClient;
-import common.dto.message.GUIObserverType;
 import common.dto.message.MessageObject;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
@@ -12,14 +11,13 @@ import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.gui.Constraints;
 import common.utilities.gui.FramePosition;
 import common.utilities.gui.WidgetCreator;
+import server.business.GUIObserverType;
 import server.business.GameServer;
 import server.business.GameServerException;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -45,20 +43,21 @@ public class ServerFrame extends JFrame implements Observer {
   private static final String VERSION_NUMBER = "0.1";
   private static final String ACTION_COMMAND_START = "start"; //NON-NLS
   private static final String ACTION_COMMAND_STOP = "stop"; //NON-NLS
-  private static final String ACTION_COMMAND_CLOSE = "close"; //NON-NLS
   private static final String ACTION_COMMAND_START_GAME = "gameStart"; //NON-NLS
+  private static final String ACTION_COMMAND_STOP_GAME = "gameStop"; //NON-NLS
 
   private JToolBar toolBar;
   private JScrollPane settingsPanel;
   private JFormattedTextField portField;
   private JScrollPane clientListPanel;
-  private JPanel statusPanel;
-  private JLabel statusBar;
+  private DurakStatusBar statusBar;
 
   private JList<DTOClient> clientList;
   private DefaultListModel<DTOClient> listModel;
   private JComboBox<Integer> stackSizeCombo;
   private JPanel gameSettingsPanel;
+  private JButton serverButton;
+  private JButton gameButton;
 
   /* Constructors */
   public ServerFrame() {
@@ -71,7 +70,15 @@ public class ServerFrame extends JFrame implements Observer {
     GameServer.getServerInstance().addObserver(this);
     setTitle(MessageFormat.format("{0} - {1} {2}", I18nSupport.getValue(SERVER_BUNDLE,"application.title"),
         I18nSupport.getValue(SERVER_BUNDLE,"version"), VERSION_NUMBER));
-    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+    addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        GameServer.getServerInstance().shutdownServer();
+        setVisible(false);
+        dispose();
+        System.exit(0);
+      }
+    });
   }
 
   /* Methods */
@@ -80,7 +87,7 @@ public class ServerFrame extends JFrame implements Observer {
     getContentPane().add(getToolBar(), BorderLayout.PAGE_START);
     getContentPane().add(getClientListPanel(), BorderLayout.LINE_START);
     getContentPane().add(getSettingsPanel(), BorderLayout.CENTER);
-    getContentPane().add(getStatusPanel(), BorderLayout.PAGE_END);
+    getContentPane().add(getStatusBar(), BorderLayout.PAGE_END);
   }
 
   public Integer getStackSize() {
@@ -94,15 +101,24 @@ public class ServerFrame extends JFrame implements Observer {
 
   public void refreshClientList(List<DTOClient> newClients) {
     listModel.clear();
-    for (DTOClient client : newClients)
+    int spectating = 0;
+    int playing = 0;
+    for (DTOClient client : newClients) {
+      if(client.spectating)
+        spectating++;
+      else playing++;
       listModel.add(listModel.size(), client);
+    }
+    statusBar.setPlayerCount(playing,spectating);
   }
 
   private void handleUpdate(MessageObject object) {
-    if (GUIObserverType.REFRESH_CLIENT_LIST.equals(object.getType())) {
+    if (GUIObserverType.CLIENT_LIST.equals(object.getType())) {
       refreshClientList(GameServer.getServerInstance().getClients());
     } else if (GUIObserverType.REMOVE_CLIENTS.equals(object.getType())) {
       listModel.clear();
+    } else if(GUIObserverType.GAME_FINISHED.equals(object.getType())) {
+      gameButton.setAction(new GameStartStop(true));
     }
   }
 
@@ -124,21 +140,17 @@ public class ServerFrame extends JFrame implements Observer {
   }
 
   /* Getter and Setter */
-  private JPanel getStatusPanel() {
-    if(statusPanel != null)
-      return statusPanel;
 
-    statusPanel = new JPanel();
-    statusBar = new JLabel();
+  private JPanel getStatusBar() {
+    if(statusBar != null)
+      return statusBar;
+
+    statusBar = new DurakStatusBar();
 
     statusBar.setText(I18nSupport.getValue(MSGS_BUNDLE, "status.server.inactive"));
-    statusPanel.setPreferredSize(new Dimension(0, 16));
+    statusBar.setPreferredSize(new Dimension(0, 16));
 
-    statusPanel.setLayout(new BorderLayout());
-    statusPanel.add(Box.createRigidArea(new Dimension(5, 0)), BorderLayout.LINE_START);
-    statusPanel.add(statusBar, BorderLayout.CENTER);
-
-    return statusPanel;
+    return statusBar;
   }
 
   private JToolBar getToolBar() {
@@ -146,27 +158,16 @@ public class ServerFrame extends JFrame implements Observer {
       return toolBar;
 
     toolBar = new JToolBar();
-    final ToolBarComponentAL listener = new ToolBarComponentAL();
-    JButton startStopButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_PLAY,
-        I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.start.server"), ACTION_COMMAND_START,
-        listener, KeyEvent.VK_G);
-    JButton gameStartButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_GAME_START,
-        I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.start.game"), ACTION_COMMAND_START_GAME,
-        listener, KeyEvent.VK_S);
-    JButton closeButton = WidgetCreator.makeToolBarButton(ResourceList.IMAGE_TOOLBAR_CLOSE,
-        I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.close"), ACTION_COMMAND_CLOSE,
-        listener, KeyEvent.VK_Q);
+    serverButton = new JButton(new ServerStartStop(true));
+    gameButton = new JButton(new GameStartStop(true));
 
     toolBar.setMargin(new Insets(5, 5, 5, 5));
     toolBar.setRollover(true);
     toolBar.setFloatable(false);
 
-    toolBar.add(startStopButton);
+    toolBar.add(serverButton);
     toolBar.addSeparator();
-    toolBar.add(gameStartButton);
-    toolBar.add(Box.createHorizontalGlue());
-    toolBar.addSeparator();
-    toolBar.add(closeButton);
+    toolBar.add(gameButton);
 
     return toolBar;
   }
@@ -247,43 +248,34 @@ public class ServerFrame extends JFrame implements Observer {
   }
 
   /* Inner Classes */
-  private class ToolBarComponentAL implements ActionListener {
-    public void actionPerformed(ActionEvent e) {
-      if (ACTION_COMMAND_CLOSE.equals(e.getActionCommand())) {
-        closeFrame(e);
-      } else if (ACTION_COMMAND_START.equals(e.getActionCommand())) {
-        startGameServer();
-        WidgetCreator.changeButton((JButton) e.getSource(),
-            ResourceList.IMAGE_TOOLBAR_STOP_PLAYER, "", ACTION_COMMAND_STOP,
-            I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.stop.server"));
-      } else if (ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
-        stopGameServer();
-        WidgetCreator.changeButton((JButton) e.getSource(), ResourceList.IMAGE_TOOLBAR_PLAY,
-            "", ACTION_COMMAND_START,
-            I18nSupport.getValue(SERVER_BUNDLE,"button.tooltip.start.server"));
-      } else if (ACTION_COMMAND_START_GAME.equals(e.getActionCommand())) {
-        startGame();
+
+  private class ServerStartStop extends AbstractAction {
+    private ServerStartStop(boolean start) {
+      setAction(start);
+    }
+
+    private void setAction(boolean start) {
+      if(start) {
+        WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_S, ACTION_COMMAND_START,
+            "", I18nSupport.getValue(SERVER_BUNDLE, "button.tooltip.start.server"),
+            ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_PLAY));
+      } else {
+        WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_S, ACTION_COMMAND_STOP,
+            "", I18nSupport.getValue(SERVER_BUNDLE, "button.tooltip.stop.server"),
+            ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_STOP_PLAYER));
       }
     }
 
-    private void startGame() {
-      GameServer.getServerInstance().startGame(getStackSize());
-    }
-
-    private void stopGameServer() {
-      closeServer();
-      setStatusBarText(I18nSupport.getValue(MSGS_BUNDLE, "status.server.inactive"));
-    }
-
-    private void closeServer() {
-      GameServer.getServerInstance().shutdownServer();
-    }
-
-    private void closeFrame(ActionEvent e) {
-      closeServer();
-      setVisible(false);
-      dispose();
-      System.exit(0);
+    public void actionPerformed(ActionEvent e) {
+      if (ACTION_COMMAND_START.equals(e.getActionCommand())) {
+        startGameServer();
+        setAction(false);
+      } else if (ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
+        GameServer.getServerInstance().shutdownServer();
+        setStatusBarText(I18nSupport.getValue(MSGS_BUNDLE, "status.server.inactive"));
+        gameButton.setAction(new GameStartStop(true));
+        setAction(true);
+      }
     }
 
     private void startGameServer() {
@@ -300,6 +292,34 @@ public class ServerFrame extends JFrame implements Observer {
         setStatusBarText(I18nSupport.getValue(MSGS_BUNDLE, "status.server.running"));
       } catch (GameServerException e) {
         setStatusBarText(e.getMessage());
+      }
+    }
+  }
+
+  private class GameStartStop extends AbstractAction {
+    private GameStartStop(boolean start) {
+      setAction(start);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+      if (ACTION_COMMAND_START_GAME.equals(e.getActionCommand())) {
+        if(GameServer.getServerInstance().startGame(getStackSize()))
+          setAction(false);
+      } else if(ACTION_COMMAND_STOP_GAME.equals(e.getActionCommand())) {
+        GameServer.getServerInstance().stopGame(true);
+        setAction(true);
+      }
+    }
+
+    private void setAction(boolean start) {
+      if(start) {
+        WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_G, ACTION_COMMAND_START_GAME,
+            "", I18nSupport.getValue(SERVER_BUNDLE, "button.tooltip.start.game"),
+            ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_GAME_START));
+      } else {
+        WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_G, ACTION_COMMAND_STOP_GAME,
+            "", I18nSupport.getValue(SERVER_BUNDLE, "button.tooltip.stop.game"),
+            ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_GAME_STOP));
       }
     }
   }

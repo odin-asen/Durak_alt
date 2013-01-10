@@ -133,7 +133,7 @@ public class ResourceGetter {
     else if (PlayerConstants.PlayerType.NOT_LOSER.equals(type))
       statusIcon = getImage(IMAGE_CROWN);
     else if (PlayerConstants.PlayerType.LOSER.equals(type))
-      statusIcon = getImage(IMAGE_RED_CROSS);
+      statusIcon = getImage(IMAGE_IVAN_DURAK);
     else statusIcon = null;
 
     if(statusIcon != null) {
