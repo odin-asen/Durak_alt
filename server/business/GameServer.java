@@ -39,7 +39,7 @@ public class GameServer extends Observable {
   private Boolean running;
 
   private DurakServices durakServices;
-  private GameUpdater gameUpdater;
+  private GameUpdate gameUpdate;
   private Registry registry;
 
   /* Constructors */
@@ -61,7 +61,7 @@ public class GameServer extends Observable {
 
   private GameServer() {
     port = GameConfigurationConstants.DEFAULT_PORT;
-    this.gameUpdater = new GameUpdater();
+    this.gameUpdate = new GameUpdate();
     running = false;
   }
 
@@ -103,7 +103,7 @@ public class GameServer extends Observable {
     if(isServerRunning()) {
       broadcastMessage(BroadcastType.SERVER_SHUTDOWN);
       setChangedAndNotify(GUIObserverType.REMOVE_CLIENTS);
-      gameUpdater.stopSession();
+      gameUpdate.stopSession();
       registry.unbind(GameConfigurationConstants.REGISTRY_NAME_SERVER);
       registry.stop();
       running = false;
@@ -112,7 +112,7 @@ public class GameServer extends Observable {
   }
 
   public boolean startGame(Integer stackSize) {
-    if(gameUpdater.invokeGame(stackSize)) {
+    if(gameUpdate.invokeGame(stackSize)) {
       LOGGER.info(LoggingUtility.STARS+" Game started "+LoggingUtility.STARS);
       return true;
     } else LOGGER.info("Not enough player for a game");
@@ -125,7 +125,7 @@ public class GameServer extends Observable {
    * @param aborted If true, every client will be notified that it was aborted, else just finished.
    */
   public void stopGame(boolean aborted) {
-    gameUpdater.stopGame(false);
+    gameUpdate.stopGame(false);
     if(aborted)
       broadcastMessage(GameUpdateType.GAME_ABORTED);
     else broadcastMessage(GameUpdateType.GAME_FINISHED);
@@ -159,7 +159,7 @@ public class GameServer extends Observable {
    * @param sendingObject Sending object to send.
    */
   public void broadcastMessage(Enum<?> type, Object sendingObject) {
-    List<Callbackable> callbackables = gameUpdater.getRemoteReferrences();
+    List<Callbackable> callbackables = gameUpdate.getRemoteReferrences();
     broadcastMessage(type, callbackables, sendingObject);
   }
 
@@ -186,7 +186,7 @@ public class GameServer extends Observable {
 
   /* sends to each client a list with all the other logged in clients */
   void broadcastOtherClients(Enum<?> type) {
-    broadcastOtherClients(type, gameUpdater.getRemoteReferrences());
+    broadcastOtherClients(type, gameUpdate.getRemoteReferrences());
   }
 
   void broadcastOtherClients(Enum<?> type, Collection<Callbackable> callbackables) {
@@ -195,10 +195,10 @@ public class GameServer extends Observable {
     DTOClient currentClient;
 
     /* iterate the clients so that the original sequence is not changed */
-    Miscellaneous.addAllToCollection(clients, gameUpdater.getClients(callbackables));
+    Miscellaneous.addAllToCollection(clients, gameUpdate.getClients(callbackables));
     Miscellaneous.addAllToCollection(callbackableList, callbackables);
     for (Callbackable callbackable : callbackableList) {
-      currentClient = gameUpdater.getClient(callbackable);
+      currentClient = gameUpdate.getClient(callbackable);
       final int index = Miscellaneous.findIndex(clients,currentClient,
           Miscellaneous.CLIENT_COMPARATOR);
       /* remove the client, send the rest of the list to all clients and add the current
@@ -242,7 +242,7 @@ public class GameServer extends Observable {
    * @return Returns true if client was added, else false.
    */
   boolean addClient(Callbackable callbackable, DTOClient client) {
-    if(gameUpdater.addClient(callbackable, client))
+    if(gameUpdate.addClient(callbackable, client))
       notifyClientLists(callbackable);
     else return false;
 
@@ -257,7 +257,7 @@ public class GameServer extends Observable {
    */
   boolean removeClient(Callbackable callbackable) {
     final DTOClient client = getClient(callbackable);
-    if(gameUpdater.removeClient(callbackable)) {
+    if(gameUpdate.removeClient(callbackable)) {
       stopGame(true);
       notifyClientLists(null);
     } else return false;
@@ -275,7 +275,7 @@ public class GameServer extends Observable {
   private void notifyClientLists(Callbackable callbackable) {
     setChangedAndNotify(GUIObserverType.CLIENT_LIST);
     if(callbackable != null) {
-      DTOClient client = gameUpdater.getClient(callbackable);
+      DTOClient client = gameUpdate.getClient(callbackable);
       sendMessage(callbackable, new MessageObject(MessageType.OWN_CLIENT_INFO,
           client));
     }
@@ -289,20 +289,25 @@ public class GameServer extends Observable {
    * @throws RuleException Will be thrown if the client broke a game rule.
    */
   void validateAction(Callbackable callbackable, GameAction action) throws RuleException {
-    boolean nextRound = gameUpdater.getProcess().validateAction(
-        action, gameUpdater.getPlayerID(callbackable));
-    gameUpdater.updateMove(nextRound);
+    boolean nextRound = gameUpdate.getProcess().validateAction(
+        action, gameUpdate.getPlayerID(callbackable));
+    gameUpdate.updateMove(nextRound);
   }
 
+  /**
+   * Updates the client and and all the lists if necessary.
+   * @param callbackable Client remote reference
+   * @param client Client information object.
+   */
   public void updateClient(Callbackable callbackable, DTOClient client) {
-    final DTOClient oldClient = gameUpdater.updateClientInformation(callbackable, client);
-    LOGGER.info("Updated client from "+oldClient+" to "+client);
+    final DTOClient oldClient = gameUpdate.updateClientInformation(callbackable, client);
     notifyClientLists(null);
+    LOGGER.info("Updated client from "+oldClient+" to "+client);
   }
 
   public boolean clientNameExists(String name) {
     boolean exists = false;
-    for (DTOClient client : gameUpdater.getClients()) {
+    for (DTOClient client : gameUpdate.getClients()) {
       exists = exists || client.name.equals(name);
     }
     return exists;
@@ -324,11 +329,11 @@ public class GameServer extends Observable {
   }
 
   public List<DTOClient> getClients() {
-    return gameUpdater.getClients();
+    return gameUpdate.getClients();
   }
 
   public DTOClient getClient(Callbackable callbackable) {
-    return gameUpdater.getClient(callbackable);
+    return gameUpdate.getClient(callbackable);
   }
 }
 
@@ -406,13 +411,13 @@ class DurakServices implements ServerInterface {
   }
 }
 
-class GameUpdater {
-  private Logger LOGGER = LoggingUtility.getLogger(GameUpdater.class.getName());
+class GameUpdate {
+  private Logger LOGGER = LoggingUtility.getLogger(GameUpdate.class.getName());
   private GameProcess<Integer> process;
   private GameServer server = null;
   private InGameSpectatorHolder<Callbackable,DTOClient> clientHolder;
 
-  public GameUpdater() {
+  public GameUpdate() {
     this.clientHolder = new InGameSpectatorHolder<Callbackable, DTOClient>();
     this.process = new GameProcess<Integer>();
   }
@@ -528,14 +533,15 @@ class GameUpdater {
 
   /**
    * Changes the client information depending on the remote reference and returns the old
-   * information.
+   * information. The lists will also be updated if necessary.
    * @param callbackable Remote reference of the client.
    * @param client The new client information.
    * @return Returns the old information.
    */
   public DTOClient updateClientInformation(Callbackable callbackable, DTOClient client) {
     DTOClient oldClient = clientHolder.getValue(callbackable);
-    oldClient.setClientInfo(client);
+    removeClient(callbackable);
+    addClient(callbackable, client);
     return oldClient;
   }
 
