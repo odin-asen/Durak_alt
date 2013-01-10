@@ -11,7 +11,6 @@ import common.resources.ResourceGetter;
 import common.resources.ResourceList;
 import common.utilities.LoggingUtility;
 import common.utilities.gui.WidgetCreator;
-import de.root1.simon.Simon;
 
 import javax.swing.*;
 import java.awt.*;
@@ -189,15 +188,8 @@ class ConnectionAction extends AbstractAction {
     if(e.getActionCommand().equals(AC_CONNECT)) {
       connectClient();
     } else if(e.getActionCommand().equals(AC_DISCONNECT)) {
-      disconnectClient();
+      mainFrame.resetAll(I18nSupport.getValue(MSGS_BUNDLE, "status.has.been.disconnected"), false);
     }
-  }
-
-  private void disconnectClient() {
-    GameClient.getClient().disconnect(false);
-    mainFrame.setStatus(I18nSupport.getValue(MSGS_BUNDLE, "status.has.been.disconnected"),
-        false, "");
-    mainFrame.clearClients();
   }
 
   private void connectClient() {

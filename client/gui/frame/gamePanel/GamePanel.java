@@ -47,6 +47,8 @@ public class GamePanel extends JPanel {
   /**
    * Places every card of {@code attackerCards} to the panel and lays every card of
    * {@code defenderCards} with the same index a little shifted over the attacker card.
+   * If {@code attackCards} is null the field will be cleared, independent of the second
+   * parameter.
    * @param attackerCards Cards of the attacker.
    * @param defenderCards Cards of the defender.
    */
@@ -56,9 +58,15 @@ public class GamePanel extends JPanel {
     repaint();
   }
 
+  /**
+   * Places the client cards. If the parameter is null, the client card area will be emptied.
+   * @param cards Client cards to place.
+   */
   public void placeClientCards(List<DTOCard> cards) {
     clearClientCards();
-    setClientCards(computeClientCardArea(), cards);
+    if(cards != null) {
+      setClientCards(computeClientCardArea(), cards);
+    }
     validate();
     repaint();
   }
@@ -66,7 +74,6 @@ public class GamePanel extends JPanel {
   private void setClientCards(Rectangle region, List<DTOCard> cards) {
     final Rectangle rect = getFirstCardBounds(region, GameCardWidget.WIDTH_TO_HEIGHT);
     final double distance = computeRelativeCardToCardDistanceX(rect, cards.size());
-
 
     for (int index = 0; index < cards.size(); index++) {
       final GameCardWidget widget = new GameCardWidget(cards.get(index));

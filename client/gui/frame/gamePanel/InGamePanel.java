@@ -30,7 +30,8 @@ public class InGamePanel extends JPanel {
   /**
    * Places every card of {@code attackCards} to the panel and lays every card of
    * {@code defenderCards} with the same index a little shifted over the attacker card.
-   *
+   * If {@code attackCards} is null the field will be cleared, independent of the second
+   * parameter.
    * @param attackCards   Cards of the attacker.
    * @param defenderCards Cards of the defender.
    */
