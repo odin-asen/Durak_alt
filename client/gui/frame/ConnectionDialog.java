@@ -2,7 +2,7 @@ package client.gui.frame;
 
 import client.business.ConnectionInfo;
 import client.business.Client;
-import client.gui.ActionFactory;
+import client.business.client.GameClient;
 import common.i18n.I18nSupport;
 import common.utilities.LoggingUtility;
 import common.utilities.gui.FramePosition;
@@ -48,7 +48,6 @@ public class ConnectionDialog extends JDialog {
   private JCheckBox spectatorCheckBox;
   private JLabel spectatorLabel;
   private JPanel buttonPanel;
-  private ButtonListener buttonListener;
 
   private boolean editable;
 
@@ -58,9 +57,6 @@ public class ConnectionDialog extends JDialog {
     this.editable = editable;
 
     /* initialise gui stuff */
-    buttonListener = new ButtonListener();
-
-    /* initialise fields */
     getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
     getContentPane().add(getServerInfoPanel());
     getContentPane().add(Box.createGlue());
@@ -246,33 +242,62 @@ public class ConnectionDialog extends JDialog {
 
     buttonPanel.setLayout(new FlowLayout(FlowLayout.TRAILING));
     if(editable) {
-      /* It seems that the action listener that will be added last, will be executed first.
-       * Therefore the fill-methods listener will be added last. */
-      JButton connectButton = new JButton(ActionFactory.getConnectAction());
-      connectButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          fillClientInfo();
-          fillConnectionInfo();
-        }
-      });
-      buttonPanel.add(connectButton);
+      buttonPanel.add(createConnectionButton());
       buttonPanel.add(WidgetCreator.makeButton(null,
           I18nSupport.getValue(CLIENT_BUNDLE, "button.text.close.save"),
-          I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.close.save"),
-          ACTION_COMMAND_CLOSE_SAVE, buttonListener));
+          I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.close.save"), null,
+          new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+              saveAndClose();
+            }
+          }));
       buttonPanel.add(WidgetCreator.makeButton(null,
           I18nSupport.getValue(CLIENT_BUNDLE, "button.text.cancel"),
-          I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.cancel"),
-          ACTION_COMMAND_CANCEL, buttonListener));
+          I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.cancel"), null,
+          new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+              resetFields();
+              setVisible(false);
+              dispose();
+            }
+          }));
     } else {
       buttonPanel.add(WidgetCreator.makeButton(null,
-          I18nSupport.getValue(CLIENT_BUNDLE, "button.text.close"), null,
-          ACTION_COMMAND_CLOSE, buttonListener));
+          I18nSupport.getValue(CLIENT_BUNDLE, "button.text.close"), null, null,
+          new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+              setVisible(false);
+              dispose();
+            }
+          }));
     }
 
     buttonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, buttonPanel.getPreferredSize().height));
 
     return buttonPanel;
+  }
+
+  private JButton createConnectionButton() {
+    final JButton button = new JButton();
+    /* It seems that the action listener that will be added last, will be executed first.
+       * Therefore the fill-methods listener will be added last. */
+    button.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        if(GameClient.getClient().isConnected()) {
+          setVisible(false);
+          dispose();
+        }
+      }
+    });
+    button.setAction(new ConnectionAction(true));
+    button.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        fillClientInfo();
+        fillConnectionInfo();
+      }
+    });
+
+    return button;
   }
 
   private void saveAndClose() {
@@ -306,19 +331,6 @@ public class ConnectionDialog extends JDialog {
   }
 
   /* Inner Classes */
-
-  private class ButtonListener implements ActionListener {
-    public void actionPerformed(ActionEvent e) {
-      if(e.getActionCommand().equals(ACTION_COMMAND_CANCEL) ||
-         e.getActionCommand().equals(ACTION_COMMAND_CLOSE)) {
-        resetFields();
-        setVisible(false);
-        dispose();
-      } else if(e.getActionCommand().equals(ACTION_COMMAND_CLOSE_SAVE)) {
-        saveAndClose();
-      }
-    }
-  }
 }
 
 class IPComboBoxListener implements ActionListener {

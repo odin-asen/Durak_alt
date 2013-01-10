@@ -105,6 +105,33 @@ public class GameClient extends Observable {
     return connected;
   }
 
+  /**
+   * Disconnects the client if necessary and connetcs it to a given connection.
+   * The connection parameter will also be set in the client.
+   * @param serverAddress Server's address to connect to.
+   * @param serverPort Server's port to connect to.
+   * @param dtoClient Specifies the client representation that will be logged in at the server.
+   * @param password Specifies the password that a server might need.
+   * @return Returns a boolean value that shows if the client is connected or not.
+   * @throws GameClientException Thrown when a connection could not be established. A user
+   * message will be delivered with the Exception.
+   */
+  public boolean reconnect(String serverAddress, Integer serverPort,
+                           DTOClient dtoClient, String password) throws GameClientException {
+    if(connected) {
+      disconnect(false);
+      try { /* Wait for SIMON after a disconnection before it will be connected. */
+        Thread.sleep(1000L);
+      } catch (InterruptedException e) {
+        LOGGER.warning("Thread sleep failed: "+e.getMessage());
+      }
+    }
+    /* setup a new connection */
+    setConnection(serverAddress, serverPort);
+    connect(dtoClient, password);
+    return connected;
+  }
+
   public void disconnect(boolean shutdown) {
     if (connected && !shutdown) {
       server.logoff(messageReceiver);

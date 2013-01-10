@@ -3,7 +3,6 @@ package client.gui.frame;
 import client.business.ConnectionInfo;
 import client.business.Client;
 import client.business.client.GameClient;
-import client.gui.ActionFactory;
 import client.gui.frame.chat.ChatFrame;
 import client.gui.frame.gamePanel.GamePanel;
 import common.dto.DTOCard;
@@ -77,7 +76,7 @@ public class ClientFrame extends JFrame implements Observer {
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-        ActionFactory.doAction(e.getSource(), ActionFactory.getDisconnectAction());
+        WidgetCreator.doAction(e.getSource(), new ConnectionAction(false));
         ClientFrame.getInstance().setVisible(false);
         ClientFrame.getInstance().dispose();
         System.exit(0);
