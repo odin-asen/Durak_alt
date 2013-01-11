@@ -124,10 +124,10 @@ public class GameServer extends Observable {
    * finished.
    * @param aborted If true, every client will be notified that it was aborted, else just finished.
    */
-  public void stopGame(boolean aborted) {
+  public void stopGame(boolean aborted, String reason) {
     gameUpdate.stopGame(false);
     if(aborted)
-      broadcastMessage(GameUpdateType.GAME_ABORTED);
+      broadcastMessage(GameUpdateType.GAME_ABORTED, reason);
     else broadcastMessage(GameUpdateType.GAME_FINISHED);
     setChangedAndNotify(GUIObserverType.GAME_FINISHED);
     LOGGER.info(LoggingUtility.STARS+" Game stopped "+LoggingUtility.STARS);
@@ -258,7 +258,10 @@ public class GameServer extends Observable {
   boolean removeClient(Callbackable callbackable) {
     final DTOClient client = getClient(callbackable);
     if(gameUpdate.removeClient(callbackable)) {
-      stopGame(true);
+      if(!client.spectating) {
+        stopGame(true, I18nSupport.getValue(MSGS_BUNDLE, "game.abort.player.0.logged.off",
+            client.name));
+      }
       notifyClientLists(null);
     } else return false;
 
@@ -471,19 +474,15 @@ class GameUpdate {
    * Stops the game process. All settings will be reset. Depending on the parameter all
    * already registered players will be either delted from the list or not. (This means the
    * process will be totally reset to the initial state.
-   * @param deletePlayers
+   * @param deletePlayers If true, players will be deleted.
    */
   public void stopGame(boolean deletePlayers) {
-    if(deletePlayers) {
-      /* stop the game with deleting the players */
-      process.reInitialise();
-    } else {
-      /* stop the game without deleting the players */
-      if(process.isGameInProcess()) {
-        process.reInitialise();
-        for (DTOClient client : clientHolder.getInGameValues()) {
-          process.setPlayer(getPlayerID(client));
-        }
+    /* stop the game with deleting the players */
+    process.reInitialise();
+    if(!deletePlayers) {
+      /* add the deleted players back to the list */
+      for (DTOClient client : clientHolder.getInGameValues()) {
+        process.setPlayer(getPlayerID(client));
       }
     }
   }
@@ -522,11 +521,8 @@ class GameUpdate {
     boolean removed = false;
     /* Client's player reference has also to be removed and if it was a player */
     /* In every case delete afterwards the client remote reference */
-    if (process.removePlayer(getPlayerID(callbackable))) {
-      removed = clientHolder.removeKey(callbackable);
-      if(process.isGameInProcess())
-        stopGame(false);
-    } else removed = clientHolder.removeKey(callbackable);
+    process.removePlayer(getPlayerID(callbackable));
+    removed = clientHolder.removeKey(callbackable);
 
     return removed;
   }
@@ -579,7 +575,7 @@ class GameUpdate {
     server.broadcastMessage(GameUpdateType.NEXT_ROUND_AVAILABLE, process.nextRoundAvailable());
 
     if(process.gameHasFinished()) {   //TODO ausprobieren, ob dieser Block an den Anfang kann oder nicth
-      server.stopGame(false);
+      server.stopGame(false, "");
     }
   }
 

@@ -11,6 +11,7 @@ import java.util.logging.*;
  */
 public class LoggingUtility {
   public static final String STARS = "********************";
+  public static final String SHORT_STARS = "*****";
   private static final String DEFAULT_NAME = "defaultLog.txt"; //NON-NLS
   private static Handler handler = null;
   private static boolean logFileChangable = true;

@@ -3,6 +3,7 @@ package client.gui.frame;
 import client.business.ConnectionInfo;
 import client.business.Client;
 import client.business.client.GameClient;
+import client.gui.ActionCollection;
 import client.gui.frame.chat.ChatFrame;
 import client.gui.frame.gamePanel.GamePanel;
 import common.dto.DTOCard;
@@ -81,7 +82,7 @@ public class ClientFrame extends JFrame implements Observer {
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-        WidgetCreator.doAction(e.getSource(), new ConnectionAction(false));
+        WidgetCreator.doAction(e.getSource(), ActionCollection.DISCONNECT);
         ClientFrame.getInstance().setVisible(false);
         ClientFrame.getInstance().dispose();
         System.exit(0);
@@ -100,6 +101,30 @@ public class ClientFrame extends JFrame implements Observer {
 
   /* Methods */
 
+  /**
+   * If logEntry is false the message will not be formatted to a log entry and unchanged
+   * delegated to the chat frame. If the chat frame is invisible a popup window with the message
+   * and a button that opens the chat frame appears.
+   */
+  public void addChatMessage(String message, boolean logEntry) {
+    final ChatFrame frame = ChatFrame.getFrame();
+    if(logEntry) {
+      message = LoggingUtility.SHORT_STARS+" "+message+" "+LoggingUtility.SHORT_STARS;
+    } else {
+      if(!frame.isVisible()) {
+        /* Make a popup that shows a message and has a button to open the chat */
+        final Action openChatAction =
+            WidgetCreator.createActionCopy(ActionCollection.OPEN_CHAT_DIALOG);
+        openChatAction.putValue(Action.NAME,
+            I18nSupport.getValue(CLIENT_BUNDLE, "action.name.open.chat"));
+        final DurakPopup popup = WidgetCreator.createPopup(USER_MESSAGE_INFO_COLOUR, message,
+            openChatAction, true, getBounds(), DurakPopup.LOCATION_DOWN_LEFT, 5.0);
+        popup.setVisible(true);
+      }
+    }
+    frame.addMessage(message);
+  }
+
   public void showGameOverMessage() {
     final PlayerType type = Client.getOwnInstance().getPlayerType();
     new Thread(new Runnable() {
@@ -109,10 +134,12 @@ public class ClientFrame extends JFrame implements Observer {
     }).start();
   }
 
-  public static void showRuleException(Component parent, Object ruleException) {
-    final Rectangle bounds = frameInstance.getBounds();
+  public void showRuleException(Object ruleException) {
+    final Rectangle bounds = new Rectangle(getX(),
+        getY()+getHeight()-getContentPane().getHeight(), getWidth(), getHeight());
     final DurakPopup rulePopup = WidgetCreator.createPopup(
-        ClientGUIConstants.GAME_TABLE_COLOUR, ruleException.toString(), bounds, 3);
+        ClientGUIConstants.GAME_TABLE_COLOUR, ruleException.toString(), bounds,
+        DurakPopup.LOCATION_DOWN_RIGHT, 3);
     rulePopup.setVisible(true);
   }
 
@@ -159,10 +186,21 @@ public class ClientFrame extends JFrame implements Observer {
    *                 server serverShutdown or not.
    */
   public void resetAll(String statusText, boolean serverShutdown) {
+    resetAll(statusText, serverShutdown, true, false);
+  }
+
+  public void resetAll(String statusText, boolean serverShutdown,
+                        boolean disconnect, boolean popupMessage) {
     update.resetGameWidgets();
-    updateClientList(null);
-    setStatus(statusText, false, "");
-    GameClient.getClient().disconnect(serverShutdown);
+    addChatMessage(statusText, true);
+    if(disconnect) {
+      updateClientList(null);
+      GameClient.getClient().disconnect(serverShutdown);
+      setStatus(statusText, false, "");
+    } else setStatus(statusText, true, GameClient.getClient().getSocketAddress());
+    if(popupMessage)
+      WidgetCreator.createPopup(USER_MESSAGE_WARNING_COLOUR, statusText, getBounds(),
+          DurakPopup.LOCATION_UP_LEFT, 3).setVisible(true);
   }
 
   /***********************/
@@ -362,7 +400,7 @@ public class ClientFrame extends JFrame implements Observer {
         Client.getOwnInstance().setClientInfo((DTOClient) object.getSendingObject());
         update.updateSubComponents();
       } else if(MessageType.RULE_MESSAGE.equals(object.getType())) {
-        ClientFrame.showRuleException(ClientFrame.getInstance(), object.getSendingObject());
+        ClientFrame.getInstance().showRuleException(object.getSendingObject());
       } else if(MessageType.STATUS_MESSAGE.equals(object.getType())) {
         ClientFrame.getInstance().setStatus(object.getSendingObject().toString(),
             GameClient.getClient().isConnected(),
@@ -372,7 +410,7 @@ public class ClientFrame extends JFrame implements Observer {
 
     private void handleBroadcastType(MessageObject object) {
       if(BroadcastType.CHAT_MESSAGE.equals(object.getType())) {
-        ChatFrame.getFrame().addMessage(buildChatAnswer(object));
+        addChatMessage(buildChatAnswer(object), false);
       } else if(BroadcastType.LOGIN_LIST.equals(object.getType())) {
         updateClientList((List<DTOClient>) object.getSendingObject());
       } else if(BroadcastType.SERVER_SHUTDOWN.equals(object.getType())) {
@@ -400,9 +438,16 @@ public class ClientFrame extends JFrame implements Observer {
       } else if(GameUpdateType.CLIENT_CARDS.equals(object.getType())) {
         update.updateGamePanel(null,null,(List<DTOCard>) object.getSendingObject());
       } else if(GameUpdateType.GAME_ABORTED.equals(object.getType())) {
-        update.resetGameWidgets();
+        final String message = I18nSupport.getValue(MSGS_BUNDLE, "game.aborted.0",
+            object.getSendingObject());
+        resetAll(message, false, false, true);
+        LOGGER.info(LoggingUtility.STARS+" Game finished "+LoggingUtility.STARS);
       } else if(GameUpdateType.GAME_FINISHED.equals(object.getType())) {
         showGameOverMessage();
+        final String message = I18nSupport.getValue(MSGS_BUNDLE, "game.finished");
+        addChatMessage(message, true);
+        setStatus(message, true, GameClient.getClient().getSocketAddress());
+        LOGGER.info(LoggingUtility.STARS+" Game finished "+LoggingUtility.STARS);
       }
     }
 

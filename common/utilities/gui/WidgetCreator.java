@@ -115,15 +115,49 @@ public class WidgetCreator {
     return BorderFactory.createCompoundBorder(line, compound);
   }
 
+  /**
+   * Creates a popup window with the specified background colour, the message text and
+   * the time it is open. The popup pops out at a specified location depending on the top frame
+   * bounds.
+   * @param backgroundColour Specifies the background colour of the window.
+   * @param text Text that will be shown.
+   * @param topFrameBounds Frame that indicates the popup area.
+   * @param popupLocation Location within the frame bounds to pop up. One of the DurakPopup constants.
+   * @param openSeconds Time the popup will be opaque until it disappears.
+   * @return
+   */
   public static DurakPopup createPopup(Color backgroundColour, String text,
-                                       Rectangle topFrameBounds, double openSeconds) {
-    final DurakPopup popup = new DurakPopup(backgroundColour);
-    popup.setText(text);
-    popup.setSize(popup.getPrefferedSize());
-    popup.setLocation(topFrameBounds.x + topFrameBounds.width - popup.getWidth() - 20,
-        topFrameBounds.y + topFrameBounds.height - popup.getHeight() - 20);
+                                       Rectangle topFrameBounds, int popupLocation,
+                                       double openSeconds) {
+    final DurakPopup popup = new DurakPopup(backgroundColour, new JLabel(text),
+        topFrameBounds, popupLocation);
     popup.setOpenSeconds(openSeconds);
+    return popup;
+  }
 
+  public static DurakPopup createPopup(Color backgroundColour, String text, Action buttonAction,
+                                       boolean closeAfterAction, Rectangle topFrameBounds,
+                                       int popupLocation, double openSeconds) {
+    final JPanel panel = new JPanel();
+    final JLabel label = new JLabel(text);
+    final JButton button = new JButton();
+
+    button.setAction(buttonAction);
+    label.setBackground(backgroundColour);
+    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+    panel.add(label);
+    panel.add(button);
+
+    final DurakPopup popup = new DurakPopup(backgroundColour, panel, topFrameBounds, popupLocation);
+    popup.setOpenSeconds(openSeconds);
+    if(closeAfterAction) {
+      button.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          popup.setVisible(false);
+          popup.dispose();
+        }
+      });
+    }
     return popup;
   }
 
@@ -134,7 +168,8 @@ public class WidgetCreator {
   }
 
   public static void initialiseAction(Action action, KeyStroke accelerator,
-                                      String longDescription, Integer mnemonicVirtualKey, String actionCommand, String text,
+                                      String longDescription, Integer mnemonicVirtualKey,
+                                      String actionCommand, String text,
                                       String shortDescription, Icon smallIcon) {
     action.putValue(Action.ACCELERATOR_KEY, accelerator);
     action.putValue(Action.LONG_DESCRIPTION, longDescription);
@@ -143,5 +178,21 @@ public class WidgetCreator {
     action.putValue(Action.NAME, text);
     action.putValue(Action.SHORT_DESCRIPTION, shortDescription);
     action.putValue(Action.SMALL_ICON, smallIcon);
+  }
+
+  public static Action createActionCopy(final Action action) {
+    Action copy = new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        WidgetCreator.doAction(e.getSource(), action);
+      }
+    };
+    copy.putValue(Action.ACCELERATOR_KEY, action.getValue(Action.ACCELERATOR_KEY));
+    copy.putValue(Action.LONG_DESCRIPTION, action.getValue(Action.LONG_DESCRIPTION));
+    copy.putValue(Action.MNEMONIC_KEY, action.getValue(Action.MNEMONIC_KEY));
+    copy.putValue(Action.ACTION_COMMAND_KEY, action.getValue(Action.ACTION_COMMAND_KEY));
+    copy.putValue(Action.NAME, action.getValue(Action.NAME));
+    copy.putValue(Action.SHORT_DESCRIPTION, action.getValue(Action.SHORT_DESCRIPTION));
+    copy.putValue(Action.SMALL_ICON, action.getValue(Action.SMALL_ICON));
+    return copy;
   }
 }

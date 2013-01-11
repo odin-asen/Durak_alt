@@ -2,7 +2,10 @@ package client.business.client;
 
 import common.dto.DTOCard;
 import common.dto.DTOClient;
+import common.dto.message.BroadcastType;
+import common.dto.message.GameUpdateType;
 import common.dto.message.MessageObject;
+import common.dto.message.MessageType;
 import common.i18n.I18nSupport;
 import common.simon.Callbackable;
 import common.simon.ServerInterface;
@@ -19,7 +22,6 @@ import de.root1.simon.exceptions.EstablishConnectionFailed;
 import de.root1.simon.exceptions.LookupFailedException;
 
 import java.net.UnknownHostException;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
@@ -63,8 +65,7 @@ public class GameClient extends Observable {
   /* Methods */
 
   public void receiveServerMessage(MessageObject object) {
-    this.setChanged();
-    this.notifyObservers(object);
+    setChangedAndNotify(object);
   }
 
   public void setChangedAndNotify(MessageObject object) {
@@ -89,6 +90,8 @@ public class GameClient extends Observable {
         server = (ServerInterface) nameLookup.lookup(
             GameConfigurationConstants.REGISTRY_NAME_SERVER);
         connected = server.login(messageReceiver, dtoClient, password);
+        LOGGER.info(LoggingUtility.STARS+" Connected to "+getSocketAddress()
+            +" "+LoggingUtility.STARS);
       } catch (UnknownHostException e) {
         LOGGER.warning("Failed connection try to " + getSocketAddress());
         throw new GameClientException(I18nSupport.getValue(MSGS_BUNDLE, "server.0.not.found",
@@ -137,6 +140,8 @@ public class GameClient extends Observable {
       server.logoff(messageReceiver);
       nameLookup.release(server);
     }
+    LOGGER.info(LoggingUtility.STARS+" Disconnected from "+getSocketAddress()
+        +" "+LoggingUtility.STARS);
     connected = false;
   }
 
@@ -209,6 +214,8 @@ public class GameClient extends Observable {
 
 @SimonRemote(value = {Callbackable.class})
 class ServerMessageReceiver implements Callbackable {
+  private static final Logger LOGGER =
+      LoggingUtility.getLogger(ServerMessageReceiver.class.getName());
   public void callback(Object parameter) {
     if(parameter instanceof MessageObject) {
       GameClient.getClient().receiveServerMessage((MessageObject) parameter);

@@ -306,7 +306,8 @@ public class ServerFrame extends JFrame implements Observer {
         if(GameServer.getServerInstance().startGame(getStackSize()))
           setAction(false);
       } else if(ACTION_COMMAND_STOP_GAME.equals(e.getActionCommand())) {
-        GameServer.getServerInstance().stopGame(true);
+        GameServer.getServerInstance().stopGame(true,
+            I18nSupport.getValue(MSGS_BUNDLE, "game.abort.server"));
         setAction(true);
       }
     }

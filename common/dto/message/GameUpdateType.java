@@ -8,7 +8,8 @@ package common.dto.message;
 public enum GameUpdateType {
   CLIENT_CARDS,           /* Sending object: List<DTOCard>
                              cards for the client in the current round */
-  GAME_ABORTED,           /* Sending object: nothing */
+  GAME_ABORTED,           /* Sending object: String
+                             reason for the abort */
   GAME_FINISHED,          /* Sending object: nothing */
                           /* Should be send in case that a match is over */
   INGAME_CARDS,           /* Sending object: List<List<DTOCard>>;

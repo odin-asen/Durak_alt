@@ -3,6 +3,7 @@ package client.gui.frame;
 import client.business.ConnectionInfo;
 import client.business.Client;
 import client.business.client.GameClient;
+import client.gui.ActionCollection;
 import common.i18n.I18nSupport;
 import common.utilities.LoggingUtility;
 import common.utilities.gui.FramePosition;
@@ -289,7 +290,7 @@ public class ConnectionDialog extends JDialog {
         }
       }
     });
-    button.setAction(new ConnectionAction(true));
+    button.setAction(ActionCollection.CONNECT);
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         fillClientInfo();

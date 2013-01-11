@@ -151,7 +151,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
       throw new RuleException(I18nSupport.getValue(BUNDLE_NAME,"first.attack.five.card.restriction"));
     else if(newAttackCardsCount > 6)
       throw new RuleException(I18nSupport.getValue(BUNDLE_NAME,"not.more.than.six.cards"));
-    else if(newAttackCardsCount > defender.getCards().size())
+    else if(attackCards.size() > defender.getCards().size())
       throw new RuleException(I18nSupport.getValue(BUNDLE_NAME, "defender.too.few.cards"));
     else if(currentAttackCards.isEmpty()) {
       final CardValue currentValue = attackCards.get(0).getCardValue();

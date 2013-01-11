@@ -12,6 +12,9 @@ import java.awt.*;
  */
 public interface ClientGUIConstants {
   /* General constants */
+  Color USER_MESSAGE_ERROR_COLOUR = new Color(198,0,0);
+  Color USER_MESSAGE_WARNING_COLOUR = new Color(218, 223,0);
+  Color USER_MESSAGE_INFO_COLOUR = new Color(255, 236, 157);
   Color GAME_TABLE_COLOUR = new Color(13, 153, 0);
   Color CURTAIN_COLOUR = new Color(0, 0, 255, 109);
   ImageIcon CARD_BACK = ResourceGetter.getBackCard();

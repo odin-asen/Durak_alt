@@ -5,6 +5,7 @@ import common.utilities.LoggingUtility;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Vector;
 import java.util.logging.Logger;
 
 /**
@@ -13,50 +14,104 @@ import java.util.logging.Logger;
  * Time: 02:24
  */
 public class DurakPopup extends JWindow {
-  private JLabel message;
+  public static final int LOCATION_UP_LEFT = 0;
+  public static final int LOCATION_UP_RIGHT = 1;
+  public static final int LOCATION_DOWN_LEFT = 2;
+  public static final int LOCATION_DOWN_RIGHT = 3;
+
   private JPanel panel;
   private PopupWindowListener listener;
+  private int popupLocation;
+  private Rectangle parentBounds;
 
   /* Constructors */
-  public DurakPopup(Color backgroundColour) {
+  public DurakPopup(Color backgroundColour, JComponent message, Rectangle parentBounds,
+                    int popupLocation) {
     panel = new JPanel();
-    message = new JLabel();
+    this.popupLocation = popupLocation;
+    this.parentBounds = parentBounds;
+    listener = new PopupWindowListener();
+    listener.setOpenSeconds(0);
+
     panel.setBorder(WidgetCreator.createPopupBorder());
     panel.setBackground(backgroundColour);
     panel.add(message);
     add(panel);
-    listener = new PopupWindowListener();
-    listener.setOpenSeconds(0);
+
     addWindowListener(listener);
     addMouseListener(listener);
+    setSize(getPrefferedSize());
+    setLocation(computeLocation());
   }
 
   /* Methods */
-  /* Getter and Setter */
-  public void setText(String text) {
-    message.setText(text);
+
+  private Point computeLocation() {
+    final Dimension size = getSize();
+    final int offset = 10;
+    final Point upperLeft = new Point(parentBounds.x + offset, parentBounds.y + offset);
+    switch (popupLocation) {
+      case LOCATION_DOWN_LEFT:
+        return new Point(parentBounds.x + offset,
+            parentBounds.y + parentBounds.height - getHeight() - offset);
+      case LOCATION_DOWN_RIGHT:
+        return new Point(parentBounds.x + parentBounds.width - getWidth() - offset,
+            parentBounds.y + parentBounds.height - getHeight() - offset);
+      case LOCATION_UP_LEFT:
+        return upperLeft;
+      case LOCATION_UP_RIGHT:
+        return new Point(parentBounds.x + parentBounds.width - getWidth() - offset,
+            parentBounds.y + offset);
+      default: return upperLeft;
+    }
   }
+
+  /* Getter and Setter */
 
   public Dimension getPrefferedSize() {
     return panel.getPreferredSize();
   }
 
+  /**
+   * Sets the duration of the popup until it fades out.
+   * If seconds is 0.0 the popup is permanent and will only be closed with a mouse click.
+   * @param seconds Opening duration of the popup.
+   */
   public void setOpenSeconds(double seconds) {
     listener.setOpenSeconds(seconds);
   }
 
+  @SuppressWarnings("HardCodedStringLiteral")
   public static void main(String[] args) {
-    DurakPopup popup = new DurakPopup(new Color(13, 153,0));
-    popup.setText("Test Text"); //NON-NLS
-    Dimension dim = popup.getPrefferedSize();
-    popup.setBounds(400,300,dim.width,dim.height);
-    popup.setOpenSeconds(3);
-    popup.setVisible(true);
+    JFrame frame = new JFrame();
+    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    frame.setBounds(new Rectangle(300, 200, 500, 500));
+    final Rectangle parentBounds = frame.getBounds();
+    final Object[] vector = new Object[]{"Down","Left"};
+    DurakPopup popup1 = new DurakPopup(new Color(246, 136,0), new JComboBox(vector),
+        parentBounds, LOCATION_DOWN_LEFT);
+    DurakPopup popup2 = new DurakPopup(new Color(13, 153,0), new JLabel("Down Right"),
+        parentBounds, LOCATION_DOWN_RIGHT);
+    DurakPopup popup3 = new DurakPopup(new Color(13, 153,0), new JLabel("Up Left"),
+        parentBounds, LOCATION_UP_LEFT);
+    DurakPopup popup4 = new DurakPopup(new Color(13, 153,0), new JLabel("Up Right"),
+        parentBounds, LOCATION_UP_RIGHT);
+    popup1.setOpenSeconds(0.0);
+    popup2.setOpenSeconds(3);
+    popup3.setOpenSeconds(3);
+    popup4.setOpenSeconds(3);
+
+    frame.setVisible(true);
+    popup1.setVisible(true);
+    popup2.setVisible(true);
+    popup3.setVisible(true);
+    popup4.setVisible(true);
   }
 }
 
 class PopupWindowListener extends WindowAdapter implements MouseListener {
-  private static final Logger LOGGER = LoggingUtility.getLogger(DurakPopup.class.getName());
+  private static final Logger LOGGER =
+    LoggingUtility.getLogger(PopupWindowListener.class.getName());
   private boolean fade;
   private double openSeconds;
   private boolean isFading;
@@ -116,6 +171,7 @@ class PopupWindowListener extends WindowAdapter implements MouseListener {
   }
 
   public void windowOpened(WindowEvent e) {
+
     startTimer(e.getWindow());
   }
 

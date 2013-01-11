@@ -1,8 +1,12 @@
 package client.gui.frame.chat;
 
 import client.business.client.GameClient;
+import client.gui.ActionCollection;
+import client.gui.frame.ClientFrame;
 import common.i18n.I18nSupport;
+import common.utilities.gui.DurakPopup;
 import common.utilities.gui.FramePosition;
+import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +23,7 @@ import static client.gui.frame.ClientGUIConstants.*;
  * Time: 01:02
  */
 public class ChatFrame extends JDialog {
-  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
+  private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
   private static final String ACTION_COMMAND_SEND = "send"; //NON-NLS
   private static ChatFrame chatFrame;
 
@@ -45,7 +49,7 @@ public class ChatFrame extends JDialog {
     initComponents();
 
     this.setBounds(position.getRectangle());
-    this.setTitle(I18nSupport.getValue(BUNDLE_NAME,"frame.title.chat"));
+    this.setTitle(I18nSupport.getValue(CLIENT_BUNDLE,"frame.title.chat"));
     this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
   }
 
@@ -68,6 +72,7 @@ public class ChatFrame extends JDialog {
   }
 
   /* Getter and Setter */
+
   private JScrollPane getScrollPaneRead() {
     if(scrollPaneRead != null)
       return scrollPaneRead;
@@ -122,7 +127,7 @@ public class ChatFrame extends JDialog {
 
     buttonPanel = new JPanel();
 
-    sendButton = new JButton(I18nSupport.getValue(BUNDLE_NAME,"button.text.send"));
+    sendButton = new JButton(I18nSupport.getValue(CLIENT_BUNDLE,"button.text.send"));
     sendButton.setActionCommand(ACTION_COMMAND_SEND);
     sendButton.addActionListener(buttonListener);
 
@@ -180,8 +185,8 @@ public class ChatFrame extends JDialog {
           chatWriteArea.setText("");
         } else {
           JOptionPane.showMessageDialog(chatFrame,
-              I18nSupport.getValue(BUNDLE_NAME,"dialog.text.error.chat.message.not.send"),
-              I18nSupport.getValue(BUNDLE_NAME,"dialog.title.error"), JOptionPane.ERROR_MESSAGE);
+              I18nSupport.getValue(CLIENT_BUNDLE,"dialog.text.error.chat.message.not.send"),
+              I18nSupport.getValue(CLIENT_BUNDLE,"dialog.title.error"), JOptionPane.ERROR_MESSAGE);
         }
       }
     }
