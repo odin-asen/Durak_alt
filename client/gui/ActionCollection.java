@@ -10,7 +10,6 @@ import client.gui.frame.ConnectionDialog;
 import client.gui.frame.chat.ChatFrame;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
-import common.resources.ResourceList;
 import common.utilities.LoggingUtility;
 import common.utilities.gui.DurakPopup;
 import common.utilities.gui.WidgetCreator;
@@ -45,15 +44,15 @@ public class ActionCollection {
 
     private OpenConnectionDialog(boolean editable) {
       this.editable = editable;
-      String iconString = ResourceList.IMAGE_TOOLBAR_NETWORK_INFO;
+      String iconString = "toolbar.network.info";
       int virtualKey = KeyEvent.VK_I;
       if(editable) {
-        iconString = ResourceList.IMAGE_TOOLBAR_NETWORK_EDIT;
+        iconString = "toolbar.network.edit";
         virtualKey = KeyEvent.VK_V;
       }
       WidgetCreator.initialiseAction(this, null, null, virtualKey, null,
           I18nSupport.getValue(CLIENT_BUNDLE, "action.name.connection.information"),
-          null, ResourceGetter.getImage(iconString));
+          null, ResourceGetter.getToolbarIcon(iconString));
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -76,11 +75,11 @@ public class ActionCollection {
         WidgetCreator.initialiseAction(this, null, null, null, null,
             I18nSupport.getValue(CLIENT_BUNDLE, "action.name.connect"),
             I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.connect"),
-            ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_NETWORK));
+            ResourceGetter.getToolbarIcon("toolbar.network"));
       else WidgetCreator.initialiseAction(this, null, null, null, null,
           I18nSupport.getValue(CLIENT_BUNDLE, "action.name.disconnect"),
           I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.disconnect"),
-          ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_NETWORK_CLOSE));
+          ResourceGetter.getToolbarIcon("toolbar.network.close"));
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -118,7 +117,7 @@ public class ActionCollection {
     private OpenSetupAction() {
       WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_E, null,
           "", I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.open.setup"),
-          ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_PINION));
+          ResourceGetter.getToolbarIcon("toolbar.pinion"));
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -130,7 +129,7 @@ public class ActionCollection {
     private OpenChatAction() {
       WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_C, null,
           "", I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.open.chat.frame"),
-          ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_CHAT));
+          ResourceGetter.getToolbarIcon("toolbar.chat"));
     }
 
     public void actionPerformed(ActionEvent e) {

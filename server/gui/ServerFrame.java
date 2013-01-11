@@ -4,7 +4,6 @@ import common.dto.DTOClient;
 import common.dto.message.MessageObject;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
-import common.resources.ResourceList;
 import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
 import common.utilities.constants.GameConfigurationConstants;
@@ -258,11 +257,11 @@ public class ServerFrame extends JFrame implements Observer {
       if(start) {
         WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_S, ACTION_COMMAND_START,
             "", I18nSupport.getValue(SERVER_BUNDLE, "button.tooltip.start.server"),
-            ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_PLAY));
+            ResourceGetter.getToolbarIcon("toolbar.play"));
       } else {
         WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_S, ACTION_COMMAND_STOP,
             "", I18nSupport.getValue(SERVER_BUNDLE, "button.tooltip.stop.server"),
-            ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_STOP_PLAYER));
+            ResourceGetter.getToolbarIcon("toolbar.stop.player"));
       }
     }
 
@@ -315,12 +314,12 @@ public class ServerFrame extends JFrame implements Observer {
     private void setAction(boolean start) {
       if(start) {
         WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_G, ACTION_COMMAND_START_GAME,
-            "", I18nSupport.getValue(SERVER_BUNDLE, "button.tooltip.start.game"),
-            ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_GAME_START));
+            "", I18nSupport.getValue(SERVER_BUNDLE, "action.short.description.start.game"),
+            ResourceGetter.getToolbarIcon("toolbar.game.start"));
       } else {
         WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_G, ACTION_COMMAND_STOP_GAME,
-            "", I18nSupport.getValue(SERVER_BUNDLE, "button.tooltip.stop.game"),
-            ResourceGetter.getImage(ResourceList.IMAGE_TOOLBAR_GAME_STOP));
+            "", I18nSupport.getValue(SERVER_BUNDLE, "action.short.description.stop.game"),
+            ResourceGetter.getToolbarIcon("toolbar.game.stop"));
       }
     }
   }

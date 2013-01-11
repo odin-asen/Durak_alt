@@ -60,19 +60,6 @@ public class WidgetCreator {
     return field;
   }
 
-  public static JButton makeToolBarButton(String pictureName, String toolTipText,
-                                    String actionCommand, ActionListener listener,
-                                    int virtualKey) {
-    JButton button = new JButton();
-    button.setToolTipText(toolTipText);
-    button.setActionCommand(actionCommand);
-    button.setMnemonic(virtualKey);
-    button.addActionListener(listener);
-    button.setIcon(ResourceGetter.getImage(pictureName));
-
-    return button;
-  }
-
   public static JButton makeButton(Icon icon, String text, String toolTipText,
                                    String actionCommand, ActionListener listener) {
     JButton button = new JButton();
@@ -88,17 +75,14 @@ public class WidgetCreator {
     return button;
   }
 
-  public static void changeButton(AbstractButton button, String pictureName, String text,
+  public static void changeButton(AbstractButton button, Icon icon, String text,
                                   String actionCommand, String toolTipText) {
     if(button == null)
       return;
 
     button.setText(text);
     button.setActionCommand(actionCommand);
-    if(pictureName != null) {
-      ImageIcon icon = ResourceGetter.getImage(pictureName);
-      button.setIcon(icon);
-    }
+    button.setIcon(icon);
     button.setToolTipText(toolTipText);
   }
 

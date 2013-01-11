@@ -1,5 +1,6 @@
 package common.resources;
 
+import common.i18n.I18nSupport;
 import common.utilities.LoggingUtility;
 import common.utilities.constants.GameCardConstants;
 import common.utilities.constants.GameConfigurationConstants;
@@ -14,10 +15,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static common.resources.ResourceList.*;
 
 /**
  * User: Timm Herrmann
@@ -25,21 +23,96 @@ import static common.resources.ResourceList.*;
  * Time: 19:59
  */
 public class ResourceGetter {
+  private static final String PICTURES_ROOT = "icons/"; //NON-NLS
+  private static final String STATUS_ROOT = PICTURES_ROOT + "status/"; //NON-NLS
+  private static final String CARDS_ROOT = PICTURES_ROOT + "cards/"; //NON-NLS
+
+  private static final String IMAGES_BUNDLE = "resources.images"; //NON-NLS
+  private static final String SOUNDS_BUNDLE = "resources.sounds"; //NON-NLS
+
   private static final Logger LOGGER = LoggingUtility.getLogger(ResourceGetter.class.getName());
 
   private static final int CARD_STRIPE_X_AXIS_GAP = 1;
   private static final int MAGIC_X_AXIS_GAP_CONSTANT = 2;
 
+  /* Loads an image from the specified path and adds the */
+  /* surpassed extension if it is not null */
+  private static ImageIcon getImage(String imageName, String extension) {
+    ImageIcon image = null;
+
+    if(extension == null) extension = "";
+    else if(!extension.isEmpty()) extension = "."+extension;
+
+    try {
+      image = loadImage(imageName+extension); //NON-NLS
+    } catch (ResourceGetterException e) {
+      LOGGER.warning(e.getMessage());
+    }
+
+    return image;
+  }
+
+  private static ImageIcon loadImage(String imageURL)
+      throws ResourceGetterException {
+    final ImageIcon image;
+
+    final URL url = ResourceGetter.class.getResource(imageURL);
+    if(url != null)
+      image = new ImageIcon(url);
+    else
+      throw new ResourceGetterException("Could not find an URL for the path "+imageURL);
+
+    return image;
+  }
+
+  /********************************/
+  /* Different Image Load Methods */
+  /********************************/
+
+  public static ImageIcon getBackCard() {
+    return getImage(CARDS_ROOT+I18nSupport.getValue(IMAGES_BUNDLE,"card.back"), "png"); //NON-NLS
+  }
+
+  public static ImageIcon getPlayerTypeIcon(PlayerConstants.PlayerType type, Integer height) {
+    final String iconName;
+    if (PlayerConstants.PlayerType.FIRST_ATTACKER.equals(type))
+      iconName = "status.star.green";
+    else if (PlayerConstants.PlayerType.SECOND_ATTACKER.equals(type))
+      iconName = "status.star.red";
+    else if (PlayerConstants.PlayerType.DEFENDER.equals(type))
+      iconName = "status.defender";
+    else if (PlayerConstants.PlayerType.NOT_LOSER.equals(type))
+      iconName = "status.crown";
+    else if (PlayerConstants.PlayerType.LOSER.equals(type))
+      iconName = "status.ivan.durak";
+    else iconName = null;
+
+    if(iconName != null) {
+      return Compute.getScaledImage(
+          getImage(STATUS_ROOT+I18nSupport.getValue(IMAGES_BUNDLE, iconName), "png"), //NON-NLS
+          null, height);
+    } else return null;
+  }
+
+  public static List<? extends Image> getApplicationIcons() {
+    final String[] imageSizes = {"16","32","64","128","256"};
+    final String suffix = "png"; //NON-NLS
+    final String basePath = PICTURES_ROOT + "application/DurakIcon"; //NON-NLS
+
+    final List<Image> images = new ArrayList<Image>(imageSizes.length);
+    for (String size : imageSizes) {
+      images.add(getImage(basePath + size, suffix).getImage());
+    }
+
+    return images;
+  }
+
   public static ImageIcon getCardImage(GameCardConstants.CardColour colour,
                                        GameCardConstants.CardValue cardValue) {
     ImageIcon image = null;
 
-    try {
-      final String path = CARDS_ROOT + getStringCardColour(colour);
-      image = getCardFromStripe(loadImage(path, null), cardValue.getValue());
-    } catch (ResourceGetterException e) {
-      LOGGER.warning(e.getMessage());
-    }
+    final String path = CARDS_ROOT + getStringCardColour(colour);
+    image = getCardFromStripe(getImage(path, "png"), cardValue.getValue()); //NON-NLS
 
     return image;
   }
@@ -48,16 +121,16 @@ public class ResourceGetter {
     final String string;
 
     if(GameCardConstants.CardColour.CLUBS.equals(colour)) {
-      string = CARD_COLOUR_CLUBS;
+      string = "card.colour.clubs";
     } else if(GameCardConstants.CardColour.DIAMONDS.equals(colour)) {
-      string = CARD_COLOUR_DIAMONDS;
+      string = "card.colour.diamonds";
     } else if(GameCardConstants.CardColour.HEARTS.equals(colour)) {
-      string = CARD_COLOUR_HEARTS;
+      string = "card.colour.hearts";
     } else {
-      string = CARD_COLOUR_SPADES;
+      string = "card.colour.spades";
     }
 
-    return string;
+    return I18nSupport.getValue(IMAGES_BUNDLE, string);
   }
 
   private static ImageIcon getCardFromStripe(ImageIcon imageIcon, Integer cardNumber) {
@@ -72,38 +145,28 @@ public class ResourceGetter {
     return new ImageIcon(imagePart);
   }
 
-  public static ImageIcon getImage(String imageName) {
-    ImageIcon image = null;
-
-    try {
-      image = loadImage(imageName, null);
-    } catch (ResourceGetterException e) {
-      LOGGER.warning(e.getMessage());
-    }
-
-    return image;
+  public static ImageIcon getToolbarIcon(String toolbarBundleKey) {
+    return getImage(
+        PICTURES_ROOT+"toolbar/"+I18nSupport.getValue(IMAGES_BUNDLE, toolbarBundleKey), //NON-NLS
+        "png"); //NON-NLS
   }
 
-  private static ImageIcon loadImage(String imageURL, String alternativeText)
-    throws ResourceGetterException {
-    final ImageIcon image;
-
-    final URL url = ResourceGetter.class.getResource(imageURL);
-    if(url != null)
-      image = new ImageIcon(url, alternativeText);
-    else
-      throw new ResourceGetterException("Could not find an URL for the path "+imageURL);
-
-    return image;
+  public static ImageIcon getStatusIcon(String statusBundleKey) {
+    return getImage(STATUS_ROOT+I18nSupport.getValue(IMAGES_BUNDLE, statusBundleKey),
+        "png"); //NON-NLS
   }
 
-  public static void playSound(int soundNummer) {
-    final int nummer = soundNummer;
+  /**********************/
+  /* Sound Load Methods */
+  /**********************/
+
+  public static void playSound(String soundBundleKey) {
+    final String path = "sounds/"+I18nSupport.getValue(SOUNDS_BUNDLE, soundBundleKey); //NON-NLS
     try {
       new Thread(new Runnable() {
         public void run() {
           try {
-            SoundPlayer.playSound(nummer);
+            SoundPlayer.playSoundFile(new URL(path));
           } catch (Exception e) {
             LOGGER.warning("Error playing the sound! Message: " + e.getMessage());
           }
@@ -113,65 +176,10 @@ public class ResourceGetter {
       LOGGER.warning("Error starting the sound thread! Message: " + e.getMessage());
     }
   }
-
-  public static ImageIcon getBackCard() {
-    final String back = "Back"; //NON-NLS
-    final ImageIcon icon = getImage(CARDS_ROOT+CARD_BACK);
-    if(icon != null)
-      return icon;
-    else return new ImageIcon("", back);
-  }
-
-  public static ImageIcon getPlayerTypeIcon(PlayerConstants.PlayerType type, Integer height) {
-    final ImageIcon statusIcon;
-    if (PlayerConstants.PlayerType.FIRST_ATTACKER.equals(type))
-      statusIcon = getImage(IMAGE_STAR_GREEN);
-    else if (PlayerConstants.PlayerType.SECOND_ATTACKER.equals(type))
-      statusIcon = getImage(IMAGE_STAR_RED);
-    else if (PlayerConstants.PlayerType.DEFENDER.equals(type))
-      statusIcon = getImage(IMAGE_DEFENDER);
-    else if (PlayerConstants.PlayerType.NOT_LOSER.equals(type))
-      statusIcon = getImage(IMAGE_CROWN);
-    else if (PlayerConstants.PlayerType.LOSER.equals(type))
-      statusIcon = getImage(IMAGE_IVAN_DURAK);
-    else statusIcon = null;
-
-    if(statusIcon != null) {
-      return Compute.getScaledImage(statusIcon, null, height);
-    } else return null;
-  }
-
-  public static List<? extends Image> getApplicationIcons() {
-    final String[] imageSizes = {"16","32","64","128","256"};
-    final String suffix = ".png"; //NON-NLS
-    final List<Image> images = new ArrayList<Image>(imageSizes.length);
-    for (String size : imageSizes) {
-      try {
-        images.add(loadImage(APPLICATION_BASE_PATH + size + suffix, "").getImage());
-      } catch (ResourceGetterException e) {
-        LOGGER.warning(e.getMessage());
-      }
-    }
-
-    return images;
-  }
 }
 
 class SoundPlayer {
-  public static void playSound(int soundNummer)
-      throws IOException, LineUnavailableException, UnsupportedAudioFileException, InterruptedException {
-    URL url = null;
-    /*Für einen neuen Sound soll eine Nummer angelegt werden und in einer if-anweisung
-    * abgefragt werden, für den Fall der ersten Nummer wird das erste if verwendet. */
-//    if(true) {
-//    } else {
-//      throw new IllegalArgumentException("Unbekannte Soundnummer übergeben.");
-//    }
-
-    playSoundFile(url);
-  }
-
-  private static void playSoundFile(URL url)
+  public static void playSoundFile(URL url)
       throws UnsupportedAudioFileException, IOException, LineUnavailableException, InterruptedException {
     final SourceDataLine line;
     final AudioInputStream ais = AudioSystem.getAudioInputStream(url);
