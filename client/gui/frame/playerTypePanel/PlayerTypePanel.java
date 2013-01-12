@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import static client.gui.frame.ClientGUIConstants.GAME_TABLE_COLOUR;
-import static client.gui.frame.ClientGUIConstants.STATUS_BAR_HEIGHT;
+import static client.gui.frame.ClientGUIConstants.*;
+import static client.gui.frame.ClientGUIConstants.CARD_STACK_PANEL_WIDTH;
 import static common.utilities.constants.PlayerConstants.*;
 
 /**
@@ -44,8 +44,8 @@ public class PlayerTypePanel extends JPanel {
 
   private void initPanels() {
     addPanel(PlayerType.DEFAULT, new DefaultPanel());
-    addPanel(PlayerType.FIRST_ATTACKER, new DefaultPanel());
-    addPanel(PlayerType.SECOND_ATTACKER, new DefaultPanel());
+    addPanel(PlayerType.FIRST_ATTACKER, new AttackerPanel(true));
+    addPanel(PlayerType.SECOND_ATTACKER, new AttackerPanel(false));
     addPanel(PlayerType.DEFENDER, new DefaultPanel());
     addPanel(PlayerType.NOT_LOSER, new DefaultPanel());
     addPanel(PlayerType.LOSER, new DefaultPanel());
@@ -152,6 +152,28 @@ abstract class DurakCentrePanelImpl extends JPanel implements DurakCentrePanel {
 
   /* Methods */
 
+  /**
+   * Initialises the containers with default settings.
+   */
+  public void init() {
+    /* Cards Stack Panel */
+    JPanel panel = getCardStackContainer();
+
+    panel.setLayout(new BorderLayout());
+    panel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, panel.getPreferredSize().height));
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+
+    /* Opponents Panel */
+    panel = getOpponentsContainer();
+    panel.setPreferredSize(new Dimension(0, OPPONENT_PANEL_HEIGHT));
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+
+    /* Client List Panel */
+    panel = getClientListContainer();
+    panel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, 100));
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+  }
+
   public <DTOClient> void updateClients(List<DTOClient> clients) {
     final DefaultListModel<DTOClient> listModel =
         ((DefaultListModel<DTOClient>) clientList.getModel());
@@ -164,32 +186,6 @@ abstract class DurakCentrePanelImpl extends JPanel implements DurakCentrePanel {
   }
 
   /* Getter and Setter */
-
-//    takeCardsButton = WidgetCreator.makeButton(null,
-//        I18nSupport.getValue(CLIENT_BUNDLE, "button.text.take.cards"),
-//        I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.take.cards"), null,
-//        new ActionListener() {
-//          public void actionPerformed(ActionEvent e) {
-//            if (nextRoundRequest(true)) {
-//              takeCardsButton.setEnabled(false);
-//              roundDoneButton.setEnabled(false);
-//              update.updateGamePanel(new ArrayList<DTOCard>(), new ArrayList<DTOCard>(), null);
-//            }
-//          }
-//        });
-//    roundDoneButton = WidgetCreator.makeButton(null,
-//        I18nSupport.getValue(CLIENT_BUNDLE,"button.text.finish.round"),
-//        I18nSupport.getValue(CLIENT_BUNDLE,"button.tooltip.finish.round"), null,
-//        new ActionListener() {
-//          public void actionPerformed(ActionEvent e) {
-//            if(nextRoundRequest(false)) {
-//              takeCardsButton.setEnabled(false);
-//              roundDoneButton.setEnabled(false);
-//            }
-//          }
-//        });
-//    takeCardsButton.setEnabled(false);
-//    roundDoneButton.setEnabled(false);
 
   /**
    * Returns a default instance of the CardStackPanel class. The background is
