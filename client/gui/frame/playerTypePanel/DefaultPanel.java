@@ -1,12 +1,5 @@
 package client.gui.frame.playerTypePanel;
 
-import client.business.Client;
-import client.business.client.GameClient;
-import common.dto.DTOClient;
-import common.i18n.I18nSupport;
-import common.simon.action.FinishAction;
-import common.utilities.constants.PlayerConstants;
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -27,6 +20,8 @@ public class DefaultPanel extends DurakCentrePanelImpl {
   public DefaultPanel() {
     setLayout(new BorderLayout());
 
+    initParentPanels();
+
     add(getOpponentsContainer(), BorderLayout.PAGE_START);
     add(getStackClientsPanel(), BorderLayout.LINE_START);
     add(getGameProcessContainer(), BorderLayout.CENTER);
@@ -34,6 +29,25 @@ public class DefaultPanel extends DurakCentrePanelImpl {
   }
 
   /* Methods */
+
+  private void initParentPanels() {
+    /* Cards Stack Panel */
+    JPanel panel = getCardStackContainer();
+
+    panel.setLayout(new BorderLayout());
+    panel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, panel.getPreferredSize().height));
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+
+    /* Opponents Panel */
+    panel = getOpponentsContainer();
+    panel.setPreferredSize(new Dimension(0, OPPONENT_PANEL_HEIGHT));
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+
+    /* Client List Panel */
+    panel = getClientListContainer();
+    panel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, 100));
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+  }
 
 //  private Boolean nextRoundRequest(Boolean takeCards) {
 //    if(takeCards == null)

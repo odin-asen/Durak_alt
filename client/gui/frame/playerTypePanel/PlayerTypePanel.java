@@ -1,6 +1,5 @@
 package client.gui.frame.playerTypePanel;
 
-import client.business.Client;
 import client.gui.frame.*;
 import client.gui.frame.gamePanel.GamePanel;
 import common.dto.DTOCard;
@@ -44,15 +43,16 @@ public class PlayerTypePanel extends JPanel {
   /* Methods */
 
   private void initPanels() {
-    putPanel(PlayerType.DEFAULT, new DefaultPanel());
-    putPanel(PlayerType.FIRST_ATTACKER, new DefaultPanel());
-    putPanel(PlayerType.SECOND_ATTACKER, new DefaultPanel());
-    putPanel(PlayerType.DEFENDER, new DefaultPanel());
-    putPanel(PlayerType.NOT_LOSER, new DefaultPanel());
-    putPanel(PlayerType.LOSER, new DefaultPanel());
+    addPanel(PlayerType.DEFAULT, new DefaultPanel());
+    addPanel(PlayerType.FIRST_ATTACKER, new DefaultPanel());
+    addPanel(PlayerType.SECOND_ATTACKER, new DefaultPanel());
+    addPanel(PlayerType.DEFENDER, new DefaultPanel());
+    addPanel(PlayerType.NOT_LOSER, new DefaultPanel());
+    addPanel(PlayerType.LOSER, new DefaultPanel());
   }
 
-  private void putPanel(PlayerType type, DurakCentrePanelImpl panel) {
+  private void addPanel(PlayerType type, DurakCentrePanelImpl panel) {
+    add(panel);
     panelMap.put(type, panel);
     cardLayout.addLayoutComponent(panel, type.getDescription());
   }
@@ -143,7 +143,7 @@ abstract class DurakCentrePanelImpl extends JPanel implements DurakCentrePanel {
   private OpponentsPanel opponentsPanel;
   private GamePanel gamePanel;
 
-  private CardStackPanel cardStackPanel;
+  private CardStackPanel panel;
   private JPanel listContainer;
   private JList<DTOClient> clientList;
 
@@ -197,18 +197,13 @@ abstract class DurakCentrePanelImpl extends JPanel implements DurakCentrePanel {
    * @return Return a CardStackPanel object.
    */
   public CardStackPanel getCardStackContainer() {
-    if(cardStackPanel != null)
-      return cardStackPanel;
+    if(panel != null)
+      return panel;
 
-    cardStackPanel = new CardStackPanel();
-    cardStackPanel.setBackground(GAME_TABLE_COLOUR);
-//    cardStackPanel.setLayout(new BorderLayout());
-//    cardStackPanel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, cardStackPanel.getPreferredSize().height));
-//    cardStackPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-//    cardStackPanel.add(Box.createGlue(), BorderLayout.PAGE_START);
-//    cardStackPanel.add(Box.createGlue(), BorderLayout.PAGE_END);
+    panel = new CardStackPanel();
+    panel.setBackground(GAME_TABLE_COLOUR);
 
-    return cardStackPanel;
+    return panel;
   }
 
   /**
