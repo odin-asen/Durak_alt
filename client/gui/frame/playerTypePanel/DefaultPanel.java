@@ -34,33 +34,15 @@ public class DefaultPanel extends DurakCentrePanelImpl {
 
   /**
    * Resets the layout and displays to a default state for a client with the
-   * PlayerType PlayerType.DEFAULT.
+   * PlayerType PlayerType.DEFAULT. The reset concernes the resets for the game, so that
+   * the client list and the opponent widgets, etc... will be untouched.
    */
-  public void resetAll() {
-    getOpponentsContainer().removeAllOpponents();
-    getCardStackContainer().deleteCards();
+  public void setNewRound() {
     getGameProcessContainer().placeInGameCards(null, null);
-    getGameProcessContainer().placeClientCards(null);
-    updateClients(null);
-    getStatusBarContainer().setConnected(false);
     getStatusBarContainer().setPlayerType(PlayerConstants.PlayerType.DEFAULT);
-    getStatusBarContainer().setText("");
   }
 
   /* Getter and Setter */
-
-//  private JPanel getOpponentButtonPanel() {
-//    final JPanel panel = new JPanel();
-//    final JPanel buttonPanel = getButtonPanel();
-//
-//    buttonPanel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, OPPONENT_PANEL_HEIGHT));
-//    buttonPanel.setMaximumSize(new Dimension(CARD_STACK_PANEL_WIDTH, Integer.MAX_VALUE));
-//    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-//    panel.add(buttonPanel);
-//    panel.add(opponentsPanel);
-//
-//    return panel;
-//  }
 
   private JPanel getStackClientsPanel() {
     if(stackClientsPanel != null)

@@ -22,8 +22,7 @@ import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -151,6 +150,14 @@ public class ClientFrame extends JFrame implements Observer {
   public void init() {
     toolBar = new DurakToolBar();
     centrePanel = new PlayerTypePanel(PlayerType.DEFAULT);
+    JButton next = new JButton("next");
+    next.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ((CardLayout) centrePanel.getLayout()).next(centrePanel);
+      }
+    });
+    toolBar.add(next);
 
     getContentPane().setLayout(new BorderLayout());
     getContentPane().add(toolBar, BorderLayout.PAGE_START);
@@ -218,7 +225,7 @@ public class ClientFrame extends JFrame implements Observer {
    * @param clients All clients to show on the list.
    */
   public void updateClientList(List<DTOClient> clients) {
-    //TODO füllen
+    centrePanel.updateClients(clients);
   }
 
   /* Getter and Setter */

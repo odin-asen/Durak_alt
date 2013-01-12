@@ -2,6 +2,7 @@ package client.gui.frame.playerTypePanel;
 
 import client.business.Client;
 import client.business.client.GameClient;
+import client.gui.frame.ClientFrame;
 import client.gui.frame.ClientGUIConstants;
 import common.i18n.I18nSupport;
 import common.simon.action.FinishAction;
@@ -14,25 +15,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import static client.gui.frame.ClientGUIConstants.*;
-import static common.utilities.constants.PlayerConstants.PlayerType;
 
 /**
  * User: Timm Herrmann
  * Date: 12.01.13
- * Time: 04:48
+ * Time: 05:31
  */
-public class AttackerPanel extends DurakCentrePanelImpl {
-  private boolean firstAttacker;
-
+public class DefenderPanel extends DurakCentrePanelImpl {
   private JPanel opponentsButtonsPanel;
   private JPanel stackClientsPanel;
+  private JButton takeCardsButton;
   private JButton roundDoneButton;
 
   /* Constructors */
 
-  public AttackerPanel(boolean firstAttacker) {
-    this.firstAttacker = firstAttacker;
-
+  public DefenderPanel() {
     setLayout(new BorderLayout());
 
     init();
@@ -53,6 +50,17 @@ public class AttackerPanel extends DurakCentrePanelImpl {
 
     /* Game Button Panel */
     JPanel panel = getGameButtonsContainer();
+    takeCardsButton = WidgetCreator.makeButton(null,
+        I18nSupport.getValue(CLIENT_BUNDLE, "button.text.take.cards"),
+        I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.take.cards"), null,
+        new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            if (GameClient.getClient().finishRound(Client.getOwnInstance().toDTO(),
+                FinishAction.FinishType.TAKE_CARDS)) {
+              setNewRound();
+            }
+          }
+        });
     roundDoneButton = WidgetCreator.makeButton(null,
         I18nSupport.getValue(CLIENT_BUNDLE, "button.text.finish.round"),
         I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.finish.round"), null,
@@ -60,46 +68,42 @@ public class AttackerPanel extends DurakCentrePanelImpl {
           public void actionPerformed(ActionEvent e) {
             if (GameClient.getClient().finishRound(Client.getOwnInstance().toDTO(),
                 FinishAction.FinishType.GO_TO_NEXT_ROUND)) {
-              /* The player is not allowed to do a card move */
-              getGameProcessContainer().setListenerType(PlayerConstants.PlayerType.DEFAULT);
-              roundDoneButton.setEnabled(false);
+              setNewRound();
             }
           }
         });
+    takeCardsButton.setEnabled(false);
     roundDoneButton.setEnabled(false);
 
-    panel.setLayout(new GridLayout());
+    panel.setLayout(new GridLayout(0,1));
+    panel.add(takeCardsButton);
     panel.add(roundDoneButton);
   }
 
   public void enableGameButtons(boolean roundFinished) {
-    roundDoneButton.setEnabled(!roundFinished && getGameProcessContainer().hasInGameCards());
+    final Boolean cardsOnTable = getGameProcessContainer().hasInGameCards();
+    final Boolean round = roundFinished && getGameProcessContainer().inGameCardsAreCovered();
+    if (round)
+      ClientFrame.getInstance().showInformationPopup(
+          I18nSupport.getValue(MSGS_BUNDLE, "next.round.available"));
+    takeCardsButton.setEnabled(cardsOnTable);
+    roundDoneButton.setEnabled(!roundFinished && cardsOnTable);
   }
 
   /**
    * Resets the layout and displays to a default state for a client with the
-   * PlayerType PlayerType.FIRST_ATTACKER or PlayerType.SECOND_ATTACKER. The reset
-   * concernes the resets for the game, so that the client list and the opponent
-   * widgets, etc...will be untouched.
+   * PlayerType PlayerType.DEFENDER. The reset concernes the resets for the game, so that
+   * the client list and the opponent widgets, etc... will be untouched.
    */
   public void setNewRound() {
     getOpponentsContainer().removeAllOpponents();
     getCardStackContainer().deleteCards();
     getGameProcessContainer().placeInGameCards(null, null);
-    setPlayerType(firstAttacker);
+    getGameProcessContainer().setListenerType(PlayerConstants.PlayerType.DEFENDER);
+    getStatusBarContainer().setPlayerType(PlayerConstants.PlayerType.DEFENDER);
   }
 
   /* Getter and Setter */
-
-  private PlayerType getPlayerType() {
-    return firstAttacker ? PlayerType.FIRST_ATTACKER : PlayerType.SECOND_ATTACKER;
-  }
-
-  public void setPlayerType(boolean firstAttacker) {
-    this.firstAttacker = firstAttacker;
-    getGameProcessContainer().setListenerType(getPlayerType());
-    getStatusBarContainer().setPlayerType(getPlayerType());
-  }
 
   private JPanel getOpponentsButtonsPanel() {
     if (opponentsButtonsPanel != null)
@@ -131,3 +135,4 @@ public class AttackerPanel extends DurakCentrePanelImpl {
     return stackClientsPanel;
   }
 }
+

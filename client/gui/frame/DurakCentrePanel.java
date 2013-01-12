@@ -28,9 +28,9 @@ public interface DurakCentrePanel {
   void enableGameButtons(boolean roundFinished);
 
   /**
-   * Resets all widgets to the initial state.
+   * Resets all widgets to a state that is necessary in the game for a new round.
    */
-  void resetAll();
+  void setNewRound();
 
   /**
    * Returns a widget that contains all buttons that are necessary for a game, e.g.

@@ -210,7 +210,12 @@ public class GameServer extends Observable {
   }
 
   public void sendMessage(Callbackable callbackable, MessageObject messageObject) {
-    callbackable.callback(messageObject);
+    try {
+      callbackable.callback(messageObject);
+    } catch (Exception e) {
+      /* client not reachable, remove */
+      gameUpdate.refreshClients();
+    }
   }
 
   /**
@@ -604,6 +609,13 @@ class GameUpdate {
     }
     server.broadcastMessage(GameUpdateType.INITIALISE_PLAYERS, clientHolder.getSpectatorKeys(),
         clients);
+  }
+
+  /**
+   * In case of a client whomes remote reference is lost, refresh the list.
+   */
+  public void refreshClients() {
+    //TODO
   }
 
   public DTOClient getClient(Callbackable callbackable) {

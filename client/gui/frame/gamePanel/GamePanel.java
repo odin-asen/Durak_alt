@@ -4,6 +4,7 @@ import client.gui.frame.ClientGUIConstants;
 import client.gui.widget.card.CardMoveListener;
 import client.gui.widget.card.GameCardWidget;
 import common.dto.DTOCard;
+import common.utilities.Converter;
 import common.utilities.constants.PlayerConstants;
 
 import javax.swing.*;
@@ -228,6 +229,23 @@ public class GamePanel extends JPanel {
     for (GameCardWidget widget : clientWidgets) {
       widget.setCardMoveListener(cardManager);
     }
+  }
+
+  public List<List<DTOCard>> getInGameCards() {
+    final List<List<DTOCard>> cards = new ArrayList<List<DTOCard>>(2);
+    for (CombatCardPanel panel : inGamePanel.getCardPanels()) {
+      cards.get(0).add(Converter.toDTO(panel.getAttackerCard().getCardInfo()));
+      cards.get(1).add(Converter.toDTO(panel.getDefenderCard().getCardInfo()));
+    }
+    return cards;
+  }
+
+  public List<DTOCard> getClientCards() {
+    final List<DTOCard> cards = new ArrayList<DTOCard>();
+    for (GameCardWidget widget : clientWidgets) {
+      cards.add(Converter.toDTO(widget.getCardInfo()));
+    }
+    return cards;
   }
 
   /* Getter and Setter */
