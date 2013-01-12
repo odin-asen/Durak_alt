@@ -15,6 +15,7 @@ import common.resources.ResourceGetter;
 import common.simon.action.FinishAction;
 import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
+import common.utilities.gui.Compute;
 import common.utilities.gui.DurakPopup;
 import common.utilities.gui.FramePosition;
 import common.utilities.gui.WidgetCreator;
@@ -61,6 +62,7 @@ public class ClientFrame extends JFrame implements Observer {
 
   private MessageHandler handler;
   private ComponentUpdate update;
+  private UserMessageDistributor messenger;
   private JButton roundDoneButton;
   private JButton takeCardsButton;
   private DurakToolBar toolBar;
@@ -70,6 +72,7 @@ public class ClientFrame extends JFrame implements Observer {
   private ClientFrame() {
     handler = new MessageHandler();
     update = new ComponentUpdate();
+    messenger = new UserMessageDistributor();
 
     final FramePosition position = FramePosition.createFramePositions(
         MAIN_FRAME_SCREEN_SIZE, MAIN_FRAME_SCREEN_SIZE);
@@ -83,8 +86,8 @@ public class ClientFrame extends JFrame implements Observer {
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         WidgetCreator.doAction(e.getSource(), ActionCollection.DISCONNECT);
-        ClientFrame.getInstance().setVisible(false);
-        ClientFrame.getInstance().dispose();
+        setVisible(false);
+        dispose();
         System.exit(0);
       }
     });
@@ -117,9 +120,8 @@ public class ClientFrame extends JFrame implements Observer {
             WidgetCreator.createActionCopy(ActionCollection.OPEN_CHAT_DIALOG);
         openChatAction.putValue(Action.NAME,
             I18nSupport.getValue(CLIENT_BUNDLE, "action.name.open.chat"));
-        final DurakPopup popup = WidgetCreator.createPopup(USER_MESSAGE_INFO_COLOUR, message,
-            openChatAction, true, getBounds(), DurakPopup.LOCATION_DOWN_LEFT, 5.0);
-        popup.setVisible(true);
+        WidgetCreator.createPopup(USER_MESSAGE_INFO_COLOUR, message, openChatAction,
+            true, getBounds(), DurakPopup.LOCATION_DOWN_LEFT, 5.0).setVisible(true);
       }
     }
     frame.addMessage(message);
@@ -129,22 +131,33 @@ public class ClientFrame extends JFrame implements Observer {
     final PlayerType type = Client.getOwnInstance().getPlayerType();
     new Thread(new Runnable() {
       public void run() {
-        new UserMessageDistributor().gameOverMessage(type);
+        messenger.gameOverMessage(type);
       }
     }).start();
   }
 
   public void showRuleException(Object ruleException) {
-    final Rectangle bounds = new Rectangle(getX(),
-        getY()+getHeight()-getContentPane().getHeight(), getWidth(), getHeight());
-    final DurakPopup rulePopup = WidgetCreator.createPopup(
-        ClientGUIConstants.GAME_TABLE_COLOUR, ruleException.toString(), bounds,
-        DurakPopup.LOCATION_DOWN_RIGHT, 3);
-    rulePopup.setVisible(true);
+    messenger.showRulePopup(ruleException.toString(), Compute.getFramelessBounds(this));
+    ResourceGetter.playSound("computer.says.no");
+  }
+
+  public void showInformationPopup(String message) {
+    messenger.showMessagePopup(USER_MESSAGE_INFO_COLOUR, message,
+        Compute.getFramelessBounds(this));
+  }
+
+  public void showWarningPopup(String message) {
+    messenger.showMessagePopup(USER_MESSAGE_WARNING_COLOUR, message,
+        Compute.getFramelessBounds(this));
+  }
+
+  public void showErrorPopup(String message) {
+    messenger.showMessagePopup(USER_MESSAGE_ERROR_COLOUR, message,
+        Compute.getFramelessBounds(this));
   }
 
   /**
-   * Initialises the frame. Shoudl be called at least after the first cration of the frame
+   * Initialises the frame. Should be called at least after the first cration of the frame
    * object.
    */
   public void init() {
@@ -172,8 +185,13 @@ public class ClientFrame extends JFrame implements Observer {
         type = FinishAction.FinishType.TAKE_CARDS;
       return GameClient.getClient().finishRound(dtoClient, type);
     } else if(dtoClient.playerType.equals(PlayerType.FIRST_ATTACKER) ||
-        dtoClient.playerType.equals(PlayerType.SECOND_ATTACKER))
-      return GameClient.getClient().finishRound(dtoClient, type);
+        dtoClient.playerType.equals(PlayerType.SECOND_ATTACKER)) {
+      if(GameClient.getClient().finishRound(dtoClient, type)) {
+        /* The player is not allowed to do a card move */
+        gamePanel.setListenerType(PlayerType.DEFAULT);
+        return true;
+      }
+    }
 
     return false;
   }
@@ -199,8 +217,7 @@ public class ClientFrame extends JFrame implements Observer {
       setStatus(statusText, false, "");
     } else setStatus(statusText, true, GameClient.getClient().getSocketAddress());
     if(popupMessage)
-      WidgetCreator.createPopup(USER_MESSAGE_WARNING_COLOUR, statusText, getBounds(),
-          DurakPopup.LOCATION_UP_LEFT, 3).setVisible(true);
+      showWarningPopup(statusText);
   }
 
   /***********************/
@@ -328,6 +345,8 @@ public class ClientFrame extends JFrame implements Observer {
         new ActionListener() {
           public void actionPerformed(ActionEvent e) {
             if(nextRoundRequest(true)) {
+              takeCardsButton.setEnabled(false);
+              roundDoneButton.setEnabled(false);
               update.updateGamePanel(new ArrayList<DTOCard>(), new ArrayList<DTOCard>(), null);
             }
           }
@@ -338,7 +357,8 @@ public class ClientFrame extends JFrame implements Observer {
         new ActionListener() {
           public void actionPerformed(ActionEvent e) {
             if(nextRoundRequest(false)) {
-              update.updateGamePanel(new ArrayList<DTOCard>(), new ArrayList<DTOCard>(), null);
+              takeCardsButton.setEnabled(false);
+              roundDoneButton.setEnabled(false);
             }
           }
         });
@@ -400,10 +420,11 @@ public class ClientFrame extends JFrame implements Observer {
         Client.getOwnInstance().setClientInfo((DTOClient) object.getSendingObject());
         update.updateSubComponents();
       } else if(MessageType.RULE_MESSAGE.equals(object.getType())) {
-        ClientFrame.getInstance().showRuleException(object.getSendingObject());
+        showRuleException(object.getSendingObject());
       } else if(MessageType.STATUS_MESSAGE.equals(object.getType())) {
-        ClientFrame.getInstance().setStatus(object.getSendingObject().toString(),
-            GameClient.getClient().isConnected(),
+        final String message = (String) object.getSendingObject();
+        showInformationPopup(message);
+        setStatus(message, GameClient.getClient().isConnected(),
             ConnectionInfo.getOwnInstance().getServerAddress()); //TODO statusbar besser zugreifbar machen
       }
     }
@@ -433,8 +454,9 @@ public class ClientFrame extends JFrame implements Observer {
         final List<DTOCard> defenderCards = new ArrayList<DTOCard>();
         prepareInGameCards(cards, attackerCards, defenderCards);
         update.updateGamePanel(attackerCards, defenderCards, null);
-      } else if(GameUpdateType.NEXT_ROUND_AVAILABLE.equals(object.getType())) {
-        update.enableButtons((Boolean) object.getSendingObject());
+      } else if(GameUpdateType.NEXT_ROUND_INFO.equals(object.getType())) {
+        final List<Boolean> info = (List<Boolean>) object.getSendingObject();
+        update.enableButtons(info.get(0), info.get(1));
       } else if(GameUpdateType.CLIENT_CARDS.equals(object.getType())) {
         update.updateGamePanel(null,null,(List<DTOCard>) object.getSendingObject());
       } else if(GameUpdateType.GAME_ABORTED.equals(object.getType())) {
@@ -459,7 +481,7 @@ public class ClientFrame extends JFrame implements Observer {
           Miscellaneous.addAllToCollection(attackerCards, cards.get(0));
           Miscellaneous.addAllToCollection(defenderCards, cards.get(1));
         } else {
-          JOptionPane.showMessageDialog(ClientFrame.getInstance(),
+          JOptionPane.showMessageDialog(frameInstance,
               I18nSupport.getValue(CLIENT_BUNDLE,"dialog.text.error.server.error"),
               I18nSupport.getValue(CLIENT_BUNDLE,"dialog.title.error"),
               JOptionPane.ERROR_MESSAGE);
@@ -525,12 +547,14 @@ public class ClientFrame extends JFrame implements Observer {
     }
 
     /**
-     * Enables the game buttons depending on the players type and the surpassed boolean.
-     * @param roundFinished Surpassed boolean.
+     * Enables the game buttons depending on the players type and the surpassed boolean values.
+     * It also notifies the client via popup if the next round is available or if the defender
+     * took the cards or not.
+     * @param roundFinished Specifies the enabled state of the buttons.
+     * @param defenderTookCards Specifies the popup message, if the next round is available.
      */
-    public void enableButtons(Boolean roundFinished) {
-      final Boolean take;
-      final Boolean round;
+    public void enableButtons(Boolean roundFinished, Boolean defenderTookCards) {
+      final Boolean take, round;
       final PlayerType playerType = Client.getOwnInstance().getPlayerType();
       final Boolean cardsOnTable = gamePanel.hasInGameCards();
       if(playerType.equals(PlayerType.FIRST_ATTACKER) ||
@@ -540,10 +564,13 @@ public class ClientFrame extends JFrame implements Observer {
       } else if (playerType.equals(PlayerType.DEFENDER)) {
         take = true;
         round = roundFinished && gamePanel.inGameCardsAreCovered();
+        if(round)
+          showInformationPopup(I18nSupport.getValue(MSGS_BUNDLE, "next.round.available"));
       } else {
         take = false;
         round = false;
       }
+      //TODO unterschiedliche oberflächen und auch messagehandler für beobachter und spieler machen, damit so ein scheiß wie in dieser methode nicht gemacht werden muss
       takeCardsButton.setEnabled(take && cardsOnTable);
       roundDoneButton.setEnabled(round && cardsOnTable);
     }
@@ -612,5 +639,15 @@ class UserMessageDistributor {
     final GameClient gameClient = GameClient.getClient();
     client.setSpectating(spectate);
     gameClient.sendClientUpdate(client.toDTO());
+  }
+
+  public void showRulePopup(String ruleMessage, Rectangle parentBounds) {
+    WidgetCreator.createPopup(ClientGUIConstants.GAME_TABLE_COLOUR, ruleMessage, parentBounds,
+        DurakPopup.LOCATION_DOWN_RIGHT, 3).setVisible(true);
+  }
+
+  public void showMessagePopup(Color background, String message, Rectangle parentBounds) {
+    WidgetCreator.createPopup(background, message, parentBounds,
+        DurakPopup.LOCATION_UP_LEFT, 3).setVisible(true);
   }
 }

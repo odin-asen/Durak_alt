@@ -81,4 +81,10 @@ public class Compute {
 
     return new ImageIcon(resizedImg);
   }
+
+  public static Rectangle getFramelessBounds(JFrame frame) {
+    return new Rectangle(frame.getX()+frame.getWidth()-frame.getContentPane().getWidth(),
+        frame.getY()+frame.getHeight()-frame.getContentPane().getHeight(),
+        frame.getContentPane().getWidth(), frame.getContentPane().getHeight());
+  }
 }

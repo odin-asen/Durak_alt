@@ -39,6 +39,7 @@ public class GameProcess<ID> {
   private Boolean initialiseNew;
 
   private RuleChecker ruleChecker;
+  private Boolean defenderTookCards;
 
   /* Constructors */
   public GameProcess() {
@@ -58,6 +59,7 @@ public class GameProcess<ID> {
     playerHolder.clear();
     gameInProcess = false;
     initialiseNew = true;
+    defenderTookCards = null;
   }
 
   /**
@@ -201,6 +203,7 @@ public class GameProcess<ID> {
     Boolean result = false;
     if(PlayerConstants.PlayerType.DEFENDER.equals(type)) {
       result = defenderRequestNextRound(takeCards, ruleChecker.getDefender());
+      defenderTookCards = takeCards;
     } else if(PlayerConstants.PlayerType.FIRST_ATTACKER.equals(type) ||
         PlayerConstants.PlayerType.SECOND_ATTACKER.equals(type)) {
       ruleChecker.setAttackerReadyNextRound(type);
@@ -208,6 +211,7 @@ public class GameProcess<ID> {
 
     if(result)
       pairCardHolder.clear();
+    else defenderTookCards = null;
 
     return result;
   }
@@ -300,10 +304,18 @@ public class GameProcess<ID> {
     return Converter.playerCardsToDTO(playerHolder.get(playerID));
   }
 
-  public Boolean nextRoundAvailable() {
-    return ruleChecker.readyForNextRound();
+  /**
+   * This method returns a list of size 2. The first boolean specifies if the next round is
+   * available. The second boolean specifies if the defender took the cards.
+   * @return A list of information, if the next round is available and if the defender
+   * took the cards.
+   */
+  public List<Boolean> nextRoundAvailable() {
+    final List<Boolean> roundInfo = new ArrayList<Boolean>(2);
+    roundInfo.add(ruleChecker.readyForNextRound());
+    roundInfo.add(defenderTookCards);
+    return roundInfo;
   }
-
 
   public Boolean gameHasFinished() {
     return determineLoser() != null;

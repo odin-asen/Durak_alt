@@ -166,7 +166,7 @@ public class ResourceGetter {
       new Thread(new Runnable() {
         public void run() {
           try {
-            SoundPlayer.playSoundFile(new URL(path));
+            SoundPlayer.playSoundFile(ResourceGetter.class.getResource(path));
           } catch (Exception e) {
             LOGGER.warning("Error playing the sound! Message: " + e.getMessage());
           }

@@ -571,8 +571,8 @@ class GameUpdate {
     /* send it to all connected clients, not just inGame clients */
     server.broadcastMessage(GameUpdateType.INGAME_CARDS, allCards);
     server.broadcastMessage(GameUpdateType.PLAYERS_UPDATE,
-        Collections.list(Collections.enumeration(clientHolder.getAllValues())));
-    server.broadcastMessage(GameUpdateType.NEXT_ROUND_AVAILABLE, process.nextRoundAvailable());
+        Collections.list(Collections.enumeration(clientHolder.getInGameValues())));
+    server.broadcastMessage(GameUpdateType.NEXT_ROUND_INFO, process.nextRoundAvailable());
 
     if(process.gameHasFinished()) {   //TODO ausprobieren, ob dieser Block an den Anfang kann oder nicth
       server.stopGame(false, "");

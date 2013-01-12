@@ -106,8 +106,7 @@ public class ActionCollection {
       } catch (GameClientException e) {
         final String message = e.getMessage();
         LOGGER.info("Connect action failed: "+message);
-        WidgetCreator.createPopup(ClientGUIConstants.USER_MESSAGE_ERROR_COLOUR,
-            message, mainFrame.getBounds(), DurakPopup.LOCATION_UP_LEFT, 3).setVisible(true);
+        mainFrame.showErrorPopup(message);
         mainFrame.setStatus(message, false, "");
       }
     }
