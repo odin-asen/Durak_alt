@@ -590,7 +590,7 @@ class GameUpdate {
           process.getPlayerCards(getPlayerID(client))));
       server.sendMessage(callbackable, new MessageObject(MessageType.OWN_CLIENT_INFO, client));
     }
-    /* inform in game clients about opponents */
+    /* inform ingame clients about opponents */
     server.broadcastOtherClients(GameUpdateType.INITIALISE_PLAYERS, clientHolder.getInGameKeys());
   }
 

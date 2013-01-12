@@ -17,7 +17,6 @@ public class CardStackPanel extends JPanel {
   /* Constructors */
 
   public CardStackPanel() {
-    this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
     cardStack = new CardStackWidget(CardStackWidget.ORIENTATION_VERTICAL);
   }
 

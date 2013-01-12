@@ -17,11 +17,8 @@ import java.util.List;
  */
 public class OpponentsPanel extends JPanel {
   /* Constructors */
-  public OpponentsPanel() {
-    this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
-  }
-
   /* Methods */
+
   public void addOpponent(DTOClient opponent) {
     OpponentHandWidget oHWidget = new OpponentHandWidget(
         ClientGUIConstants.OPPONENT_FONT, ClientGUIConstants.CARD_BACK, opponent);

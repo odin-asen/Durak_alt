@@ -25,25 +25,44 @@ public class GamePanel extends JPanel {
   private static final Float DISTANCE_CARD_X = 0.05f;
   private static final Float DISTANCE_CARD_Y = 0.08f;
 
+  private boolean handCardsVisible;
+
   private CardMoveListener cardManager;
 
   private List<GameCardWidget> clientWidgets;
   private InGamePanel inGamePanel;
+  private final GamePanel.CardReplacer cardReplacer;
 
   /* Constructors */
-  public GamePanel() {
-    inGamePanel= new InGamePanel();
-    inGamePanel.setLocation(0,0);
-    this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
-    this.setLayout(null);
-    this.add(inGamePanel);
-    this.addComponentListener(new CardReplacer());
 
+  public GamePanel(boolean handCardsVisible) {
+    inGamePanel= new InGamePanel();
+    cardReplacer = new CardReplacer();
     clientWidgets = new ArrayList<GameCardWidget>();
     cardManager = CardMoveListener.getDefaultInstance(this);
+
+    setHandCardsVisible(handCardsVisible);
+    setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
+    add(inGamePanel);
+    addComponentListener(cardReplacer);
   }
 
   /* Methods */
+
+  /**
+   * Depending on the parameter the hand cards panel will be visible or not.
+   * @param visible Indicates the hand cards visibility.
+   */
+  public void setHandCardsVisible(boolean visible) {
+    handCardsVisible = visible;
+    if(visible) {
+      setLayout(null);
+      inGamePanel.setLocation(0,0);
+    } else {
+      setLayout(new BorderLayout());
+    }
+  }
+
   /**
    * Places every card of {@code attackerCards} to the panel and lays every card of
    * {@code defenderCards} with the same index a little shifted over the attacker card.
@@ -85,6 +104,7 @@ public class GamePanel extends JPanel {
       addCard(widget);
       widget.getParent().setComponentZOrder(widget, 0);
     }
+
     /* To ensure the accurate drawing of the cards */
     /* Changing the size calls the CardReplacers
     componentResized method */
@@ -111,8 +131,10 @@ public class GamePanel extends JPanel {
   }
 
   public Rectangle computeClientCardArea() {
-    return new Rectangle(0, (int) (getHeight()*(1.0f-USER_CARDS_PANEL_HEIGHT)),
-    getWidth(), (int) (getHeight()*USER_CARDS_PANEL_HEIGHT));
+    if(handCardsVisible)
+      return new Rectangle(0, (int) (getHeight()*(1.0f-USER_CARDS_PANEL_HEIGHT)),
+          getWidth(), (int) (getHeight()*USER_CARDS_PANEL_HEIGHT));
+    else return new Rectangle(0,0,0,0);
   }
 
   private double computeRelativeCardToCardDistanceX(Rectangle cardBounds, Integer cardCount) {

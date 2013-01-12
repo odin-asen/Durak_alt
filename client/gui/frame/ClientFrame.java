@@ -5,7 +5,7 @@ import client.business.Client;
 import client.business.client.GameClient;
 import client.gui.ActionCollection;
 import client.gui.frame.chat.ChatFrame;
-import client.gui.frame.gamePanel.GamePanel;
+import client.gui.frame.playerTypePanel.PlayerTypePanel;
 import common.dto.DTOCard;
 import common.dto.DTOCardStack;
 import common.dto.DTOClient;
@@ -22,8 +22,6 @@ import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.MessageFormat;
@@ -49,22 +47,12 @@ public class ClientFrame extends JFrame implements Observer {
   private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
 
   private static final String VERSION_NUMBER = "0.2";
-  private static final String ACTION_COMMAND_TAKE_CARDS = "takeCards"; //NON-NLS
-  private static final String ACTION_COMMAND_ROUND_DONE = "roundDone"; //NON-NLS
-
-  private JPanel secondPane;
-  private OpponentsPanel opponentsPanel;
-  private CardStackPanel cardStackPanel;
-  private GamePanel gamePanel;
-  private DurakStatusBar statusBar;
-  private JPanel stackClientsPanel;
-  private JList<DTOClient> clientsList;
 
   private MessageHandler handler;
   private ComponentUpdate update;
   private UserMessageDistributor messenger;
-  private JButton roundDoneButton;
-  private JButton takeCardsButton;
+
+  private PlayerTypePanel centrePanel;
   private DurakToolBar toolBar;
 
   /* Constructors */
@@ -162,38 +150,17 @@ public class ClientFrame extends JFrame implements Observer {
    */
   public void init() {
     toolBar = new DurakToolBar();
+    centrePanel = new PlayerTypePanel(PlayerType.DEFAULT);
 
     getContentPane().setLayout(new BorderLayout());
     getContentPane().add(toolBar, BorderLayout.PAGE_START);
-    getContentPane().add(getSecondPane(), BorderLayout.CENTER);
+    getContentPane().add(centrePanel, BorderLayout.CENTER);
     updateStatusBar();
   }
 
   public void update(Observable o, Object arg) {
     final MessageObject object = (MessageObject) arg;
     handler.handleUpdate(object);
-  }
-
-  private Boolean nextRoundRequest(Boolean takeCards) {
-    if(takeCards == null)
-      return false;
-
-    final DTOClient dtoClient = Client.getOwnInstance().toDTO();
-    FinishAction.FinishType type = FinishAction.FinishType.GO_TO_NEXT_ROUND;
-    if(dtoClient.playerType.equals(PlayerType.DEFENDER)) {
-      if(takeCards)
-        type = FinishAction.FinishType.TAKE_CARDS;
-      return GameClient.getClient().finishRound(dtoClient, type);
-    } else if(dtoClient.playerType.equals(PlayerType.FIRST_ATTACKER) ||
-        dtoClient.playerType.equals(PlayerType.SECOND_ATTACKER)) {
-      if(GameClient.getClient().finishRound(dtoClient, type)) {
-        /* The player is not allowed to do a card move */
-        gamePanel.setListenerType(PlayerType.DEFAULT);
-        return true;
-      }
-    }
-
-    return false;
   }
 
   /**
@@ -233,16 +200,14 @@ public class ClientFrame extends JFrame implements Observer {
    * @param serverAddress Shows the server address as tooltip.
    */
   public void setStatus(String mainText, Boolean connected, String serverAddress) {
-    statusBar.setConnected(connected, serverAddress);
-    statusBar.setText(mainText);
-    statusBar.setPlayerType(Client.getOwnInstance().getPlayerType());
+    centrePanel.setStatus(mainText);
+    centrePanel.setStatus(connected, serverAddress);
     toolBar.setConnection(connected);
   }
 
   public void updateStatusBar() {
-    statusBar.setConnected(GameClient.getClient().isConnected());
-    statusBar.setText("");
-    statusBar.setPlayerType(Client.getOwnInstance().getPlayerType());
+    centrePanel.setStatus(GameClient.getClient().isConnected());
+    centrePanel.setStatus("");
   }
 
   /***********************/
@@ -253,152 +218,12 @@ public class ClientFrame extends JFrame implements Observer {
    * @param clients All clients to show on the list.
    */
   public void updateClientList(List<DTOClient> clients) {
-    final DefaultListModel<DTOClient> listModel =
-        ((DefaultListModel<DTOClient>) clientsList.getModel());
-    listModel.clear();
-
-    if(clients != null) {
-      for (DTOClient client : clients)
-        listModel.add(listModel.size(), client);
-    }
+    //TODO füllen
   }
 
   /* Getter and Setter */
 
-  private JPanel getSecondPane() {
-    if(secondPane != null)
-      return secondPane;
-
-    secondPane = new JPanel();
-    gamePanel = new GamePanel();
-
-    secondPane.setLayout(new BorderLayout());
-    secondPane.add(getOpponentButtonPanel(), BorderLayout.PAGE_START);
-    secondPane.add(getStackClientsPanel(), BorderLayout.LINE_START);
-    secondPane.add(gamePanel, BorderLayout.CENTER);
-    secondPane.add(getStatusPanel(), BorderLayout.PAGE_END);
-
-    return secondPane;
-  }
-
-  private JPanel getOpponentButtonPanel() {
-    final JPanel panel = new JPanel();
-    final JPanel buttonPanel = getButtonPanel();
-    opponentsPanel = new OpponentsPanel();
-
-    buttonPanel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, OPPONENT_PANEL_HEIGHT));
-    buttonPanel.setMaximumSize(new Dimension(CARD_STACK_PANEL_WIDTH, Integer.MAX_VALUE));
-    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-    panel.add(buttonPanel);
-    panel.add(opponentsPanel);
-
-    return panel;
-  }
-
-  private DurakStatusBar getStatusPanel() {
-    if(statusBar != null)
-      return statusBar;
-
-    statusBar = new DurakStatusBar();
-    statusBar.setPreferredSize(new Dimension(0, STATUS_BAR_HEIGHT));
-
-    return statusBar;
-  }
-
-  private JPanel getStackClientsPanel() {
-    if(stackClientsPanel != null)
-      return stackClientsPanel;
-
-    stackClientsPanel = new JPanel();
-    cardStackPanel = new CardStackPanel();
-
-    clientsList = new JList<DTOClient>(new DefaultListModel<DTOClient>());
-    final JPanel listPanel = new JPanel();
-    final JScrollPane listScroll = new JScrollPane(clientsList);
-
-    cardStackPanel.setLayout(new BorderLayout());
-    cardStackPanel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, cardStackPanel.getPreferredSize().height));
-    cardStackPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-    cardStackPanel.add(Box.createGlue(), BorderLayout.PAGE_START);
-    cardStackPanel.add(Box.createGlue(), BorderLayout.PAGE_END);
-
-    clientsList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-    clientsList.setCellRenderer(new ClientInfoCellRenderer());
-    listPanel.setLayout(new GridLayout());
-    listPanel.setBorder(BorderFactory.createTitledBorder(I18nSupport.getValue(CLIENT_BUNDLE,"border.title.opponents")));
-    listPanel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, 100));
-    listPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, listPanel.getPreferredSize().height));
-    listPanel.add(listScroll);
-
-    stackClientsPanel.setLayout(new BoxLayout(stackClientsPanel, BoxLayout.PAGE_AXIS));
-    stackClientsPanel.add(cardStackPanel);
-    stackClientsPanel.add(listPanel);
-
-    return stackClientsPanel;
-  }
-
-  private JPanel getButtonPanel() {
-    final JPanel panel = new JPanel();
-    takeCardsButton = WidgetCreator.makeButton(null,
-        I18nSupport.getValue(CLIENT_BUNDLE,"button.text.take.cards"),
-        I18nSupport.getValue(CLIENT_BUNDLE,"button.tooltip.take.cards"), null,
-        new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            if(nextRoundRequest(true)) {
-              takeCardsButton.setEnabled(false);
-              roundDoneButton.setEnabled(false);
-              update.updateGamePanel(new ArrayList<DTOCard>(), new ArrayList<DTOCard>(), null);
-            }
-          }
-        });
-    roundDoneButton = WidgetCreator.makeButton(null,
-        I18nSupport.getValue(CLIENT_BUNDLE,"button.text.finish.round"),
-        I18nSupport.getValue(CLIENT_BUNDLE,"button.tooltip.finish.round"), null,
-        new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            if(nextRoundRequest(false)) {
-              takeCardsButton.setEnabled(false);
-              roundDoneButton.setEnabled(false);
-            }
-          }
-        });
-    takeCardsButton.setEnabled(false);
-    roundDoneButton.setEnabled(false);
-
-    panel.setBackground(GAME_TABLE_COLOUR);
-    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-    panel.add(takeCardsButton);
-    panel.add(roundDoneButton);
-
-    return panel;
-  }
-
   /* Inner Classes */
-
-  private class ClientInfoCellRenderer extends DefaultListCellRenderer {
-    public Component getListCellRendererComponent(
-        JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-      Component superComponent = super.getListCellRendererComponent(list,value,index,isSelected,cellHasFocus);
-
-      if(value ==null)
-        return this;
-
-      final DTOClient client = (DTOClient) value;
-      final Color foreground;
-      if(client.spectating) {
-        foreground = new Color(164, 164, 164);
-        this.setToolTipText(I18nSupport.getValue(CLIENT_BUNDLE,"list.tooltip.audience"));
-      } else {
-        foreground = superComponent.getForeground();
-        this.setToolTipText(null);
-      }
-      this.setText(client.name);
-      this.setBackground(superComponent.getBackground());
-      this.setForeground(foreground);
-
-      return this ;
-    }
-  }
 
   private class MessageHandler {
     void handleUpdate(MessageObject object) {
@@ -502,14 +327,14 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   /**
-   * Consits of all methods that are changing the in game relevant components, like
+   * Consits of all methods that are changing the ingame relevant components, like
    * the hand cards, opponent widgets, ingame card widgets, etc...
    */
   private class ComponentUpdate {
     /* Updates the representation and behavior of subcomponents,
     like the card moving at the game panel. */
     private void updateSubComponents() {
-      gamePanel.setListenerType(Client.getOwnInstance().getPlayerType());
+      centrePanel.setPlayerType(Client.getOwnInstance().getPlayerType());
     }
 
     /* If a parameter is null the specified card update will be ignored. */
@@ -517,33 +342,25 @@ public class ClientFrame extends JFrame implements Observer {
     /* Note: Defender cards can never be shown without the appropriate attacker card */
     private void updateGamePanel(List<DTOCard> attackerCards, List<DTOCard> defenderCards,
                                 List<DTOCard> clientCards) {
-      if(clientCards != null)
-        gamePanel.placeClientCards(clientCards);
-      if(attackerCards != null)
-        gamePanel.placeInGameCards(attackerCards, defenderCards);
+      centrePanel.setCards(attackerCards, defenderCards, clientCards);
     }
 
     private void updateStack(DTOCardStack cardStack) {
-      cardStackPanel.updateStack(cardStack);
+      centrePanel.updateStack(cardStack);
     }
 
     /* If clients is null, all components will be removed */
     private void updateOpponents(List<DTOClient> clients, boolean initialisation) {
       if(clients != null) {
-        if(initialisation) {
-          opponentsPanel.removeAllOpponents();
-          for (DTOClient client : clients)
-            opponentsPanel.addOpponent(client);
-        }
-        opponentsPanel.updateOpponents(clients);
-      } else opponentsPanel.removeAllOpponents();
+        if(initialisation)
+          centrePanel.initOpponents(clients);
+        else centrePanel.updateOpponents(clients, false);
+      } else centrePanel.updateOpponents(clients, true);
     }
 
     /* Resets all game related widgets and buttons */
-    private void resetGameWidgets() { //TODO buttons noch einstellen
-      gamePanel.deleteCards();
-      opponentsPanel.removeAllOpponents();
-      cardStackPanel.deleteCards();
+    private void resetGameWidgets() {
+      centrePanel.resetGameWidgets();
     }
 
     /**
@@ -553,26 +370,8 @@ public class ClientFrame extends JFrame implements Observer {
      * @param roundFinished Specifies the enabled state of the buttons.
      * @param defenderTookCards Specifies the popup message, if the next round is available.
      */
-    public void enableButtons(Boolean roundFinished, Boolean defenderTookCards) {
-      final Boolean take, round;
-      final PlayerType playerType = Client.getOwnInstance().getPlayerType();
-      final Boolean cardsOnTable = gamePanel.hasInGameCards();
-      if(playerType.equals(PlayerType.FIRST_ATTACKER) ||
-          playerType.equals(PlayerType.SECOND_ATTACKER)) {
-        take = false;
-        round = !roundFinished;
-      } else if (playerType.equals(PlayerType.DEFENDER)) {
-        take = true;
-        round = roundFinished && gamePanel.inGameCardsAreCovered();
-        if(round)
-          showInformationPopup(I18nSupport.getValue(MSGS_BUNDLE, "next.round.available"));
-      } else {
-        take = false;
-        round = false;
-      }
-      //TODO unterschiedliche oberflächen und auch messagehandler für beobachter und spieler machen, damit so ein scheiß wie in dieser methode nicht gemacht werden muss
-      takeCardsButton.setEnabled(take && cardsOnTable);
-      roundDoneButton.setEnabled(round && cardsOnTable);
+    private void enableButtons(Boolean roundFinished, Boolean defenderTookCards) {
+      centrePanel.enableButtons(roundFinished, defenderTookCards);
     }
   }
 }
@@ -651,3 +450,4 @@ class UserMessageDistributor {
         DurakPopup.LOCATION_UP_LEFT, 3).setVisible(true);
   }
 }
+
