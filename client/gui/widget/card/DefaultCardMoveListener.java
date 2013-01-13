@@ -1,7 +1,6 @@
 package client.gui.widget.card;
 
-import client.gui.frame.gamePanel.GamePanel;
-
+import javax.swing.*;
 import java.awt.event.MouseEvent;
 
 /**
@@ -11,15 +10,17 @@ import java.awt.event.MouseEvent;
  */
 public class DefaultCardMoveListener extends CardMoveListener {
   /* Constructors */
-  protected DefaultCardMoveListener(GamePanel parent) {
-    super(parent);
+  protected DefaultCardMoveListener() {
+    super();
   }
 
   /* Methods */
   public void mousePressed(MouseEvent e) {
     final GameCardWidget widget = (GameCardWidget) e.getComponent();
+    final JComponent parent = (JComponent) widget.getParent();
+    final int lastZOrder = (parent != null) ? parent.getComponentZOrder(widget) : 0;
     widget.setLastLocation(widget.getLocation());
-    widget.setLastZOrderIndex(parent.getComponentZOrder(widget));
+    widget.setLastZOrderIndex(lastZOrder);
 
     super.mousePressed(e);
   }
@@ -27,7 +28,8 @@ public class DefaultCardMoveListener extends CardMoveListener {
   public void mouseReleased(MouseEvent e) {
     final GameCardWidget widget = (GameCardWidget) e.getComponent();
     widget.setLocation(widget.getLastLocation());
-    parent.setComponentZOrder(widget, widget.getLastZOrderIndex());
+    if (widget.getParent() != null)
+      widget.getParent().setComponentZOrder(widget, widget.getLastZOrderIndex());
 
     super.mouseReleased(e);
   }

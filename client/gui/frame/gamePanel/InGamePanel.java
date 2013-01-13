@@ -2,7 +2,7 @@ package client.gui.frame.gamePanel;
 
 import client.gui.frame.ClientGUIConstants;
 import client.gui.widget.card.GameCardWidget;
-import common.dto.DTOCard;
+import common.game.GameCard;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -10,54 +10,61 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InGamePanel extends JPanel {
-  private List<CombatCardPanel> cardPanels;
+public class InGamePanel extends JPanel implements CurtainWidget {
   private Integer[] grids;
 
   private Boolean paintCurtain;
+  private List<CombatCardPanel> cardPanels;
+  private List<GameCard> attackCards;
+  private List<GameCard> defenseCards;
 
   /* Constructors */
   public InGamePanel() {
     paintCurtain = false;
     grids = new Integer[]{1,1};
     cardPanels = new ArrayList<CombatCardPanel>();
+    attackCards = new ArrayList<GameCard>(6);
+    defenseCards = new ArrayList<GameCard>(6);
     setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
     setLayout(new GridLayout(grids[0], grids[1]));
     setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
   }
 
   /* Methods */
+
   /**
-   * Places every card of {@code attackCards} to the panel and lays every card of
-   * {@code defenderCards} with the same index a little shifted over the attacker card.
-   * If {@code attackCards} is null the field will be cleared, independent of the second
-   * parameter.
-   * @param attackCards   Cards of the attacker.
-   * @param defenderCards Cards of the defender.
+   * Places the attacker and defender cards depending on the surpassed lists and fits them
+   * to the given area.
    */
-  public void placeCards(List<DTOCard> attackCards, List<DTOCard> defenderCards) {
-    clearField();
-
-    if(attackCards == null)
-      return;
-
-    for (DTOCard card : attackCards) {
-      final CombatCardPanel panel = new CombatCardPanel();
-      panel.setAttackerCard(new GameCardWidget(card));
-      addInGameCards(panel);
-    }
-
-    if(defenderCards == null)
-      return;
-
-    for (int index = 0; index < defenderCards.size() && index < attackCards.size(); index++) {
-      final CombatCardPanel cardPanel = cardPanels.get(index);
-      if(defenderCards.get(index) != null) {
-        cardPanel.setDefenderCard(new GameCardWidget(defenderCards.get(index)));
-        cardPanel.placeCards();
+  public void setCards() {
+    for (int index = 0; index < attackCards.size(); index++) {
+      final CombatCardPanel panel;
+      if(cardPanels.size() > index) {
+        panel = cardPanels.get(index);
+      } else {
+        panel = new CombatCardPanel();
+        addIngameCards(panel);
       }
+      setAttackCard(panel, attackCards, index);
+      setDefenseCard(panel, defenseCards, index);
     }
     refreshGrids();
+  }
+
+  private void setAttackCard(CombatCardPanel panel, List<GameCard> cardList, int index) {
+    if(cardList != null && cardList.size() > index) {
+      if(panel.getAttackerCard() != null)
+        panel.getAttackerCard().setCard(cardList.get(index));
+      else panel.setAttackerCard(new GameCardWidget(cardList.get(index)));
+    }
+  }
+
+  private void setDefenseCard(CombatCardPanel panel, List<GameCard> cardList, int index) {
+    if(cardList != null && cardList.size() > index) {
+      if(panel.getDefenderCard() != null)
+        panel.getDefenderCard().setCard(cardList.get(index));
+      else panel.setDefenderCard(new GameCardWidget(cardList.get(index)));
+    }
   }
 
   public void clearField() {
@@ -67,7 +74,7 @@ public class InGamePanel extends JPanel {
     repaint();
   }
 
-  public void addInGameCards(CombatCardPanel panel) {
+  private void addIngameCards(CombatCardPanel panel) {
     if (panel != null) {
       cardPanels.add(panel);
       add(panel);
@@ -75,7 +82,7 @@ public class InGamePanel extends JPanel {
     }
   }
 
-  private void refreshGrids() {
+  public void refreshGrids() {
     final int componentCount = getComponentCount();
     final Integer[] gridValues = computePanelGrid(componentCount, GameCardWidget.WIDTH_TO_HEIGHT);
     if(gridValues[0].compareTo(grids[0]) != 0 ||
@@ -129,12 +136,38 @@ public class InGamePanel extends JPanel {
     g2D.setColor(oldColor);
   }
 
+  public Boolean allCardCovered() {
+    if(cardPanels.size() <= 0)
+      return false;
+
+    for (CombatCardPanel panel : cardPanels) {
+      if(!panel.isComplete())
+        return false;
+    }
+    return true;
+  }
+
   /* Getter and Setter */
-  public void setPaintCurtain(Boolean paint) {
+
+  public void paintCurtain(boolean paint) {
     if(paintCurtain != paint) {
       paintCurtain = paint;
       repaint();
     }
+  }
+
+  public boolean setAttackCards(List<GameCard> cards) {
+    if(!attackCards.equals(cards) && cards != null) {
+      attackCards = cards;
+      return true;
+    } else return false;
+  }
+
+  public boolean setDefenseCards(List<GameCard> cards) {
+    if(!defenseCards.equals(cards) && cards != null) {
+      defenseCards = cards;
+      return true;
+    } else return false;
   }
 
   public List<CombatCardPanel> getCardPanels() {

@@ -38,7 +38,7 @@ public class DefaultPanel extends DurakCentrePanelImpl {
    * the client list and the opponent widgets, etc... will be untouched.
    */
   public void setNewRound() {
-    getGameProcessContainer().placeInGameCards(null, null);
+    getGameProcessContainer().setIngameCards(null, null);
     getStatusBarContainer().setPlayerType(PlayerConstants.PlayerType.DEFAULT);
   }
 

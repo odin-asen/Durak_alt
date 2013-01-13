@@ -2,16 +2,15 @@ package client.gui.frame.playerTypePanel;
 
 import client.gui.frame.*;
 import client.gui.frame.gamePanel.GamePanel;
-import common.dto.DTOCard;
 import common.dto.DTOCardStack;
 import common.dto.DTOClient;
+import common.game.GameCard;
 import common.i18n.I18nSupport;
 import common.utilities.LoggingUtility;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,15 +30,21 @@ public class PlayerTypePanel extends JPanel {
   private CardLayout cardLayout;
   private Map<PlayerType, DurakCentrePanelImpl> panelMap;
   private PlayerType currentType;
+  private List<GameCard> handCards;
+  private List<GameCard> attackCards;
+  private List<GameCard> defenseCards;
 
   /* Constructors */
   public PlayerTypePanel(PlayerType type) {
+    currentType = type;
     cardLayout = new CardLayout();
     panelMap = new HashMap<PlayerType, DurakCentrePanelImpl>(PlayerType.values().length);
+    handCards = new ArrayList<GameCard>();
+    attackCards = new ArrayList<GameCard>(6);
+    defenseCards = new ArrayList<GameCard>(6);
+
     setLayout(cardLayout);
     initPanels();
-    currentType = type;
-    cardLayout.show(this, type.getDescription());
   }
 
   /* Methods */
@@ -51,6 +56,7 @@ public class PlayerTypePanel extends JPanel {
     addPanel(PlayerType.DEFENDER, new DefenderPanel());
     addPanel(PlayerType.NOT_LOSER, new DefaultPanel());
     addPanel(PlayerType.LOSER, new DefaultPanel());
+    cardLayout.show(this, currentType.getDescription());
   }
 
   private void addPanel(PlayerType type, DurakCentrePanelImpl panel) {
@@ -61,18 +67,27 @@ public class PlayerTypePanel extends JPanel {
 
   /**
    * Notifies a change to the gui layout and handling.
+   *
    * @param type Specification for the layout and handling type.
    */
   public void setPlayerType(PlayerType type) {
-    //TODO ist ein bisschen ineffizient, neue Methoden kommentieren oder andere LÖsung finden
-    //TODO referenz auf die Karten des Clients (bevorzuge ich schon jetzt)
-    final DurakCentrePanelImpl parent = panelMap.get(currentType);
-      final GamePanel panel = parent.getGameProcessContainer();
-      final List<DTOCard> clientCards = panel.getClientCards();
-      final List<List<DTOCard>> attackerDefender = panel.getInGameCards();
-    currentType = type;
-    cardLayout.show(this, type.getDescription());
-            setCards(attackerDefender.get(0), attackerDefender.get(1), clientCards);
+    if (!currentType.equals(type)) {
+      currentType = type;
+      cardLayout.show(this, type.getDescription());
+      final GamePanel gamePanel = panelMap.get(currentType).getGameProcessContainer();
+      gamePanel.setHandCards(handCards);
+      gamePanel.setIngameCards(attackCards, defenseCards);
+      gamePanel.updateCards();
+      gamePanel.setListenerType(currentType);
+    }
+  }
+
+  public void next() {
+    int next = currentType.ordinal() + 1;
+    if (next >= PlayerType.values().length)
+      next = 0;
+    setPlayerType(PlayerType.values()[next]);
+    panelMap.get(currentType).getStatusBarContainer().setPlayerType(currentType);
   }
 
   public void setStatus(String mainText) {
@@ -99,13 +114,23 @@ public class PlayerTypePanel extends JPanel {
    * @param defenderCards The ingame defense cards.
    * @param handCards     The clients hand cards.
    */
-  public void setCards(List<DTOCard> attackerCards, List<DTOCard> defenderCards,
-                       List<DTOCard> handCards) {
-    final GamePanel panel = panelMap.get(currentType).getGameProcessContainer();
-    if (handCards != null)
-      panel.placeClientCards(handCards);
-    if (attackerCards != null)
-      panel.placeInGameCards(attackerCards, defenderCards);
+  public void setCards(List<GameCard> attackerCards, List<GameCard> defenderCards,
+                       List<GameCard> handCards) {
+    final GamePanel gamePanel = panelMap.get(currentType).getGameProcessContainer();
+
+    if (handCards != null) {
+      this.handCards = handCards;
+      gamePanel.setHandCards(handCards);
+    }
+
+    if (attackerCards != null) {
+      this.attackCards = attackerCards;
+      this.defenseCards = defenderCards;
+      gamePanel.setIngameCards(attackerCards, defenderCards);
+    }
+
+    if (handCards != null || attackerCards != null)
+      gamePanel.updateCards();
   }
 
   public void updateStack(DTOCardStack cardStack) {

@@ -2,9 +2,10 @@ package client.gui.widget.card;
 
 import client.business.Client;
 import client.business.client.GameClient;
-import client.gui.frame.gamePanel.GamePanel;
-import common.dto.DTOClient;
+import client.gui.frame.gamePanel.CardContainer;
+import client.gui.frame.gamePanel.CurtainWidget;
 import common.dto.DTOCard;
+import common.dto.DTOClient;
 import common.utilities.Converter;
 
 import javax.swing.*;
@@ -23,27 +24,35 @@ public class AttackCardMoveListener extends CardMoveListener {
   private static final String BUNDLE_NAME = "user.messages"; //NON-NLS
   private final PointedCardContainer pointedWidgets;
   private Float relativePointHeight;
+  private CardContainer<GameCardWidget> cardContainer;
+  private Rectangle attackArea;
+  private CurtainWidget attackFieldWidget;
 
   /* Constructors */
-  protected AttackCardMoveListener(GamePanel parent, Float relativePointedHeight) {
-    super(parent);
+
+  /**
+   * Creates a move listener for attackers. It provides the dragging of a card to the GamePanel
+   * objects ingame field. Hand cards can be pointed or marked to indicate that they will be
+   * dragged together to the field.
+   * @param relativePointedHeight The relative height of a card that this card will be raise if
+   *                              a mouse click is done. E.g. if the value is 0.5, the card will
+   *                              be raised by the half of its height.
+   */
+  protected AttackCardMoveListener(CardContainer<GameCardWidget> cardContainer,
+                                   Rectangle attackArea, CurtainWidget attackFieldWidget,
+                                   Float relativePointedHeight) {
+    super();
+    this.cardContainer = cardContainer;
+    this.attackArea = attackArea;
+    this.attackFieldWidget = attackFieldWidget;
     this.relativePointHeight = relativePointedHeight;
     pointedWidgets = new PointedCardContainer();
   }
 
   /* Methods */
-//  private void addCardToPanel(GameCardWidget widget) {
-//    parent.removeCard(widget);
-//    parent.repaint();
-//
-//    final CombatCardPanel panel = new CombatCardPanel();
-//    panel.setAttackerCard(widget);
-//    parent.addInGameCards(panel);
-//  }
 
   public void mouseDragged(MouseEvent e) {
     super.mouseDragged(e);
-
     final GameCardWidget widget = (GameCardWidget) e.getComponent();
     if(!pointedWidgets.widgets.isEmpty()) {
       movePointedWidgets(widget);
@@ -52,10 +61,11 @@ public class AttackCardMoveListener extends CardMoveListener {
 
   public void mousePressed(MouseEvent e) {
     final GameCardWidget widget = (GameCardWidget) e.getComponent();
-
     if(!pointedWidgets.widgets.contains(widget)) {
       widget.setLastLocation(widget.getLocation());
-      widget.setLastZOrderIndex(parent.getComponentZOrder(widget));
+      final JComponent parent = (JComponent) widget.getParent();
+      final int lastZOrder = (parent != null) ? parent.getComponentZOrder(widget) : 0;
+      widget.setLastZOrderIndex(lastZOrder);
     }
 
     pointedWidgets.reDePointCard(widget);
@@ -90,20 +100,21 @@ public class AttackCardMoveListener extends CardMoveListener {
 
   private void setWidgetToLastPlace(GameCardWidget widget) {
     widget.setLocation(widget.getLastLocation());
-    parent.setComponentZOrder(widget, widget.getLastZOrderIndex());
+    if(widget.getParent() != null)
+      widget.getParent().setComponentZOrder(widget, widget.getLastZOrderIndex());
   }
 
   private void removeClientCards(GameCardWidget currentWidget) {
     if(pointedWidgets.widgets.contains(currentWidget))
       pointedWidgets.widgets.remove(currentWidget);
-
-    parent.removeCard(currentWidget);
+    cardContainer.removeCard(currentWidget);
     currentWidget.setCursor(Cursor.getDefaultCursor());
     for (GameCardWidget pointed : pointedWidgets.widgets) {
-      parent.removeCard(pointed);
+      cardContainer.removeCard(pointed);
       pointed.setCursor(Cursor.getDefaultCursor());
     }
-    parent.repaint();
+    if(currentWidget.getParent() != null)
+      currentWidget.getParent().repaint();
   }
 
   /**
@@ -115,7 +126,7 @@ public class AttackCardMoveListener extends CardMoveListener {
    */
   private boolean moveIsValid(GameCardWidget widget) {
     boolean result;
-    if(!isWidgetInArea(widget, parent.getInGameArea()))
+    if(!isWidgetInArea(widget, attackArea))
       return false;
 
     if(!pointedWidgets.widgets.contains(widget))
@@ -134,7 +145,7 @@ public class AttackCardMoveListener extends CardMoveListener {
 
   public void componentMoved(ComponentEvent e) {
     final GameCardWidget widget = (GameCardWidget) e.getComponent();
-    parent.paintInGameCurtain(isWidgetInArea(widget, parent.getInGameArea()));
+    attackFieldWidget.paintCurtain(isWidgetInArea(widget, attackArea));
   }
 
   public void componentResized(ComponentEvent e) {
@@ -143,16 +154,19 @@ public class AttackCardMoveListener extends CardMoveListener {
   }
 
   private Boolean isWidgetInArea(GameCardWidget widget, Rectangle area) {
-    final Rectangle intersection = SwingUtilities.computeIntersection(
-        widget.getX(), widget.getY(), widget.getWidth(), widget.getHeight(),
-        area);
-
+    final Rectangle intersection = new Rectangle(area);
+    SwingUtilities.computeIntersection(widget.getX(), widget.getY(), widget.getWidth(),
+        widget.getHeight(), intersection);
     return intersection.x != 0 || intersection.y != 0 ||
         intersection.width != 0 || intersection.height != 0;
   }
 
   /* Getter and Setter */
+  public void setArea(Rectangle area) {
+    attackArea = area;
+  }
   /* Inner classes */
+
   private class PointedCardContainer {
     protected List<GameCardWidget> widgets;
 

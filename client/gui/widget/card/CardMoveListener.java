@@ -1,7 +1,8 @@
 package client.gui.widget.card;
 
+import client.gui.frame.gamePanel.CardContainer;
 import client.gui.frame.gamePanel.CombatCardPanel;
-import client.gui.frame.gamePanel.GamePanel;
+import client.gui.frame.gamePanel.CurtainWidget;
 import common.utilities.gui.Compute;
 
 import java.awt.*;
@@ -15,31 +16,38 @@ import java.util.List;
  */
 public abstract class CardMoveListener
     implements ComponentListener, MouseListener, MouseMotionListener {
-  protected GamePanel parent;
   protected Boolean dragged;
 
   private Point oldPoint;
   private Point grabbingPoint;
 
   /* Constructor */
-  public CardMoveListener(GamePanel parent) {
-    this.parent = parent;
+
+  public CardMoveListener() {
     this.dragged = false;
     oldPoint = new Point();
     grabbingPoint = null;
   }
 
-  public static CardMoveListener getDefenderInstance(GamePanel parent,
-                                                     List<CombatCardPanel> combatPanels) {
-    return new DefenseCardMoveListener(parent, combatPanels);
+  /**
+   * Creates a CardMoveListener for defending players.
+   * @param cardPanels
+   * @param cardContainer
+   * @return
+   */
+  public static CardMoveListener getDefenderInstance(List<CombatCardPanel> cardPanels,
+                                                    CardContainer<GameCardWidget> cardContainer) {
+    return new DefenseCardMoveListener(cardPanels, cardContainer);
   }
 
-  public static CardMoveListener getAttackerInstance(GamePanel parent, Float relativePointHeight) {
-    return new AttackCardMoveListener(parent, relativePointHeight);
+  public static CardMoveListener getAttackerInstance(CardContainer<GameCardWidget> container,
+                                            Rectangle attackArea, CurtainWidget curtainWidget,
+                                            Float relativePointHeight) {
+    return new AttackCardMoveListener(container, attackArea, curtainWidget, relativePointHeight);
   }
 
-  public static CardMoveListener getDefaultInstance(GamePanel parent) {
-    return new DefaultCardMoveListener(parent);
+  public static CardMoveListener getDefaultInstance() {
+    return new DefaultCardMoveListener();
   }
 
   /* Methods */
@@ -51,7 +59,8 @@ public abstract class CardMoveListener
    */
   public void mouseDragged(MouseEvent e) {
     final GameCardWidget cardWidget = (GameCardWidget) e.getSource();
-    parent.setComponentZOrder(cardWidget,0);
+    if(cardWidget.getParent() != null)
+      cardWidget.getParent().setComponentZOrder(cardWidget,0);
     Point point = e.getLocationOnScreen();
 
     /* Draw the widget at the correct position */
@@ -65,7 +74,8 @@ public abstract class CardMoveListener
    * @param dragPointScreen Position to move to.
    */
   protected void moveWidget(GameCardWidget cardWidget, Point dragPointScreen) {
-    if(Compute.componentContainsPoint(dragPointScreen, parent)) {
+    if(cardWidget.getParent() != null &&
+        Compute.componentContainsPoint(dragPointScreen, cardWidget.getParent())) {
       cardWidget.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
       cardWidget.setLocation(((dragPointScreen.x - oldPoint.x)+cardWidget.getLocation().x),
           (dragPointScreen.y - oldPoint.y)+cardWidget.getLocation().y);

@@ -43,13 +43,13 @@ public class Converter {
     if(dto == null)
       return null;
 
-    final GameCard card = new GameCard();
-    card.setCardColour(dto.cardColour);
-    card.setCardValue(dto.cardValue);
-    return card;
+    return new GameCard(dto.cardValue, dto.cardColour);
   }
 
   public static List<DTOCard> toDTO(List<GameCard> cards) {
+    if(cards == null)
+      return null;
+
     final List<DTOCard> dto = new ArrayList<DTOCard>();
     for (GameCard card : cards) {
       dto.add(toDTO(card));
@@ -58,6 +58,9 @@ public class Converter {
   }
 
   public static List<GameCard> fromDTO(List<DTOCard> dtoList) {
+    if(dtoList == null)
+      return null;
+
     final List<GameCard> cards = new ArrayList<GameCard>();
     for (DTOCard dtoCard : dtoList) {
       cards.add(fromDTO(dtoCard));
@@ -97,6 +100,9 @@ public class Converter {
   }
 
   public static List<List<DTOCard>> playersCardsToDTO(List<Player> playerList) {
+    if(playerList == null)
+      return null;
+
     final List<List<DTOCard>> playersHands = new ArrayList<List<DTOCard>>(playerList.size());
     for (Player player : playerList) {
       playersHands.add(playerCardsToDTO(player));
@@ -105,6 +111,9 @@ public class Converter {
   }
 
   public static List<DTOCard> playerCardsToDTO(Player player) {
+    if(player == null)
+      return null;
+
     final List<DTOCard> cards = new ArrayList<DTOCard>();
     for (GameCard gameCard : player.getCards()) {
       cards.add(Converter.toDTO(gameCard));
@@ -113,6 +122,9 @@ public class Converter {
   }
 
   public static List<List<DTOCard>> toDTO(List<GameCard>... cardLists) {
+    if(cardLists == null)
+      return null;
+
     final List<List<DTOCard>> dtoLists = new ArrayList<List<DTOCard>>();
     for (List<GameCard> cardList : cardLists) {
       dtoLists.add(Converter.toDTO(cardList));
@@ -122,6 +134,9 @@ public class Converter {
   }
 
   public static List<List<GameCard>> fromDTO(List<DTOCard>... dtoLists) {
+    if(dtoLists == null)
+      return null;
+
     final List<List<GameCard>> cardLists = new ArrayList<List<GameCard>>();
     for (List<DTOCard> dtoList : dtoLists) {
       cardLists.add(fromDTO(dtoList));
@@ -130,6 +145,9 @@ public class Converter {
   }
 
   public static <T> List<T> getList(DefaultListModel<T> listModel) {
+    if(listModel == null)
+      return null;
+
     final List<T> list = new ArrayList<T>(listModel.size());
     for (int index = 0; index < listModel.size(); index++) {
       list.add(listModel.get(index));
@@ -139,6 +157,9 @@ public class Converter {
   }
 
   public static <T>String getCollectionString(Collection<T> collection) {
+    if(collection == null)
+      return null;
+
     String string = "{";
     for (T t : collection) {
       string = string + "( " + t.toString() + " )";

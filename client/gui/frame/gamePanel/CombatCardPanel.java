@@ -14,7 +14,7 @@ import java.awt.*;
  * This panel can contain two GameCardWidgets. It should be used to display an
  * attacker card and a defender card.
  */
-public class CombatCardPanel extends JPanel {
+public class CombatCardPanel extends JPanel implements CurtainWidget {
   private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
 
   private GameCardWidget attackerCard;
@@ -128,6 +128,7 @@ public class CombatCardPanel extends JPanel {
   }
 
   /* Getter and Setter */
+
   public GameCardWidget getAttackerCard() {
     return attackerCard;
   }
@@ -146,9 +147,13 @@ public class CombatCardPanel extends JPanel {
     setToolTipText(createToolTipText());
   }
 
-  public void setPaintCurtain(Boolean paint) {
-    paintCurtain = paint;
-    if(attackerCard != null)
-      attackerCard.setPaintCurtain(paint);
+  public void paintCurtain(boolean paint) {
+    if(attackerCard != null) {
+      if(paint && !isComplete())
+        attackerCard.paintCurtain(true);
+      else attackerCard.paintCurtain(false);
+    }
+    if(defenderCard != null)
+      defenderCard.paintCurtain(false);
   }
 }

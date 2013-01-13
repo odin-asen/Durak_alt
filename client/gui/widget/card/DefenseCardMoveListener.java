@@ -2,13 +2,14 @@ package client.gui.widget.card;
 
 import client.business.Client;
 import client.business.client.GameClient;
+import client.gui.frame.gamePanel.CardContainer;
 import client.gui.frame.gamePanel.CombatCardPanel;
-import client.gui.frame.gamePanel.GamePanel;
 import common.dto.DTOClient;
 import common.utilities.Converter;
 import common.utilities.LoggingUtility;
 import common.utilities.gui.Compute;
 
+import javax.swing.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -18,47 +19,58 @@ import java.util.logging.Logger;
  * User: Timm Herrmann
  * Date: 05.11.12
  * Time: 00:52
+ *
+ * This CardMoveListener extension is made for defender types. A card can be dragged and
+ * successfully released only over a CombatCardPanel that is contained in the surpassed list
+ * at the constructor. The most touched CombatCardPanel without a defense card will be highlighted.
  */
 public class DefenseCardMoveListener extends CardMoveListener {
   private static final String BUNDLE_NAME = "user.messages"; //NON-NLS
-  private static final Logger LOGGER = LoggingUtility.getLogger(DefenseCardMoveListener.class.getName());
-  private CombatCardPanel curtainPanel;
-  private List<CombatCardPanel> combatPanels;
+  private static final Logger LOGGER = LoggingUtility.getLogger(
+      DefenseCardMoveListener.class.getName());
+  private CombatCardPanel currentCurtain;
+  private List<CombatCardPanel> cardPanels;
+  private CardContainer<GameCardWidget> cardContainer;
 
   /* Constructors */
-  protected DefenseCardMoveListener(GamePanel parent, List<CombatCardPanel> combatPanels) {
-    super(parent);
-    this.combatPanels = combatPanels;
+  protected DefenseCardMoveListener(List<CombatCardPanel> cardPanels,
+                                    CardContainer<GameCardWidget> cardContainer) {
+    super();
+    this.cardPanels = cardPanels;
+    this.cardContainer = cardContainer;
   }
 
   /* Methods */
-  private void setCurtainPanel(CombatCardPanel panel) {
-    if(curtainPanel != null)
-      curtainPanel.getAttackerCard().setPaintCurtain(false);
+  private void setCurrentCurtain(CombatCardPanel widget) {
+    if(currentCurtain != null)
+      currentCurtain.paintCurtain(false);
 
-    if(panel != null) {
-      if(curtainPanel != panel)
-        curtainPanel = panel;
-      curtainPanel.getAttackerCard().setPaintCurtain(true);
-    } else curtainPanel = null;
+    if(widget != null) {
+      if(!widget.equals(currentCurtain))
+        currentCurtain = widget;
+      currentCurtain.paintCurtain(true);
+    } else currentCurtain = null;
   }
 
   private void removeClientCard(GameCardWidget widget) {
-    parent.removeCard(widget);
-    parent.repaint();
+    cardContainer.removeCard(widget);
+    if(widget.getParent() != null)
+      widget.getParent().repaint();
   }
 
   public void mousePressed(MouseEvent e) {
     final GameCardWidget widget = (GameCardWidget) e.getComponent();
+    final JComponent parent = (JComponent) widget.getParent();
+    final int lastZOrder = (parent != null) ? parent.getComponentZOrder(widget) : 0;
     widget.setLastLocation(widget.getLocation());
-    widget.setLastZOrderIndex(parent.getComponentZOrder(widget));
+    widget.setLastZOrderIndex(lastZOrder);
 
     super.mousePressed(e);
   }
 
   public void mouseReleased(MouseEvent e) {
     final GameCardWidget widget = (GameCardWidget) e.getComponent();
-    if(moveIsValid(widget, curtainPanel)) {
+    if(moveIsValid(widget)) {
       removeClientCard(widget);
     } else {
       setWidgetToLastPlace(widget);
@@ -69,39 +81,37 @@ public class DefenseCardMoveListener extends CardMoveListener {
 
   private void setWidgetToLastPlace(GameCardWidget widget) {
     widget.setLocation(widget.getLastLocation());
-    parent.setComponentZOrder(widget, widget.getLastZOrderIndex());
+    if(widget.getParent() != null)
+      widget.getParent().setComponentZOrder(widget, widget.getLastZOrderIndex());
   }
 
   /**
-   * @param widget Widget of this defense move.
-   * @param currentPanel Current panel the widget stands over.
+   * Compares the move with the current curtain panel. If the curtain panel is null, the method
+   * returns false.
+   * @param defenseCard Widget of this defense move.
+   * @param currentPanel Current panel the defenseCard stands over.
    * @return Returns true, if the move is valid or the current panel is null, else false.
    */
-  private boolean moveIsValid(GameCardWidget widget, CombatCardPanel currentPanel) {
-    boolean result;
-    if(currentPanel == null)
+  private boolean moveIsValid(GameCardWidget defenseCard) {
+    if(currentCurtain == null)
       return false;
 
     final Client client = Client.getOwnInstance();
     final DTOClient dtoClient = client.toDTO();
-    result = GameClient.getClient().sendAction(dtoClient,
-        Converter.toDTO(currentPanel.getAttackerCard().getCardInfo()),
-        Converter.toDTO(widget.getCardInfo()));
-
-    return result;
+    return GameClient.getClient().sendAction(dtoClient,
+        Converter.toDTO(currentCurtain.getAttackerCard().getCardInfo()),
+        Converter.toDTO(defenseCard.getCardInfo()));
   }
 
   public void componentMoved(ComponentEvent e) {
     final GameCardWidget widget = (GameCardWidget) e.getComponent();
-    final CombatCardPanel nearestPanel =
-        (CombatCardPanel) Compute.getMostTouchedComponent(combatPanels, widget);
+    final CombatCardPanel nearestWidget =
+        (CombatCardPanel) Compute.getMostTouchedComponent(cardPanels, widget);
 
     /* Determine nearest curtain */
-    if(getGrabbingPoint() != null && nearestPanel != null) {
-      if(!nearestPanel.hasDefenderCard())
-        setCurtainPanel(nearestPanel);
-      else setCurtainPanel(null);
-    } else setCurtainPanel(null);
+    if(getGrabbingPoint() != null && nearestWidget != null) {
+      setCurrentCurtain(!nearestWidget.isComplete() ? nearestWidget : null);
+    } else setCurrentCurtain(null);
   }
   /* Getter and Setter */
 }

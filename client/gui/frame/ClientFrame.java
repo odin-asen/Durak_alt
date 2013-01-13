@@ -1,7 +1,7 @@
 package client.gui.frame;
 
-import client.business.ConnectionInfo;
 import client.business.Client;
+import client.business.ConnectionInfo;
 import client.business.client.GameClient;
 import client.gui.ActionCollection;
 import client.gui.frame.chat.ChatFrame;
@@ -12,7 +12,7 @@ import common.dto.DTOClient;
 import common.dto.message.*;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
-import common.simon.action.FinishAction;
+import common.utilities.Converter;
 import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
 import common.utilities.gui.Compute;
@@ -22,7 +22,8 @@ import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -150,14 +151,6 @@ public class ClientFrame extends JFrame implements Observer {
   public void init() {
     toolBar = new DurakToolBar();
     centrePanel = new PlayerTypePanel(PlayerType.DEFAULT);
-    JButton next = new JButton("next");
-    next.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ((CardLayout) centrePanel.getLayout()).next(centrePanel);
-      }
-    });
-    toolBar.add(next);
 
     getContentPane().setLayout(new BorderLayout());
     getContentPane().add(toolBar, BorderLayout.PAGE_START);
@@ -349,7 +342,8 @@ public class ClientFrame extends JFrame implements Observer {
     /* Note: Defender cards can never be shown without the appropriate attacker card */
     private void updateGamePanel(List<DTOCard> attackerCards, List<DTOCard> defenderCards,
                                 List<DTOCard> clientCards) {
-      centrePanel.setCards(attackerCards, defenderCards, clientCards);
+      centrePanel.setCards(Converter.fromDTO(attackerCards), Converter.fromDTO(defenderCards),
+          Converter.fromDTO(clientCards));
     }
 
     private void updateStack(DTOCardStack cardStack) {

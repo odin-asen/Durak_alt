@@ -3,7 +3,6 @@ package client.gui.frame.playerTypePanel;
 import client.business.Client;
 import client.business.client.GameClient;
 import client.gui.frame.ClientFrame;
-import client.gui.frame.ClientGUIConstants;
 import common.i18n.I18nSupport;
 import common.simon.action.FinishAction;
 import common.utilities.constants.PlayerConstants;
@@ -14,7 +13,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import static client.gui.frame.ClientGUIConstants.*;
+import static client.gui.frame.ClientGUIConstants.CARD_STACK_PANEL_WIDTH;
+import static client.gui.frame.ClientGUIConstants.OPPONENT_PANEL_HEIGHT;
 
 /**
  * User: Timm Herrmann
@@ -98,7 +98,7 @@ public class DefenderPanel extends DurakCentrePanelImpl {
   public void setNewRound() {
     getOpponentsContainer().removeAllOpponents();
     getCardStackContainer().deleteCards();
-    getGameProcessContainer().placeInGameCards(null, null);
+    getGameProcessContainer().setIngameCards(null, null);
     getGameProcessContainer().setListenerType(PlayerConstants.PlayerType.DEFENDER);
     getStatusBarContainer().setPlayerType(PlayerConstants.PlayerType.DEFENDER);
   }

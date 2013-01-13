@@ -1,6 +1,7 @@
 package client.gui.widget.card;
 
 import client.gui.frame.ClientGUIConstants;
+import client.gui.frame.gamePanel.CurtainWidget;
 import common.dto.DTOCard;
 import common.game.GameCard;
 import common.resources.ResourceGetter;
@@ -16,7 +17,7 @@ import java.awt.*;
  *
  * This class provides the graphical handling of the card, such as drag-and-drop.
  */
-public class GameCardWidget extends JComponent {
+public class GameCardWidget extends JComponent implements CurtainWidget {
   public static final float WIDTH_TO_HEIGHT = 0.69f;
   public static final float ALIGNMENT_CARD_HEIGHT = 0.3f;
 
@@ -30,13 +31,19 @@ public class GameCardWidget extends JComponent {
   private int lastZOrderIndex;
 
   /* Constructors */
-  public GameCardWidget(DTOCard dtoCard) {
-    this.cardInfo = Converter.fromDTO(dtoCard);
-    this.paintCurtain = false;
-    this.movable = false;
 
-    this.setToolTipText(dtoCard.getColourAndValue());
-    this.cardImage = ResourceGetter.getCardImage(dtoCard.cardColour, dtoCard.cardValue).getImage();
+  public GameCardWidget(GameCard cardInfo) {
+    this.cardInfo = cardInfo;
+    paintCurtain = false;
+    movable = false;
+
+    setToolTipText(cardInfo.getColourAndValue());
+    cardImage = ResourceGetter.getCardImage(cardInfo.getCardColour(),
+        cardInfo.getCardValue()).getImage();
+  }
+
+  public GameCardWidget(DTOCard dtoCard) {
+    this(Converter.fromDTO(dtoCard));
   }
 
   /* Methods */
@@ -63,21 +70,14 @@ public class GameCardWidget extends JComponent {
   }
 
   public void setCardMoveListener(CardMoveListener listener) {
-    this.removeMouseListener(cardMoveListener);
-    this.removeMouseMotionListener(cardMoveListener);
-    this.removeComponentListener(cardMoveListener);
+    removeMouseListener(cardMoveListener);
+    removeMouseMotionListener(cardMoveListener);
+    removeComponentListener(cardMoveListener);
 
-    this.cardMoveListener = listener;
-    this.addMouseMotionListener(listener);
-    this.addMouseListener(listener);
-    this.addComponentListener(listener);
-  }
-
-  public void setPaintCurtain(boolean paint) {
-    if(paintCurtain != paint) {
-      this.paintCurtain = paint;
-      this.repaint();
-    }
+    cardMoveListener = listener;
+    addMouseMotionListener(listener);
+    addMouseListener(listener);
+    addComponentListener(listener);
   }
 
   /**
@@ -115,6 +115,19 @@ public class GameCardWidget extends JComponent {
   }
 
   /* Getter and Setter */
+
+  public void paintCurtain(boolean paint) {
+    if(paintCurtain != paint) {
+      paintCurtain = paint;
+      repaint();
+    } else paintCurtain = false;
+  }
+
+  public void setCard(GameCard card) {
+    this.cardInfo = card;
+    repaint();
+  }
+
   public GameCard getCardInfo() {
     return cardInfo;
   }

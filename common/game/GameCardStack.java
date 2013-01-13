@@ -4,7 +4,8 @@ import common.utilities.constants.GameConfigurationConstants;
 
 import java.util.*;
 
-import static common.utilities.constants.GameCardConstants.*;
+import static common.utilities.constants.GameCardConstants.CardColour;
+import static common.utilities.constants.GameCardConstants.CardValue;
 
 /**
  * User: Timm Herrmann
@@ -82,10 +83,7 @@ public class GameCardStack extends Observable {
 
     for (CardColour cardColour : CardColour.values()) {
       for (CardValue cardValue : values) {
-        final GameCard card = new GameCard();
-        card.setCardColour(cardColour);
-        card.setCardValue(cardValue);
-        list.add(card);
+        list.add(new GameCard(cardValue, cardColour));
       }
     }
 

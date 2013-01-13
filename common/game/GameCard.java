@@ -1,15 +1,23 @@
 package common.game;
 
-import static common.utilities.constants.GameCardConstants.*;
+import static common.utilities.constants.GameCardConstants.CardColour;
+import static common.utilities.constants.GameCardConstants.CardValue;
 
 /**
  * User: Timm Herrmann
  * Date: 04.10.12
  * Time: 16:26
+ *
+ * This class is immutable.
  */
 public class GameCard {
   private CardValue cardValue;
   private CardColour cardColour;
+
+  public GameCard(CardValue value, CardColour colour) {
+    cardValue = value;
+    cardColour = colour;
+  }
 
   /* Methods */
   @SuppressWarnings("ALL")
@@ -62,19 +70,12 @@ public class GameCard {
   }
 
   /* Getter and Setter */
+
   public CardValue getCardValue() {
     return cardValue;
   }
 
-  public void setCardValue(CardValue cardValue) {
-    this.cardValue = cardValue;
-  }
-
   public CardColour getCardColour() {
     return cardColour;
-  }
-
-  public void setCardColour(CardColour cardColour) {
-    this.cardColour = cardColour;
   }
 }
