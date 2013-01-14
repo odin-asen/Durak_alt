@@ -21,11 +21,10 @@ import static common.utilities.constants.PlayerConstants.PlayerType;
  * Date: 12.01.13
  * Time: 04:48
  */
-public class AttackerPanel extends DurakCentrePanelImpl {
+public class AttackerPanel extends AbstractDurakGamePanel {
   private boolean firstAttacker;
 
   private JPanel opponentsButtonsPanel;
-  private JPanel stackClientsPanel;
   private JButton roundDoneButton;
 
   /* Constructors */
@@ -38,9 +37,8 @@ public class AttackerPanel extends DurakCentrePanelImpl {
     init();
 
     add(getOpponentsButtonsPanel(), BorderLayout.PAGE_START);
-    add(getStackClientsPanel(), BorderLayout.LINE_START);
+    add(getCardStackContainer(), BorderLayout.LINE_START);
     add(getGameProcessContainer(), BorderLayout.CENTER);
-    add(getStatusBarContainer(), BorderLayout.PAGE_END);
   }
 
   /* Methods */
@@ -83,8 +81,6 @@ public class AttackerPanel extends DurakCentrePanelImpl {
    * widgets, etc...will be untouched.
    */
   public void setNewRound() {
-    getOpponentsContainer().removeAllOpponents();
-    getCardStackContainer().deleteCards();
     getGameProcessContainer().setIngameCards(null, null);
     setPlayerType(firstAttacker);
   }
@@ -98,7 +94,6 @@ public class AttackerPanel extends DurakCentrePanelImpl {
   public void setPlayerType(boolean firstAttacker) {
     this.firstAttacker = firstAttacker;
     getGameProcessContainer().setListenerType(getPlayerType());
-    getStatusBarContainer().setPlayerType(getPlayerType());
   }
 
   private JPanel getOpponentsButtonsPanel() {
@@ -116,18 +111,5 @@ public class AttackerPanel extends DurakCentrePanelImpl {
     opponentsButtonsPanel.add(getOpponentsContainer());
 
     return opponentsButtonsPanel;
-  }
-
-  private JPanel getStackClientsPanel() {
-    if (stackClientsPanel != null)
-      return stackClientsPanel;
-
-    stackClientsPanel = new JPanel();
-
-    stackClientsPanel.setLayout(new BoxLayout(stackClientsPanel, BoxLayout.PAGE_AXIS));
-    stackClientsPanel.add(getCardStackContainer());
-    stackClientsPanel.add(getClientListContainer());
-
-    return stackClientsPanel;
   }
 }

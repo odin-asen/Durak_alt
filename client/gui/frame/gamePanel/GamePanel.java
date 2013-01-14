@@ -69,10 +69,9 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
   public void setIngameCards(List<GameCard> attackerCards, List<GameCard> defenderCards) {
     inGamePanel.clearField();
     if(attackerCards != null) {
-      if(inGamePanel.setAttackCards(attackerCards)) {
-        inGamePanel.setDefenseCards(defenderCards);
-        inGamePanel.setCards();
-      }
+      inGamePanel.setAttackCards(attackerCards);
+      inGamePanel.setDefenseCards(defenderCards);
+      inGamePanel.setCards();
     }
     validate();
     repaint();
@@ -134,7 +133,6 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
     } else {
       cardManager = CardMoveListener.getDefaultInstance();
     }
-    System.out.println("ingame area: "+ingameArea);
     clientWidgets.setCardManager(cardManager);
   }
 
@@ -146,8 +144,7 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
   }
 
   public boolean removeCard(GameCardWidget card) {
-    clientWidgets.remove(card);
-    return false;  //To change body of implemented methods use File | Settings | File Templates.
+    return clientWidgets.remove(card);
   }
 
   public boolean addCard(GameCardWidget card) {
@@ -166,8 +163,6 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
     public void componentResized(ComponentEvent e) {
       final Rectangle area = computeClientCardArea();
       ingameArea.setSize(new Dimension(getWidth(), getHeight() - area.height));
-//      if(clientWidgets.getCardManager() instanceof AttackCardMoveListener)
-//        ((AttackCardMoveListener) clientWidgets.getCardManager()).setArea(ingameArea);
       inGamePanel.setSize(ingameArea.getSize());
       if(handCardsVisible) {
         clientWidgets.replaceCards(area);
@@ -255,11 +250,13 @@ class ClientWidgetHolder {
 
   public boolean add(GameCardWidget widget) {
     parent.add(widget);
+    clientCards.add(widget.getCardInfo());
     return widgets.add(widget);
   }
 
   public boolean remove(GameCardWidget widget) {
     parent.remove(widget);
+    clientCards.remove(widget.getCardInfo());
     return widgets.remove(widget);
   }
 
@@ -267,6 +264,7 @@ class ClientWidgetHolder {
     for (GameCardWidget widget : widgets) {
       parent.remove(widget);
     }
+    clientCards.clear();
     widgets.clear();
   }
 

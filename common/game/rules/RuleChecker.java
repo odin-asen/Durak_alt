@@ -100,6 +100,8 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
       throw new RuleException(I18nSupport.getValue(BUNDLE_NAME, "no.cards.to.defend"));
 
     checkDefense(defenderCard, attackerCard, notHigherText, noTrumpText);
+
+    roundState.defenderTakesCards(false);
     defender.useCard(defenderCard);
   }
 
@@ -230,8 +232,6 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
    */
   public Player setActivePlayers(Player nextPlayer) {
     final Player firstAttacker = determineFirstAttacker(nextPlayer);
-    roundState.setSecondAttackerNextRound(false);
-    roundState.setFirstAttackerNextRound(false);
 
     if(firstAttacker != null) {
       final Player defender = firstAttacker.getLeftPlayer();
@@ -270,11 +270,20 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
       roundState.setSecondAttackerNextRound(true);
   }
 
-  public Boolean readyForNextRound() {
+  public boolean readyForNextRound() {
     return roundState.readyForNextRound();
   }
 
+  public void defenderTakesCards(boolean takeCards) {
+    roundState.defenderTakesCards(takeCards);
+  }
+
+  public boolean defenderTookCards() {
+    return roundState.defenderTookCards();
+  }
+
   /* Getter and Setter */
+
   public Player getFirstAttacker() {
     return firstAttacker;
   }
@@ -326,19 +335,21 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
 
   /* Inner Classes */
   private class RoundStateHandler {
-    private Boolean firstAttackerNextRound;
-    private Boolean secondAttackerNextRound;
+    private boolean firstAttackerNextRound;
+    private boolean secondAttackerNextRound;
+    private boolean defenderTookCards;
 
     private RoundStateHandler() {
-      initPlayerNextRound();
+      newRound();
+      defenderTookCards = false;
     }
 
-    private void initPlayerNextRound() {
+    public void newRound() {
       firstAttackerNextRound = false;
       secondAttackerNextRound = false;
     }
 
-    private Boolean readyForNextRound() {
+    private boolean readyForNextRound() {
       return firstAttackerNextRound && secondAttackerNextRound;
     }
 
@@ -348,6 +359,18 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
 
     public void setSecondAttackerNextRound(Boolean readyForNextRound) {
       secondAttackerNextRound = readyForNextRound;
+    }
+
+    public void defenderTakesCards(boolean takesCards) {
+      if(takesCards) {
+        firstAttackerNextRound = true;
+        secondAttackerNextRound = true;
+      }
+      defenderTookCards = takesCards;
+    }
+
+    public boolean defenderTookCards() {
+      return defenderTookCards;
     }
   }
 }

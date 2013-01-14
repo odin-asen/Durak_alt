@@ -95,6 +95,9 @@ public class AttackCardMoveListener extends CardMoveListener {
       pointedWidgets.dePointAll();
     }
 
+    if(attackFieldWidget != null)
+      attackFieldWidget.paintCurtain(false);
+
     super.mouseReleased(e);
   }
 

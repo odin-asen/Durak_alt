@@ -24,10 +24,11 @@ public class CombatCardPanel extends JPanel implements CurtainWidget {
   private static final Float DISTANCE_DEFENDER_Y = 0.2f;
 
   private Dimension cardDimension;
-  private Boolean paintCurtain;
+  private boolean paintCurtain;
 
   /* Constructors */
   public CombatCardPanel() {
+    paintCurtain = false;
     cardDimension = new Dimension();
     this.setLayout(null);
     this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
@@ -96,7 +97,7 @@ public class CombatCardPanel extends JPanel implements CurtainWidget {
       newWidget.setCardMoveListener(null);
       newWidget.setMovable(false);
       add(newWidget);
-    }
+    } else newWidget = new GameCardWidget();
 
     return newWidget;
   }
@@ -120,11 +121,11 @@ public class CombatCardPanel extends JPanel implements CurtainWidget {
   }
 
   public Boolean hasDefenderCard() {
-    return (defenderCard != null);
+    return (defenderCard.getCardInfo() != null);
   }
 
   public Boolean hasAttackerCard() {
-    return (attackerCard != null);
+    return (attackerCard.getCardInfo() != null);
   }
 
   /* Getter and Setter */

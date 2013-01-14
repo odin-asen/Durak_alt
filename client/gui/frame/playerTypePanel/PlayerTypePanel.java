@@ -25,11 +25,18 @@ import static common.utilities.constants.PlayerConstants.PlayerType;
  * Time: 00:37
  */
 public class PlayerTypePanel extends JPanel {
+  private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
   private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
 
+  private JPanel listPanel;
+  private JList<DTOClient> clientList;
+  private DurakStatusBar statusBar;
+
+  private JPanel cardLayoutPanel;
   private CardLayout cardLayout;
-  private Map<PlayerType, DurakCentrePanelImpl> panelMap;
+  private Map<PlayerType, AbstractDurakGamePanel> panelMap;
   private PlayerType currentType;
+
   private List<GameCard> handCards;
   private List<GameCard> attackCards;
   private List<GameCard> defenseCards;
@@ -38,32 +45,60 @@ public class PlayerTypePanel extends JPanel {
   public PlayerTypePanel(PlayerType type) {
     currentType = type;
     cardLayout = new CardLayout();
-    panelMap = new HashMap<PlayerType, DurakCentrePanelImpl>(PlayerType.values().length);
+    panelMap = new HashMap<PlayerType, AbstractDurakGamePanel>(PlayerType.values().length);
+
     handCards = new ArrayList<GameCard>();
     attackCards = new ArrayList<GameCard>(6);
     defenseCards = new ArrayList<GameCard>(6);
 
-    setLayout(cardLayout);
-    initPanels();
+    initGamePanels();
+    setLayout(new BorderLayout());
+
+    final JSplitPane splitPane = initMainSplitPane();
+    add(splitPane, BorderLayout.CENTER);
+    add(getStatusBarContainer(), BorderLayout.PAGE_END);
+  }
+
+  private JSplitPane initMainSplitPane() {
+    final int dividerSize = 10;
+    final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+    splitPane.setLeftComponent(getClientListContainer());
+    splitPane.setRightComponent(cardLayoutPanel);
+    splitPane.setDividerLocation((int) (ClientFrame.getInstance().getWidth()*0.15));
+    splitPane.setDividerSize(dividerSize);
+
+    splitPane.setOneTouchExpandable(true);
+    UIManager.put("SplitPane.supportsOneTouchButtons", Boolean.TRUE);
+
+    UIManager.put("SplitPane.oneTouchButtonSize", dividerSize);
+    UIManager.put("SplitPane.centerOneTouchButtons", Boolean.TRUE);
+    splitPane.updateUI();
+
+    return splitPane;
   }
 
   /* Methods */
 
-  private void initPanels() {
+  private void initGamePanels() {
+    cardLayoutPanel = new JPanel(cardLayout);
     addPanel(PlayerType.DEFAULT, new DefaultPanel());
     addPanel(PlayerType.FIRST_ATTACKER, new AttackerPanel(true));
     addPanel(PlayerType.SECOND_ATTACKER, new AttackerPanel(false));
     addPanel(PlayerType.DEFENDER, new DefenderPanel());
     addPanel(PlayerType.NOT_LOSER, new DefaultPanel());
     addPanel(PlayerType.LOSER, new DefaultPanel());
-    cardLayout.show(this, currentType.getDescription());
+    cardLayout.show(cardLayoutPanel, currentType.getDescription());
   }
 
-  private void addPanel(PlayerType type, DurakCentrePanelImpl panel) {
-    add(panel);
+  private void addPanel(PlayerType type, AbstractDurakGamePanel panel) {
+    cardLayoutPanel.add(panel);
     panelMap.put(type, panel);
     cardLayout.addLayoutComponent(panel, type.getDescription());
   }
+
+  /**********************/
+  /*** Update Methods ***/
+  /**********************/
 
   /**
    * Notifies a change to the gui layout and handling.
@@ -73,12 +108,13 @@ public class PlayerTypePanel extends JPanel {
   public void setPlayerType(PlayerType type) {
     if (!currentType.equals(type)) {
       currentType = type;
-      cardLayout.show(this, type.getDescription());
+      cardLayout.show(cardLayoutPanel, type.getDescription());
       final GamePanel gamePanel = panelMap.get(currentType).getGameProcessContainer();
       gamePanel.setHandCards(handCards);
       gamePanel.setIngameCards(attackCards, defenseCards);
       gamePanel.updateCards();
       gamePanel.setListenerType(currentType);
+      statusBar.setPlayerType(currentType);
     }
   }
 
@@ -87,21 +123,20 @@ public class PlayerTypePanel extends JPanel {
     if (next >= PlayerType.values().length)
       next = 0;
     setPlayerType(PlayerType.values()[next]);
-    panelMap.get(currentType).getStatusBarContainer().setPlayerType(currentType);
+    statusBar.setPlayerType(currentType);
   }
 
   public void setStatus(String mainText) {
-    panelMap.get(currentType).getStatusBarContainer().setText(mainText);
+    statusBar.setText(mainText);
   }
 
   public void setStatus(Boolean connected, String serverAddress) {
-    final DurakStatusBar statusBar = panelMap.get(currentType).getStatusBarContainer();
     statusBar.setConnected(connected, serverAddress);
     statusBar.setPlayerType(currentType);
   }
 
   public void setStatus(Boolean connected) {
-    panelMap.get(currentType).getStatusBarContainer().setConnected(connected);
+    statusBar.setConnected(connected);
   }
 
   /**
@@ -133,6 +168,20 @@ public class PlayerTypePanel extends JPanel {
       gamePanel.updateCards();
   }
 
+  /**
+   * Updates the hand cards of the client with the surpassed cards.
+   */
+  public void setCards(List<GameCard> handCards) {
+    setCards(null,null,handCards);
+  }
+
+  /**
+   * Updates the attack and defense cards on the ingame field with the surpassed cards.
+   */
+  public void setCards(List<GameCard> attackerCards, List<GameCard> defenderCards) {
+    setCards(attackerCards, defenderCards, null);
+  }
+
   public void updateStack(DTOCardStack cardStack) {
     panelMap.get(currentType).getCardStackContainer().updateStack(cardStack);
   }
@@ -152,13 +201,20 @@ public class PlayerTypePanel extends JPanel {
   }
 
   public void resetGameWidgets() {
-    final DurakCentrePanelImpl panel = panelMap.get(currentType);
+    final AbstractDurakGamePanel panel = panelMap.get(currentType);
     panel.enableGameButtons(false);
     panel.getGameProcessContainer().deleteCards();
     panel.getOpponentsContainer().removeAllOpponents();
     panel.getCardStackContainer().deleteCards();
   }
 
+  /**
+   * Enables the game buttons depending on the players type and the surpassed boolean values.
+   * It also notifies the client via popup if the next round is available or if the defender
+   * took the cards or not.
+   * @param roundFinished Specifies the enabled state of the buttons.
+   * @param defenderTookCards Specifies the popup message, if the next round is available.
+   */
   public void enableButtons(Boolean roundFinished, Boolean defenderTookCards) {
     panelMap.get(currentType).enableGameButtons(roundFinished);
     if (roundFinished && defenderTookCards && !currentType.equals(PlayerType.DEFENDER)) {
@@ -167,31 +223,109 @@ public class PlayerTypePanel extends JPanel {
     }
   }
 
-  public void updateClients(List<DTOClient> clients) {
-    panelMap.get(currentType).updateClients(clients);
+  /**
+   * Updates the client list. If clients is null, all clients will be removed from the list.
+   *
+   * @param clients All clients to show on the list.
+   */
+  public <DTOClient> void updateClients(List<DTOClient> clients) {
+    final DefaultListModel<DTOClient> listModel =
+        ((DefaultListModel<DTOClient>) clientList.getModel());
+    listModel.clear();
+
+    if (clients != null) {
+      for (DTOClient client : clients)
+        listModel.add(listModel.size(), client);
+    }
   }
 
   /* Getter and Setter */
+
+  /**
+   * Returns a JPanel instance that contains a JList to display the clients. The JList
+   * can be scrolled.
+   *
+   * @return A panel displaying the client list.
+   */
+  public JPanel getClientListContainer() {
+    if (listPanel != null)
+      return listPanel;
+
+    listPanel = new JPanel();
+    clientList = new JList<DTOClient>(new DefaultListModel<DTOClient>());
+    final JScrollPane listScrollPane = new JScrollPane(clientList);
+
+    listPanel.setBorder(BorderFactory.createTitledBorder(
+        I18nSupport.getValue(CLIENT_BUNDLE, "border.title.opponents")));
+    listPanel.setLayout(new BorderLayout());
+    listPanel.add(listScrollPane, BorderLayout.CENTER);
+    listPanel.setMinimumSize(new Dimension(0,0));
+
+    clientList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+    clientList.setCellRenderer(new ClientListCellRenderer());
+    clientList.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+    listScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+
+    return listPanel;
+  }
+
+  /**
+   * Returns a default instance of the DurakStatusBar class with the preferred width of 0 and
+   * a preferred height of {@link ClientGUIConstants#STATUS_BAR_HEIGHT}.
+   *
+   * @return A DurakStatusBar object.
+   */
+  public DurakStatusBar getStatusBarContainer() {
+    if (statusBar != null)
+      return statusBar;
+
+    statusBar = new DurakStatusBar();
+    statusBar.setPreferredSize(new Dimension(0, STATUS_BAR_HEIGHT));
+
+    return statusBar;
+  }
+
+  /* Inner Classes */
+
+  private class ClientListCellRenderer extends DefaultListCellRenderer {
+    public Component getListCellRendererComponent(
+        JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+      Component superComponent = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+      if (value == null)
+        return this;
+
+      final DTOClient client = (DTOClient) value;
+      final Color foreground;
+      if (client.spectating) {
+        foreground = new Color(164, 164, 164);
+        this.setToolTipText(I18nSupport.getValue(CLIENT_BUNDLE, "list.tooltip.audience"));
+      } else {
+        foreground = superComponent.getForeground();
+        this.setToolTipText(null);
+      }
+      this.setText(client.name);
+      this.setBackground(superComponent.getBackground());
+      this.setForeground(foreground);
+
+      return this;
+    }
+  }
 }
 
 /**
- * This class is the default implementation for the getter methods of the interface
- * {@link client.gui.frame.DurakCentrePanel}.
+ * This class is the default abstract implementation for the getter methods of the interface
+ * {@link client.gui.frame.DurakGamePanel}.
  */
-abstract class DurakCentrePanelImpl extends JPanel implements DurakCentrePanel {
-  private final Logger LOGGER = LoggingUtility.getLogger(DurakCentrePanelImpl.class.getName());
+abstract class AbstractDurakGamePanel extends JPanel implements DurakGamePanel {
+  private final Logger LOGGER = LoggingUtility.getLogger(AbstractDurakGamePanel.class.getName());
 
   protected static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
   protected static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
 
   private OpponentsPanel opponentsPanel;
   private GamePanel gamePanel;
-
   private CardStackPanel panel;
-  private JPanel listContainer;
-  private JList<DTOClient> clientList;
-
-  private DurakStatusBar statusBar;
   private JPanel gameButtonsPanel;
 
   /* Methods */
@@ -203,7 +337,6 @@ abstract class DurakCentrePanelImpl extends JPanel implements DurakCentrePanel {
     /* Cards Stack Panel */
     JPanel panel = getCardStackContainer();
 
-    panel.setLayout(new BorderLayout());
     panel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, panel.getPreferredSize().height));
     panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
@@ -211,22 +344,6 @@ abstract class DurakCentrePanelImpl extends JPanel implements DurakCentrePanel {
     panel = getOpponentsContainer();
     panel.setPreferredSize(new Dimension(0, OPPONENT_PANEL_HEIGHT));
     panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-
-    /* Client List Panel */
-    panel = getClientListContainer();
-    panel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, 100));
-    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-  }
-
-  public <DTOClient> void updateClients(List<DTOClient> clients) {
-    final DefaultListModel<DTOClient> listModel =
-        ((DefaultListModel<DTOClient>) clientList.getModel());
-    listModel.clear();
-
-    if (clients != null) {
-      for (DTOClient client : clients)
-        listModel.add(listModel.size(), client);
-    }
   }
 
   /* Getter and Setter */
@@ -297,72 +414,5 @@ abstract class DurakCentrePanelImpl extends JPanel implements DurakCentrePanel {
     return gamePanel;
   }
 
-  /**
-   * Returns a default instance of the DurakStatusBar class with the preferred width of 0 and
-   * a preferred height of {@link ClientGUIConstants#STATUS_BAR_HEIGHT}.
-   *
-   * @return A DurakStatusBar object.
-   */
-  public DurakStatusBar getStatusBarContainer() {
-    if (statusBar != null)
-      return statusBar;
-
-    statusBar = new DurakStatusBar();
-    statusBar.setPreferredSize(new Dimension(0, STATUS_BAR_HEIGHT));
-
-    return statusBar;
-  }
-
-  /**
-   * Returns a JPanel instance that contains a JList to display the clients. The JList
-   * can be scrolled.
-   *
-   * @return A panel displaying the client list.
-   */
-  public JPanel getClientListContainer() {
-    if (listContainer != null)
-      return listContainer;
-
-    listContainer = new JPanel();
-    clientList = new JList<DTOClient>(new DefaultListModel<DTOClient>());
-    final JScrollPane listScrollPane = new JScrollPane(clientList);
-
-    listContainer.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_BUNDLE, "border.title.opponents")));
-    listContainer.add(listScrollPane);
-
-    clientList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-    clientList.setCellRenderer(new ClientInfoCellRenderer());
-    listScrollPane.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, 100));
-    listScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-
-    return listContainer;
-  }
-
   /* Inner classes */
-
-  private class ClientInfoCellRenderer extends DefaultListCellRenderer {
-    public Component getListCellRendererComponent(
-        JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-      Component superComponent = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-
-      if (value == null)
-        return this;
-
-      final DTOClient client = (DTOClient) value;
-      final Color foreground;
-      if (client.spectating) {
-        foreground = new Color(164, 164, 164);
-        this.setToolTipText(I18nSupport.getValue(CLIENT_BUNDLE, "list.tooltip.audience"));
-      } else {
-        foreground = superComponent.getForeground();
-        this.setToolTipText(null);
-      }
-      this.setText(client.name);
-      this.setBackground(superComponent.getBackground());
-      this.setForeground(foreground);
-
-      return this;
-    }
-  }
 }

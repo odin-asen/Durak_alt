@@ -1,8 +1,5 @@
 package client.gui.frame.playerTypePanel;
 
-import common.utilities.constants.PlayerConstants;
-
-import javax.swing.*;
 import java.awt.*;
 
 /**
@@ -10,9 +7,7 @@ import java.awt.*;
  * Date: 12.01.13
  * Time: 01:59
  */
-public class DefaultPanel extends DurakCentrePanelImpl {
-  private JPanel stackClientsPanel;
-
+public class DefaultPanel extends AbstractDurakGamePanel {
   /* Constructors */
 
   public DefaultPanel() {
@@ -21,9 +16,8 @@ public class DefaultPanel extends DurakCentrePanelImpl {
     init();
 
     add(getOpponentsContainer(), BorderLayout.PAGE_START);
-    add(getStackClientsPanel(), BorderLayout.LINE_START);
+    add(getCardStackContainer(), BorderLayout.LINE_START);
     add(getGameProcessContainer(), BorderLayout.CENTER);
-    add(getStatusBarContainer(), BorderLayout.PAGE_END);
   }
 
   /* Methods */
@@ -39,21 +33,7 @@ public class DefaultPanel extends DurakCentrePanelImpl {
    */
   public void setNewRound() {
     getGameProcessContainer().setIngameCards(null, null);
-    getStatusBarContainer().setPlayerType(PlayerConstants.PlayerType.DEFAULT);
   }
 
   /* Getter and Setter */
-
-  private JPanel getStackClientsPanel() {
-    if(stackClientsPanel != null)
-      return stackClientsPanel;
-
-    stackClientsPanel = new JPanel();
-
-    stackClientsPanel.setLayout(new BoxLayout(stackClientsPanel, BoxLayout.PAGE_AXIS));
-    stackClientsPanel.add(getCardStackContainer());
-    stackClientsPanel.add(getClientListContainer());
-
-    return stackClientsPanel;
-  }
 }

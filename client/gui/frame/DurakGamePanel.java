@@ -1,7 +1,6 @@
 package client.gui.frame;
 
 import javax.swing.*;
-import java.util.List;
 
 /**
  * User: Timm Herrmann
@@ -11,15 +10,7 @@ import java.util.List;
  * This interface describes the requirements for a panel that will be displayed as a centre panel
  * in the {@link ClientFrame} class.
  */
-public interface DurakCentrePanel {
-  /**
-   * Updates the client list. If clients is null, all clients will be removed from the list.
-   *
-   * @param clients All clients to show on the list.
-   * @param T       Indicates the class type of the clients.
-   */
-  <T> void updateClients(List<T> clients);
-
+public interface DurakGamePanel {
   /**
    * Enables the game buttons depending on wheter the round was finished or not.
    *
@@ -57,23 +48,6 @@ public interface DurakCentrePanel {
    * @return The panel for the game process display.
    */
   <T extends JComponent> T getGameProcessContainer();
-
-  /**
-   * Returns the panel for the statusbar to show information about the game,
-   * the client, time, etc...
-   *
-   * @param <T> A class that extends JPanel or a JPanel itself.
-   * @return The panel for the status.
-   */
-  <T extends JComponent> T getStatusBarContainer();
-
-  /**
-   * Returns the panel where all to the same server connected clients will be
-   * shown.
-   *
-   * @return The panel that contains the client list.
-   */
-  <T extends JComponent> T getClientListContainer();
 
   /**
    * Returns the panel that shows the card stack of the game.

@@ -49,7 +49,6 @@ public class ClientFrame extends JFrame implements Observer {
   private static final String VERSION_NUMBER = "0.2";
 
   private MessageHandler handler;
-  private ComponentUpdate update;
   private UserMessageDistributor messenger;
 
   private PlayerTypePanel centrePanel;
@@ -59,7 +58,6 @@ public class ClientFrame extends JFrame implements Observer {
 
   private ClientFrame() {
     handler = new MessageHandler();
-    update = new ComponentUpdate();
     messenger = new UserMessageDistributor();
 
     final FramePosition position = FramePosition.createFramePositions(
@@ -176,10 +174,10 @@ public class ClientFrame extends JFrame implements Observer {
 
   public void resetAll(String statusText, boolean serverShutdown,
                         boolean disconnect, boolean popupMessage) {
-    update.resetGameWidgets();
+    centrePanel.resetGameWidgets();
     addChatMessage(statusText, true);
     if(disconnect) {
-      updateClientList(null);
+      centrePanel.updateClients(null);
       GameClient.getClient().disconnect(serverShutdown);
       setStatus(statusText, false, "");
     } else setStatus(statusText, true, GameClient.getClient().getSocketAddress());
@@ -210,17 +208,6 @@ public class ClientFrame extends JFrame implements Observer {
     centrePanel.setStatus("");
   }
 
-  /***********************/
-  /* client list methods */
-  /***********************/
-  /**
-   * Updates the client list. If clients is null, all clients will be removed from the list.
-   * @param clients All clients to show on the list.
-   */
-  public void updateClientList(List<DTOClient> clients) {
-    centrePanel.updateClients(clients);
-  }
-
   /* Getter and Setter */
 
   /* Inner Classes */
@@ -243,7 +230,7 @@ public class ClientFrame extends JFrame implements Observer {
     private void handleMessageType(MessageObject object) {
       if(MessageType.OWN_CLIENT_INFO.equals(object.getType())) {
         Client.getOwnInstance().setClientInfo((DTOClient) object.getSendingObject());
-        update.updateSubComponents();
+        centrePanel.setPlayerType(Client.getOwnInstance().getPlayerType());
       } else if(MessageType.RULE_MESSAGE.equals(object.getType())) {
         showRuleException(object.getSendingObject());
       } else if(MessageType.STATUS_MESSAGE.equals(object.getType())) {
@@ -258,7 +245,7 @@ public class ClientFrame extends JFrame implements Observer {
       if(BroadcastType.CHAT_MESSAGE.equals(object.getType())) {
         addChatMessage(buildChatAnswer(object), false);
       } else if(BroadcastType.LOGIN_LIST.equals(object.getType())) {
-        updateClientList((List<DTOClient>) object.getSendingObject());
+        centrePanel.updateClients((List<DTOClient>) object.getSendingObject());
       } else if(BroadcastType.SERVER_SHUTDOWN.equals(object.getType())) {
         resetAll(I18nSupport.getValue(MSGS_BUNDLE, "status.closed.server"), true);
       }
@@ -266,24 +253,24 @@ public class ClientFrame extends JFrame implements Observer {
 
     private void handleGameUpdateType(MessageObject object) {
       if(GameUpdateType.INITIALISE_PLAYERS.equals(object.getType())) {
-        update.updateOpponents((List<DTOClient>) object.getSendingObject(), true);
+        centrePanel.initOpponents((List<DTOClient>) object.getSendingObject());
         updateStatusBar();
       } else if(GameUpdateType.PLAYERS_UPDATE.equals(object.getType())) {
-        update.updateOpponents((List<DTOClient>) object.getSendingObject(), false);
+        centrePanel.updateOpponents((List<DTOClient>) object.getSendingObject(), false);
         updateStatusBar();
       } else if(GameUpdateType.STACK_UPDATE.equals(object.getType())) {
-        update.updateStack((DTOCardStack) object.getSendingObject());
+        centrePanel.updateStack((DTOCardStack) object.getSendingObject());
       } else if(GameUpdateType.INGAME_CARDS.equals(object.getType())) {
         final List<List<DTOCard>> cards = (List<List<DTOCard>>) object.getSendingObject();
         final List<DTOCard> attackerCards = new ArrayList<DTOCard>();
         final List<DTOCard> defenderCards = new ArrayList<DTOCard>();
         prepareInGameCards(cards, attackerCards, defenderCards);
-        update.updateGamePanel(attackerCards, defenderCards, null);
+        centrePanel.setCards(Converter.fromDTO(attackerCards), Converter.fromDTO(defenderCards));
       } else if(GameUpdateType.NEXT_ROUND_INFO.equals(object.getType())) {
         final List<Boolean> info = (List<Boolean>) object.getSendingObject();
-        update.enableButtons(info.get(0), info.get(1));
+        centrePanel.enableButtons(info.get(0), info.get(1));
       } else if(GameUpdateType.CLIENT_CARDS.equals(object.getType())) {
-        update.updateGamePanel(null,null,(List<DTOCard>) object.getSendingObject());
+        centrePanel.setCards(Converter.fromDTO((List<DTOCard>) object.getSendingObject()));
       } else if(GameUpdateType.GAME_ABORTED.equals(object.getType())) {
         final String message = I18nSupport.getValue(MSGS_BUNDLE, "game.aborted.0",
             object.getSendingObject());
@@ -323,56 +310,6 @@ public class ClientFrame extends JFrame implements Observer {
       String message = Miscellaneous.getChatMessage(chatMessage.getSender().name,
           chatMessage.getMessage());
       return message;
-    }
-  }
-
-  /**
-   * Consits of all methods that are changing the ingame relevant components, like
-   * the hand cards, opponent widgets, ingame card widgets, etc...
-   */
-  private class ComponentUpdate {
-    /* Updates the representation and behavior of subcomponents,
-    like the card moving at the game panel. */
-    private void updateSubComponents() {
-      centrePanel.setPlayerType(Client.getOwnInstance().getPlayerType());
-    }
-
-    /* If a parameter is null the specified card update will be ignored. */
-    /* An empty list will remove the cards. */
-    /* Note: Defender cards can never be shown without the appropriate attacker card */
-    private void updateGamePanel(List<DTOCard> attackerCards, List<DTOCard> defenderCards,
-                                List<DTOCard> clientCards) {
-      centrePanel.setCards(Converter.fromDTO(attackerCards), Converter.fromDTO(defenderCards),
-          Converter.fromDTO(clientCards));
-    }
-
-    private void updateStack(DTOCardStack cardStack) {
-      centrePanel.updateStack(cardStack);
-    }
-
-    /* If clients is null, all components will be removed */
-    private void updateOpponents(List<DTOClient> clients, boolean initialisation) {
-      if(clients != null) {
-        if(initialisation)
-          centrePanel.initOpponents(clients);
-        else centrePanel.updateOpponents(clients, false);
-      } else centrePanel.updateOpponents(clients, true);
-    }
-
-    /* Resets all game related widgets and buttons */
-    private void resetGameWidgets() {
-      centrePanel.resetGameWidgets();
-    }
-
-    /**
-     * Enables the game buttons depending on the players type and the surpassed boolean values.
-     * It also notifies the client via popup if the next round is available or if the defender
-     * took the cards or not.
-     * @param roundFinished Specifies the enabled state of the buttons.
-     * @param defenderTookCards Specifies the popup message, if the next round is available.
-     */
-    private void enableButtons(Boolean roundFinished, Boolean defenderTookCards) {
-      centrePanel.enableButtons(roundFinished, defenderTookCards);
     }
   }
 }

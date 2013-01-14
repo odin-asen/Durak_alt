@@ -18,6 +18,7 @@ public class CardStackPanel extends JPanel {
 
   public CardStackPanel() {
     cardStack = new CardStackWidget(CardStackWidget.ORIENTATION_VERTICAL);
+    setLayout(new BorderLayout());
   }
 
   /* Methods */

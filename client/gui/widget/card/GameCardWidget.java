@@ -32,14 +32,20 @@ public class GameCardWidget extends JComponent implements CurtainWidget {
 
   /* Constructors */
 
+  public GameCardWidget() {
+    this((GameCard) null);
+  }
+
   public GameCardWidget(GameCard cardInfo) {
     this.cardInfo = cardInfo;
     paintCurtain = false;
     movable = false;
 
-    setToolTipText(cardInfo.getColourAndValue());
-    cardImage = ResourceGetter.getCardImage(cardInfo.getCardColour(),
+    if(this.cardInfo != null) {
+      setToolTipText(cardInfo.getColourAndValue());
+      cardImage = ResourceGetter.getCardImage(cardInfo.getCardColour(),
         cardInfo.getCardValue()).getImage();
+    } else cardImage = null;
   }
 
   public GameCardWidget(DTOCard dtoCard) {
@@ -47,6 +53,7 @@ public class GameCardWidget extends JComponent implements CurtainWidget {
   }
 
   /* Methods */
+
   public void paint(Graphics g) {
     Graphics2D g2D = (Graphics2D) g;
 
@@ -58,7 +65,7 @@ public class GameCardWidget extends JComponent implements CurtainWidget {
   }
 
   private void drawCard(Graphics2D g2D, Dimension cardDim) {
-    this.setSize(cardDim);
+    setSize(cardDim);
     g2D.drawImage(cardImage, 0, 0, cardDim.width, cardDim.height, this);
   }
 

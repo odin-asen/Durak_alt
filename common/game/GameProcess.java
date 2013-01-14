@@ -1,12 +1,12 @@
 package common.game;
 
 import common.dto.DTOCard;
-import common.simon.action.CardAction;
-import common.simon.action.FinishAction;
-import common.simon.action.GameAction;
 import common.game.rules.RuleChecker;
 import common.game.rules.RuleException;
 import common.game.rules.RuleFactory;
+import common.simon.action.CardAction;
+import common.simon.action.FinishAction;
+import common.simon.action.GameAction;
 import common.utilities.Converter;
 import common.utilities.Miscellaneous;
 import common.utilities.constants.GameConfigurationConstants;
@@ -203,7 +203,6 @@ public class GameProcess<ID> {
     Boolean result = false;
     if(PlayerConstants.PlayerType.DEFENDER.equals(type)) {
       result = defenderRequestNextRound(takeCards, ruleChecker.getDefender());
-      defenderTookCards = takeCards;
     } else if(PlayerConstants.PlayerType.FIRST_ATTACKER.equals(type) ||
         PlayerConstants.PlayerType.SECOND_ATTACKER.equals(type)) {
       ruleChecker.setAttackerReadyNextRound(type);
@@ -234,6 +233,7 @@ public class GameProcess<ID> {
         nextRoundOrFinish(defender);
       } else result = false;
     }
+    ruleChecker.defenderTakesCards(takeCards);
 
     return result;
   }
@@ -265,6 +265,10 @@ public class GameProcess<ID> {
     return null;
   }
 
+  /**
+   * Checks if a player finished and refreshes the process in case of finishing.
+   * @param player Player to check.
+   */
   private void updateFinishedPlayer(Player player) {
     if(player == null)
       return;
@@ -276,6 +280,10 @@ public class GameProcess<ID> {
     }
   }
 
+  /**
+   * Fills a players hand cards.
+   * @param player Player to give the hand cards to.
+   */
   private void fillPlayerHand(Player player) {
     if(player == null)
       return;
@@ -313,7 +321,7 @@ public class GameProcess<ID> {
   public List<Boolean> nextRoundAvailable() {
     final List<Boolean> roundInfo = new ArrayList<Boolean>(2);
     roundInfo.add(ruleChecker.readyForNextRound());
-    roundInfo.add(defenderTookCards);
+    roundInfo.add(ruleChecker.defenderTookCards());
     return roundInfo;
   }
 
