@@ -26,6 +26,7 @@ public class AttackerPanel extends AbstractDurakGamePanel {
 
   private JPanel opponentsButtonsPanel;
   private JButton roundDoneButton;
+  private boolean alreadyPressed;
 
   /* Constructors */
 
@@ -46,6 +47,8 @@ public class AttackerPanel extends AbstractDurakGamePanel {
   public void init() {
     super.init();
 
+    alreadyPressed = false;
+
     /* Game Proccess Container */
     getGameProcessContainer().setHandCardsVisible(true);
 
@@ -60,18 +63,19 @@ public class AttackerPanel extends AbstractDurakGamePanel {
                 FinishAction.FinishType.GO_TO_NEXT_ROUND)) {
               /* The player is not allowed to do a card move */
               getGameProcessContainer().setListenerType(PlayerConstants.PlayerType.DEFAULT);
-              roundDoneButton.setEnabled(false);
+              alreadyPressed = true;
             }
           }
         });
-    roundDoneButton.setEnabled(false);
+    enableGameButtons(false, false);
 
     panel.setLayout(new GridLayout());
     panel.add(roundDoneButton);
   }
 
-  public void enableGameButtons(boolean roundFinished) {
-    roundDoneButton.setEnabled(!roundFinished && getGameProcessContainer().hasInGameCards());
+  public void enableGameButtons(boolean roundFinished, boolean attackerFinished) {
+    roundDoneButton.setEnabled(!alreadyPressed && !roundFinished
+        && getGameProcessContainer().hasInGameCards() && !attackerFinished);
   }
 
   /**
@@ -83,6 +87,8 @@ public class AttackerPanel extends AbstractDurakGamePanel {
   public void setNewRound() {
     getGameProcessContainer().setIngameCards(null, null);
     setPlayerType(firstAttacker);
+    alreadyPressed = false;
+    enableGameButtons(false, false);
   }
 
   /* Getter and Setter */

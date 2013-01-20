@@ -19,6 +19,7 @@ public class CardStackPanel extends JPanel {
   public CardStackPanel() {
     cardStack = new CardStackWidget(CardStackWidget.ORIENTATION_VERTICAL);
     setLayout(new BorderLayout());
+    add(cardStack);
   }
 
   /* Methods */
@@ -46,17 +47,15 @@ public class CardStackPanel extends JPanel {
     cardStack.setCardStack(stack);
 
     if(constraints == null)
-      this.add(cardStack);
+      add(cardStack);
     else
-      this.add(cardStack, constraints);
+      add(cardStack, constraints);
   }
 
   public void updateStack(DTOCardStack stack) {
-    setStack(stack, BorderLayout.CENTER);
-    cardStack.repaint();
-    cardStack.updateTooltip();
-    repaint();
+    cardStack.setCardStack(stack);
     validate();
+    repaint();
   }
 
   public void deleteCards() {

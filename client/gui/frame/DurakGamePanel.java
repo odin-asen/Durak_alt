@@ -15,8 +15,9 @@ public interface DurakGamePanel {
    * Enables the game buttons depending on wheter the round was finished or not.
    *
    * @param roundFinished Indicates wheter the round was finished or not.
+   * @param attackerFinished
    */
-  void enableGameButtons(boolean roundFinished);
+  void enableGameButtons(boolean roundFinished, boolean attackerFinished);
 
   /**
    * Resets all widgets to a state that is necessary in the game for a new round.

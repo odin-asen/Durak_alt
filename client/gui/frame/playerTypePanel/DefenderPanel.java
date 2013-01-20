@@ -53,11 +53,8 @@ public class DefenderPanel extends AbstractDurakGamePanel {
         I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.take.cards"), null,
         new ActionListener() {
           public void actionPerformed(ActionEvent e) {
-            if (GameClient.getClient().finishRound(Client.getOwnInstance().toDTO(),
-                FinishAction.FinishType.TAKE_CARDS)) {
-              takeCardsButton.setEnabled(false);
-              roundDoneButton.setEnabled(false);
-            }
+            GameClient.getClient().finishRound(Client.getOwnInstance().toDTO(),
+                FinishAction.FinishType.TAKE_CARDS);
           }
         });
     roundDoneButton = WidgetCreator.makeButton(null,
@@ -65,29 +62,26 @@ public class DefenderPanel extends AbstractDurakGamePanel {
         I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.finish.round"), null,
         new ActionListener() {
           public void actionPerformed(ActionEvent e) {
-            if (GameClient.getClient().finishRound(Client.getOwnInstance().toDTO(),
-                FinishAction.FinishType.GO_TO_NEXT_ROUND)) {
-              takeCardsButton.setEnabled(false);
-              roundDoneButton.setEnabled(false);
-            }
+            GameClient.getClient().finishRound(Client.getOwnInstance().toDTO(),
+                FinishAction.FinishType.GO_TO_NEXT_ROUND);
           }
         });
-    takeCardsButton.setEnabled(false);
-    roundDoneButton.setEnabled(false);
+    enableGameButtons(false, false);
 
     panel.setLayout(new GridLayout(0,1));
     panel.add(takeCardsButton);
     panel.add(roundDoneButton);
   }
 
-  public void enableGameButtons(boolean roundFinished) {
-    final Boolean cardsOnTable = getGameProcessContainer().hasInGameCards();
-    final Boolean round = roundFinished && getGameProcessContainer().inGameCardsAreCovered();
-    if (round)
+  public void enableGameButtons(boolean roundFinished, boolean attackerFinished) {
+    final boolean cardsOnTable = getGameProcessContainer().hasInGameCards();
+    final boolean allCardsCovered = getGameProcessContainer().inGameCardsAreCovered();
+    final boolean roundCanBeFinished = !roundFinished && attackerFinished && allCardsCovered;
+    if (roundCanBeFinished)
       ClientFrame.getInstance().showInformationPopup(
           I18nSupport.getValue(MSGS_BUNDLE, "next.round.available"));
-    takeCardsButton.setEnabled(cardsOnTable);
-    roundDoneButton.setEnabled(round && cardsOnTable);
+    takeCardsButton.setEnabled(!roundFinished && cardsOnTable);
+    roundDoneButton.setEnabled(roundCanBeFinished);
   }
 
   /**
@@ -98,6 +92,7 @@ public class DefenderPanel extends AbstractDurakGamePanel {
   public void setNewRound() {
     getGameProcessContainer().setIngameCards(null, null);
     getGameProcessContainer().setListenerType(PlayerConstants.PlayerType.DEFENDER);
+    enableGameButtons(false, false);
   }
 
   /* Getter and Setter */

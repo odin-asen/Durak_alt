@@ -1,6 +1,5 @@
 package server.business;
 
-import common.dto.DTOCard;
 import common.dto.DTOClient;
 import common.dto.message.*;
 import common.game.GameProcess;
@@ -14,6 +13,7 @@ import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
 import common.utilities.constants.GameCardConstants;
 import common.utilities.constants.GameConfigurationConstants;
+import common.utilities.constants.PlayerConstants;
 import de.root1.simon.Registry;
 import de.root1.simon.Simon;
 import de.root1.simon.annotation.SimonRemote;
@@ -553,37 +553,67 @@ class GameUpdate {
     informSpectators();
   }
 
-  private void gameUpdateClients() {
+  /* Returns true, if there is a client that has changed. */
+  private boolean gameUpdateClients() {
+    boolean changed = false;
     for (DTOClient client : clientHolder.getInGameValues()) {
-      client.cardCount = process.getPlayerCards(getPlayerID(client)).size();
-      client.playerType = process.getPlayerType(getPlayerID(client));
+      final int cardCount = process.getPlayerCards(getPlayerID(client)).size();
+      final PlayerConstants.PlayerType type = process.getPlayerType(getPlayerID(client));
+      changed = changed || (cardCount != client.cardCount)  || (type != client.playerType);
+      client.cardCount = cardCount;
+      client.playerType = type;
     }
+    return changed;
   }
 
   public void updateMove(boolean nextRound) {
-    final List<List<DTOCard>> allCards;
-    gameUpdateClients();
-
     if(nextRound) {
-      allCards = null;
-      informInGamePlayers();
-      informSpectators();
-      server.broadcastMessage(GameUpdateType.STACK_UPDATE,
-          Converter.toDTO(process.getStack()));
-    } else allCards = Converter.toDTO(process.getAttackCards(), process.getDefenseCards());
-
-    /* update ingame cards, player list and if the next round is available */
-    /* send it to all connected clients, not just inGame clients */
-    server.broadcastMessage(GameUpdateType.INGAME_CARDS, allCards);
-    server.broadcastMessage(GameUpdateType.PLAYERS_UPDATE,
-        Collections.list(Collections.enumeration(clientHolder.getInGameValues())));
-    server.broadcastMessage(GameUpdateType.NEXT_ROUND_INFO, process.nextRoundAvailable());
+      if(!process.goToNextRound()) {
+        LOGGER.warning("Couldn't go to next round! GameProcess#readyForNextRound: "
+            + process.readyForNextRound());
+      } else updateNextRound();
+    } else updateCurrentRound();
 
     if(process.gameHasFinished()) {   //TODO ausprobieren, ob dieser Block an den Anfang kann oder nicth
       server.stopGame(false, "");
     }
   }
 
+  private void updateNextRound() {
+    if(gameUpdateClients()) {
+      informInGamePlayers();
+      /* update player list */
+      server.broadcastMessage(GameUpdateType.PLAYERS_UPDATE,
+          Collections.list(Collections.enumeration(clientHolder.getInGameValues())));
+    }
+    informSpectators();
+    server.broadcastMessage(GameUpdateType.STACK_UPDATE, Converter.toDTO(process.getStack()));
+    sendNextRoundInfo(true, process.defenderTookCards(), false);
+  }
+
+  private void updateCurrentRound() {
+    /* update player list */
+    if(gameUpdateClients()) {
+      server.broadcastMessage(GameUpdateType.PLAYERS_UPDATE,
+          Collections.list(Collections.enumeration(clientHolder.getInGameValues())));
+    }
+
+    /* update ingame cards */
+    if(process.cardsHaveChanged())
+      server.broadcastMessage(GameUpdateType.INGAME_CARDS,
+          Converter.toDTO(process.getAttackCards(), process.getDefenseCards()));
+
+    sendNextRoundInfo(false, false, process.attackersReady());
+  }
+
+  private void sendNextRoundInfo(boolean nextRound, boolean defenderTookCards,
+                                 boolean attackersFinished) {
+    final List<Boolean> roundInfo = new ArrayList<Boolean>(3);
+    roundInfo.add(nextRound);
+    roundInfo.add(defenderTookCards);
+    roundInfo.add(attackersFinished);
+    server.broadcastMessage(GameUpdateType.NEXT_ROUND_INFO, roundInfo);
+  }
   /**
    * Sends each inGame client his player info and all opponent's info
    * (number of cards, name, etc...)

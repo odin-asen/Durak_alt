@@ -39,9 +39,11 @@ public class GameProcess<ID> {
   private Boolean initialiseNew;
 
   private RuleChecker ruleChecker;
-  private Boolean defenderTookCards;
+  private RoundStateHandler roundState;
+  private boolean cardsChanged;
 
   /* Constructors */
+
   public GameProcess() {
     pairCardHolder = new ElementPairHolder<GameCard>();
     playerHolder = new ListMap<ID, Player>();
@@ -59,7 +61,8 @@ public class GameProcess<ID> {
     playerHolder.clear();
     gameInProcess = false;
     initialiseNew = true;
-    defenderTookCards = null;
+    cardsChanged = false;
+    roundState = new RoundStateHandler();
   }
 
   /**
@@ -78,6 +81,7 @@ public class GameProcess<ID> {
       distributeCards(cardsPerColour);
       determineInitialPlayers();
       gameInProcess = true;
+      roundState.setJustTwoPlayer(playerHolder.size() == 2);
       return true;
     } else return false;
   }
@@ -128,11 +132,40 @@ public class GameProcess<ID> {
   }
 
   /**
+   * Goes to the next round. This means that the player types of the players may be switched,
+   * depending on the fact if the defender took cards or not. The players get also new cards
+   * and it will determined if the game is over.
+   * @return Returns true if next round has started, otherwise false. A round may not be started
+   *         if not all players confirmed to go to the next round.
+   */
+  public boolean goToNextRound() {
+    if(!roundState.readyForNextRound())
+      return false;
+
+    final Player defender = ruleChecker.getDefender();
+    final Player nextFirstAttacker;
+    if(roundState.defenderTookCards()) {
+      final List<List<GameCard>> pairs = pairCardHolder.getElementPairs();
+      for (List<GameCard> pair : pairs) {
+        for (GameCard card : pair) {
+          defender.pickUpCard(card);
+        }
+      }
+      nextFirstAttacker = defender.getLeftPlayer();
+    } else nextFirstAttacker = defender;
+
+    prepareForNextRound();
+    nextRoundOrFinish(nextFirstAttacker);
+
+    return true;
+  }
+
+  /**
    * Validates a surpassed action with the current settings of the RuleChecker
    * object.
    * @param action Action to validate.
    * @param playerID Identifier for the player that does the action.
-   * @return Returns true, if the next round has started, else false.
+   * @return Returns true, if the next round can be started, else false.
    * @throws RuleException If a rule has been broken, a
    * {@link game.rules.RuleException} will be thrown with a message for the client.
    * @throws IllegalArgumentException If {@code action} is not instanceof
@@ -140,35 +173,35 @@ public class GameProcess<ID> {
    */
   public boolean validateAction(GameAction action, ID playerID)
       throws RuleException, IllegalArgumentException {
-    boolean nextRound = false;
+    cardsChanged = false;
     if(action instanceof CardAction) {
       final CardAction cardAction = (CardAction) action;
-      if(cardAction.getCardActionType().equals(CardAction.CardActionType.ATTACK))
+      if(cardAction.getCardActionType().equals(CardAction.CardActionType.ATTACK)) {
         validateAttack(playerID, (CardAction) action);
-      else if(cardAction.getCardActionType().equals(CardAction.CardActionType.DEFENSE))
+        cardsChanged = true;
+      } else if(cardAction.getCardActionType().equals(CardAction.CardActionType.DEFENSE)) {
         validateDefense(playerID, (CardAction) action);
+        cardsChanged = true;
+      }
     } else if(action instanceof FinishAction) {
-      nextRound = validateFinish(playerID, action);
+      validateFinish(playerID, action);
     } else throw new IllegalArgumentException("GameAction must be either " +
         "instance of "+CardAction.class.getName()+" or "+FinishAction.class.getName());
 
-    return nextRound;
+    return roundState.readyForNextRound();
   }
 
-  private boolean validateFinish(ID playerID, GameAction action) {
+  private void validateFinish(ID playerID, GameAction action) throws RuleException {
     final FinishAction finishAction;
-    Boolean goToNextRound = false;
 
     if(action instanceof FinishAction) {
       finishAction = (FinishAction) action;
       if(FinishAction.FinishType.GO_TO_NEXT_ROUND.equals(finishAction.getFinishType())) {
-        goToNextRound = nextRound(action.getExecutor().playerType, false);
+        setPlayerNextRound(action.getExecutor().playerType, false);
       } else if(FinishAction.FinishType.TAKE_CARDS.equals(finishAction.getFinishType())) {
-        goToNextRound = nextRound(action.getExecutor().playerType, true);
-      } else goToNextRound = false;
+        setPlayerNextRound(action.getExecutor().playerType, true);
+      }
     }
-
-    return goToNextRound;
   }
 
   private void validateDefense(ID playerID, CardAction action) throws RuleException {
@@ -190,52 +223,16 @@ public class GameProcess<ID> {
       pairCardHolder.addPair(card, null);
   }
 
-  /**
-   * Switches the players states, e.g isDefender, and determines, who is the next player
-   * to defend and to attack. One round starts when a new player has to defend and ends
-   * when the attackers and the defender pick up new cards.
-   * @param takeCards If true, the defender gets all current cards on the game field
-   *                  and is not the first attacker of the next round.
-   * @param type Player type that shows who send the next round request.
-   * @return Returns true, if the next round was initialised, false, if not.
-   */
-  public Boolean nextRound(PlayerConstants.PlayerType type, Boolean takeCards) {
-    Boolean result = false;
+  private void setPlayerNextRound(PlayerConstants.PlayerType type, boolean takeCards)
+      throws RuleException {
     if(PlayerConstants.PlayerType.DEFENDER.equals(type)) {
-      result = defenderRequestNextRound(takeCards, ruleChecker.getDefender());
+      if (!takeCards && !pairCardHolder.hasNoNullPairs())
+        throw new RuleException("nonullpairs"); //TODO gescheite regel beschreiben, dass noch karten gedeckt werden müssen
+      roundState.setDefenderNextRound(true, takeCards);
     } else if(PlayerConstants.PlayerType.FIRST_ATTACKER.equals(type) ||
         PlayerConstants.PlayerType.SECOND_ATTACKER.equals(type)) {
-      ruleChecker.setAttackerReadyNextRound(type);
+      roundState.setAttackerNextRound(type);
     }
-
-    if(result)
-      pairCardHolder.clear();
-    else defenderTookCards = null;
-
-    return result;
-  }
-
-  private Boolean defenderRequestNextRound(Boolean takeCards, Player defender) {
-    Boolean result = true;
-
-    if(takeCards) {
-      final List<List<GameCard>> pairs = pairCardHolder.getElementPairs();
-      for (List<GameCard> pair : pairs) {
-        for (GameCard card : pair) {
-          defender.pickUpCard(card);
-        }
-      }
-      prepareForNextRound();
-      nextRoundOrFinish(defender.getLeftPlayer());
-    } else {
-      if(ruleChecker.readyForNextRound() && pairCardHolder.hasNoNullPairs()) {
-        prepareForNextRound();
-        nextRoundOrFinish(defender);
-      } else result = false;
-    }
-    ruleChecker.defenderTakesCards(takeCards);
-
-    return result;
   }
 
   private void nextRoundOrFinish(Player firstAttacker) {
@@ -248,12 +245,17 @@ public class GameProcess<ID> {
   }
 
   private void prepareForNextRound() {
+    /* Set player's cards */
     fillPlayerHand(ruleChecker.getFirstAttacker());
     fillPlayerHand(ruleChecker.getSecondAttacker());
     fillPlayerHand(ruleChecker.getDefender());
     updateFinishedPlayer(ruleChecker.getFirstAttacker());
     updateFinishedPlayer(ruleChecker.getSecondAttacker());
     updateFinishedPlayer(ruleChecker.getDefender());
+
+    /* The rest */
+    pairCardHolder.clear();
+    roundState.newRound();
   }
 
   private Player determineLoser() {
@@ -313,20 +315,37 @@ public class GameProcess<ID> {
   }
 
   /**
-   * This method returns a list of size 2. The first boolean specifies if the next round is
-   * available. The second boolean specifies if the defender took the cards.
-   * @return A list of information, if the next round is available and if the defender
-   * took the cards.
+   * This method returns a boolean value that indicates if the process is ready to go to the next
+   * round.
+   * @return True, next round can be started, else false.
    */
-  public List<Boolean> nextRoundAvailable() {
-    final List<Boolean> roundInfo = new ArrayList<Boolean>(2);
-    roundInfo.add(ruleChecker.readyForNextRound());
-    roundInfo.add(ruleChecker.defenderTookCards());
-    return roundInfo;
+  public boolean readyForNextRound() {
+    return roundState.readyForNextRound();
+  }
+
+  /**
+   * This method returns a boolean value that indicates if the attackers in this process are ready
+   * to go to the next round.
+   * @return True, all attackers are ready, else false.
+   */
+  public boolean attackersReady() {
+    return roundState.attackersReadyForNextRound();
+  }
+
+  public Boolean defenderTookCards() {
+    return roundState.defenderTookCards();
   }
 
   public Boolean gameHasFinished() {
     return determineLoser() != null;
+  }
+
+  /**
+   * Returns a value to indicate if the cards on the field have changed after the last action.
+   * @return True, cards have changed, else false.
+   */
+  public boolean cardsHaveChanged() {
+    return cardsChanged;
   }
 
   /* Getter and Setter */
@@ -361,6 +380,79 @@ public class GameProcess<ID> {
   }
 
   /* Inner Classes */
+
+  private class RoundStateHandler {
+    private boolean firstAttackerNextRound;
+    private boolean secondAttackerNextRound;
+    private boolean defenderNextRound;
+    private boolean defenderTookCards;
+    private boolean justTwo;
+
+    private RoundStateHandler() {
+      newRound();
+      defenderTookCards = false;
+      justTwo = false;
+    }
+
+    public void newRound() {
+      firstAttackerNextRound = false;
+      secondAttackerNextRound = justTwo;
+      defenderNextRound = false;
+    }
+
+    private void setJustTwoPlayer(boolean justTwo) {
+      this.justTwo = justTwo;
+      secondAttackerNextRound = justTwo;
+    }
+
+    public boolean readyForNextRound() {
+      return firstAttackerNextRound && secondAttackerNextRound && defenderNextRound;
+    }
+
+    public boolean attackersReadyForNextRound() {
+      return firstAttackerNextRound && secondAttackerNextRound;
+    }
+
+    public void setFirstAttackerNextRound(boolean readyForNextRound) {
+      firstAttackerNextRound = readyForNextRound;
+    }
+
+    public void setSecondAttackerNextRound(boolean readyForNextRound) {
+      if(!justTwo)
+        secondAttackerNextRound = readyForNextRound;
+    }
+
+    /**
+     * If takesCards is true, all players are marked as ready for the next round.
+     * @param readyForNextRound Marks the defender to be ready for the next round or not.
+     * @param takesCards Marks that the defender takes the cards in this round and marks also
+     *                   the defender for the next round.
+     */
+    public void setDefenderNextRound(boolean readyForNextRound, boolean takesCards) {
+      defenderNextRound = readyForNextRound;
+      if(takesCards) {
+        firstAttackerNextRound = true;
+        secondAttackerNextRound = true;
+        defenderNextRound = true;
+      }
+      defenderTookCards = takesCards;
+    }
+
+    /**
+     * Retursn a boolean value that indicates if the last defender took the cards or not.
+     * @return True, the last defender took the cards, else false.
+     */
+    public boolean defenderTookCards() {
+      return defenderTookCards;
+    }
+
+    public void setAttackerNextRound(PlayerConstants.PlayerType type) {
+      if(type.equals(PlayerConstants.PlayerType.FIRST_ATTACKER))
+        firstAttackerNextRound = true;
+      else if(type.equals(PlayerConstants.PlayerType.SECOND_ATTACKER))
+        secondAttackerNextRound = true;
+    }
+  }
 }
 
 class ElementPairHolder<T> {

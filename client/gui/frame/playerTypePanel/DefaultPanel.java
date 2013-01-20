@@ -22,7 +22,7 @@ public class DefaultPanel extends AbstractDurakGamePanel {
 
   /* Methods */
 
-  public void enableGameButtons(boolean roundFinished) {
+  public void enableGameButtons(boolean roundFinished, boolean attackerFinished) {
     /* Nothing to do */
   }
 

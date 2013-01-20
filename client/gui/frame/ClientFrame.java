@@ -162,8 +162,8 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   /**
-   * Resets all game widgets, clears the client list and sets a text in the status bar.
-   * The gui disconnects also from the server.
+   * Resets all game widgets, sets a text in the status bar and the chat and if necessary clears
+   * the client list.
    * @param statusText Text to be shown in the status bar.
    * @param serverShutdown Notifies the client whether the reset is because of a
    *                 server serverShutdown or not.
@@ -267,8 +267,8 @@ public class ClientFrame extends JFrame implements Observer {
         prepareInGameCards(cards, attackerCards, defenderCards);
         centrePanel.setCards(Converter.fromDTO(attackerCards), Converter.fromDTO(defenderCards));
       } else if(GameUpdateType.NEXT_ROUND_INFO.equals(object.getType())) {
-        final List<Boolean> info = (List<Boolean>) object.getSendingObject();
-        centrePanel.enableButtons(info.get(0), info.get(1));
+        final List<Boolean> roundInfo = (List<Boolean>) object.getSendingObject();
+        centrePanel.updateRoundInfo(roundInfo.get(0), roundInfo.get(1), roundInfo.get(2));
       } else if(GameUpdateType.CLIENT_CARDS.equals(object.getType())) {
         centrePanel.setCards(Converter.fromDTO((List<DTOCard>) object.getSendingObject()));
       } else if(GameUpdateType.GAME_ABORTED.equals(object.getType())) {
@@ -279,8 +279,7 @@ public class ClientFrame extends JFrame implements Observer {
       } else if(GameUpdateType.GAME_FINISHED.equals(object.getType())) {
         showGameOverMessage();
         final String message = I18nSupport.getValue(MSGS_BUNDLE, "game.finished");
-        addChatMessage(message, true);
-        setStatus(message, true, GameClient.getClient().getSocketAddress());
+        resetAll(message, false);
         LOGGER.info(LoggingUtility.STARS+" Game finished "+LoggingUtility.STARS);
       }
     }

@@ -18,9 +18,10 @@ public enum GameUpdateType {
                              card and as second card the defender card */
   INITIALISE_PLAYERS,     /* Sending object: List<ClientInfo>
                              Initial list of clients that are in the game */
-  NEXT_ROUND_INFO,        /* Sending object: List<Boolean>
-                             first object: Boolean - next round can be started (true) or not (false)
-                             second object: Boolean - defender took cards (true) or not (false) */
+  NEXT_ROUND_INFO,        /* Sending object: List<Boolean> - length 3
+                             first object: server switched to the next round (true) or not (false)
+                             second object: defender took cards (true) or not (false)
+                             third object: all attackers finished the round (true) or not (false) */
   PLAYERS_UPDATE,         /* Sending object: List<ClientInfo>
                              Updated list of clients that are in the game */
   STACK_UPDATE,           /* Sending object: DTOCardStack

@@ -32,9 +32,9 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   private Player defender;
 
   private Boolean initAttack;
-  private RoundStateHandler roundState;
 
   /* Constructors */
+
   public RuleChecker() {
     firstAttacker = new Player();
     firstAttacker.setType(PlayerType.FIRST_ATTACKER);
@@ -42,11 +42,11 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
     secondAttacker.setType(PlayerType.SECOND_ATTACKER);
     defender = new Player();
     defender.setType(PlayerType.DEFENDER);
-    roundState = new RoundStateHandler();
     initAttack = true;
   }
 
   /* Methods */
+
   /**
    * Returns true or false whether the move can be done or not.
    * @param attacker Player, who wants to make the move.
@@ -69,11 +69,6 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
 
     if(!allCardsExist(attackerCards, allCards, nonExistingCards))
       throw new RuleException(getCardsNotOnGamePanelMessage(nonExistingCards.toString()));
-
-    if(attacker.getType().equals(PlayerType.FIRST_ATTACKER))
-      roundState.setFirstAttackerNextRound(false);
-    else if(attacker.getType().equals(PlayerType.SECOND_ATTACKER))
-      roundState.setSecondAttackerNextRound(false);
 
     for (GameCard card : attackerCards) {
       attacker.useCard(card);
@@ -101,7 +96,6 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
 
     checkDefense(defenderCard, attackerCard, notHigherText, noTrumpText);
 
-    roundState.defenderTakesCards(false);
     defender.useCard(defenderCard);
   }
 
@@ -240,10 +234,8 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
       setFirstAttacker(firstAttacker);
       if(!secondAttacker.equals(firstAttacker))
         setSecondAttacker(secondAttacker);
-      else {
-        setSecondAttacker(null);
-        roundState.setSecondAttackerNextRound(true);
-      }
+      else setSecondAttacker(null);
+
       setDefender(defender);
     }
 
@@ -261,25 +253,6 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
         return null;
     }
     return firstAttacker;
-  }
-
-  public void setAttackerReadyNextRound(PlayerType type) {
-    if(type.equals(PlayerType.FIRST_ATTACKER))
-      roundState.setFirstAttackerNextRound(true);
-    else if(type.equals(PlayerType.SECOND_ATTACKER))
-      roundState.setSecondAttackerNextRound(true);
-  }
-
-  public boolean readyForNextRound() {
-    return roundState.readyForNextRound();
-  }
-
-  public void defenderTakesCards(boolean takeCards) {
-    roundState.defenderTakesCards(takeCards);
-  }
-
-  public boolean defenderTookCards() {
-    return roundState.defenderTookCards();
   }
 
   /* Getter and Setter */
@@ -334,43 +307,4 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   }
 
   /* Inner Classes */
-  private class RoundStateHandler {
-    private boolean firstAttackerNextRound;
-    private boolean secondAttackerNextRound;
-    private boolean defenderTookCards;
-
-    private RoundStateHandler() {
-      newRound();
-      defenderTookCards = false;
-    }
-
-    public void newRound() {
-      firstAttackerNextRound = false;
-      secondAttackerNextRound = false;
-    }
-
-    private boolean readyForNextRound() {
-      return firstAttackerNextRound && secondAttackerNextRound;
-    }
-
-    public void setFirstAttackerNextRound(Boolean readyForNextRound) {
-      firstAttackerNextRound = readyForNextRound;
-    }
-
-    public void setSecondAttackerNextRound(Boolean readyForNextRound) {
-      secondAttackerNextRound = readyForNextRound;
-    }
-
-    public void defenderTakesCards(boolean takesCards) {
-      if(takesCards) {
-        firstAttackerNextRound = true;
-        secondAttackerNextRound = true;
-      }
-      defenderTookCards = takesCards;
-    }
-
-    public boolean defenderTookCards() {
-      return defenderTookCards;
-    }
-  }
 }

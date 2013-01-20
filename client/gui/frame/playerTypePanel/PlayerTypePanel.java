@@ -27,6 +27,7 @@ import static common.utilities.constants.PlayerConstants.PlayerType;
 public class PlayerTypePanel extends JPanel {
   private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
   private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
+  private static final Logger LOGGER = LoggingUtility.getLogger(PlayerTypePanel.class.getName());
 
   private JPanel listPanel;
   private JList<DTOClient> clientList;
@@ -37,9 +38,12 @@ public class PlayerTypePanel extends JPanel {
   private Map<PlayerType, AbstractDurakGamePanel> panelMap;
   private PlayerType currentType;
 
+  /* Game relevant attributes to update panels after a layout/PlayerType change */
   private List<GameCard> handCards;
   private List<GameCard> attackCards;
   private List<GameCard> defenseCards;
+  private DTOCardStack cardStack;
+  private List<DTOClient> opponents;
 
   /* Constructors */
   public PlayerTypePanel(PlayerType type) {
@@ -50,6 +54,8 @@ public class PlayerTypePanel extends JPanel {
     handCards = new ArrayList<GameCard>();
     attackCards = new ArrayList<GameCard>(6);
     defenseCards = new ArrayList<GameCard>(6);
+    cardStack = new DTOCardStack();
+    opponents = new ArrayList<DTOClient>();
 
     initGamePanels();
     setLayout(new BorderLayout());
@@ -109,21 +115,19 @@ public class PlayerTypePanel extends JPanel {
     if (!currentType.equals(type)) {
       currentType = type;
       cardLayout.show(cardLayoutPanel, type.getDescription());
-      final GamePanel gamePanel = panelMap.get(currentType).getGameProcessContainer();
-      gamePanel.setHandCards(handCards);
-      gamePanel.setIngameCards(attackCards, defenseCards);
-      gamePanel.updateCards();
-      gamePanel.setListenerType(currentType);
+      updateCurrentGamePanel();
       statusBar.setPlayerType(currentType);
     }
   }
 
-  public void next() {
-    int next = currentType.ordinal() + 1;
-    if (next >= PlayerType.values().length)
-      next = 0;
-    setPlayerType(PlayerType.values()[next]);
-    statusBar.setPlayerType(currentType);
+  private void updateCurrentGamePanel() {
+    AbstractDurakGamePanel panel = panelMap.get(currentType);
+
+    updateStack(cardStack);
+    setCards(attackCards, defenseCards, handCards);
+    updateOpponents(opponents, false);
+
+    panel.getGameProcessContainer().setListenerType(currentType);
   }
 
   public void setStatus(String mainText) {
@@ -183,10 +187,12 @@ public class PlayerTypePanel extends JPanel {
   }
 
   public void updateStack(DTOCardStack cardStack) {
+    setStackValue(cardStack);
     panelMap.get(currentType).getCardStackContainer().updateStack(cardStack);
   }
 
   public void updateOpponents(List<DTOClient> clients, boolean remove) {
+    setOpponentsValue(clients);
     final OpponentsPanel panel = panelMap.get(currentType).getOpponentsContainer();
     if (remove) panel.removeAllOpponents();
     else panel.updateOpponents(clients);
@@ -201,25 +207,32 @@ public class PlayerTypePanel extends JPanel {
   }
 
   public void resetGameWidgets() {
-    final AbstractDurakGamePanel panel = panelMap.get(currentType);
-    panel.enableGameButtons(false);
-    panel.getGameProcessContainer().deleteCards();
-    panel.getOpponentsContainer().removeAllOpponents();
-    panel.getCardStackContainer().deleteCards();
+    for (AbstractDurakGamePanel panel : panelMap.values()) {
+      panel.enableGameButtons(false, false);
+      panel.getGameProcessContainer().deleteCards();
+      panel.getOpponentsContainer().removeAllOpponents();
+      panel.getCardStackContainer().deleteCards();
+    }
   }
 
   /**
    * Enables the game buttons depending on the players type and the surpassed boolean values.
    * It also notifies the client via popup if the next round is available or if the defender
-   * took the cards or not.
+   * took the cards or not. (only for non defender players).
    * @param roundFinished Specifies the enabled state of the buttons.
    * @param defenderTookCards Specifies the popup message, if the next round is available.
+   * @param attackerFinished Specifies the popup message, if all attacker finished the round.
    */
-  public void enableButtons(Boolean roundFinished, Boolean defenderTookCards) {
-    panelMap.get(currentType).enableGameButtons(roundFinished);
-    if (roundFinished && defenderTookCards && !currentType.equals(PlayerType.DEFENDER)) {
-      ClientFrame.getInstance().showInformationPopup(
-          I18nSupport.getValue(MSGS_BUNDLE, "defender.took.cards." + defenderTookCards)); //NON-NLS
+  public void updateRoundInfo(boolean roundFinished, boolean defenderTookCards,
+                              boolean attackerFinished) {
+    panelMap.get(currentType).enableGameButtons(roundFinished, attackerFinished);
+    if (roundFinished) {
+      for (AbstractDurakGamePanel panel : panelMap.values())
+        panel.setNewRound();
+      if(defenderTookCards && !currentType.equals(PlayerType.DEFENDER)) {
+        ClientFrame.getInstance().showInformationPopup(
+            I18nSupport.getValue(MSGS_BUNDLE, "defender.took.cards." + defenderTookCards)); //NON-NLS
+      }
     }
   }
 
@@ -285,6 +298,22 @@ public class PlayerTypePanel extends JPanel {
     return statusBar;
   }
 
+  private void setStackValue(DTOCardStack stack) {
+    if(stack != null) {
+      if(!cardStack.equals(stack)) {
+        cardStack = stack;
+      }
+    } else cardStack = new DTOCardStack();
+  }
+
+  private void setOpponentsValue(List<DTOClient> opponents) {
+    if(opponents != null) {
+      if(!this.opponents.equals(opponents)) {
+        this.opponents= opponents;
+      }
+    } else this.opponents = new ArrayList<DTOClient>();
+  }
+
   /* Inner Classes */
 
   private class ClientListCellRenderer extends DefaultListCellRenderer {
@@ -333,7 +362,7 @@ abstract class AbstractDurakGamePanel extends JPanel implements DurakGamePanel {
   /**
    * Initialises the containers with default settings.
    */
-  public void init() {
+  protected void init() {
     /* Cards Stack Panel */
     JPanel panel = getCardStackContainer();
 
