@@ -274,7 +274,6 @@ public class PlayerTypePanel extends JPanel {
     listPanel.add(listScrollPane, BorderLayout.CENTER);
     listPanel.setMinimumSize(new Dimension(0,0));
 
-    clientList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
     clientList.setCellRenderer(new ClientListCellRenderer());
     clientList.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     listScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
@@ -319,7 +318,8 @@ public class PlayerTypePanel extends JPanel {
   private class ClientListCellRenderer extends DefaultListCellRenderer {
     public Component getListCellRendererComponent(
         JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-      Component superComponent = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      Component superComponent = super.getListCellRendererComponent(
+          list, value, index, isSelected, cellHasFocus);
 
       if (value == null)
         return this;

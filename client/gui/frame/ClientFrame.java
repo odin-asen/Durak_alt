@@ -279,7 +279,7 @@ public class ClientFrame extends JFrame implements Observer {
       } else if(GameUpdateType.GAME_FINISHED.equals(object.getType())) {
         showGameOverMessage();
         final String message = I18nSupport.getValue(MSGS_BUNDLE, "game.finished");
-        resetAll(message, false);
+        resetAll(message, false, false, false);
         LOGGER.info(LoggingUtility.STARS+" Game finished "+LoggingUtility.STARS);
       }
     }
