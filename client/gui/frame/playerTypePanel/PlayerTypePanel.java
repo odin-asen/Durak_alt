@@ -229,9 +229,10 @@ public class PlayerTypePanel extends JPanel {
     if (roundFinished) {
       for (AbstractDurakGamePanel panel : panelMap.values())
         panel.setNewRound();
+
       if(defenderTookCards && !currentType.equals(PlayerType.DEFENDER)) {
-        ClientFrame.getInstance().showInformationPopup(
-            I18nSupport.getValue(MSGS_BUNDLE, "defender.took.cards." + defenderTookCards)); //NON-NLS
+        final String key = "defender.took.cards." + defenderTookCards; //NON-NLS
+        ClientFrame.getInstance().showGamePopup(I18nSupport.getValue(MSGS_BUNDLE, key));
       }
     }
   }

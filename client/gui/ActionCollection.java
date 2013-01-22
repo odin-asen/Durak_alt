@@ -5,13 +5,11 @@ import client.business.ConnectionInfo;
 import client.business.client.GameClient;
 import client.business.client.GameClientException;
 import client.gui.frame.ClientFrame;
-import client.gui.frame.ClientGUIConstants;
 import client.gui.frame.ConnectionDialog;
 import client.gui.frame.chat.ChatFrame;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
 import common.utilities.LoggingUtility;
-import common.utilities.gui.DurakPopup;
 import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;

@@ -5,7 +5,9 @@ import client.gui.frame.ClientFrame;
 import common.utilities.LoggingUtility;
 
 import javax.swing.*;
+import java.io.IOException;
 import java.util.Locale;
+import java.util.logging.Logger;
 
 /**
  * User: Timm Herrmann
@@ -13,8 +15,14 @@ import java.util.Locale;
  * Time: 22:36
  */
 public class StartClient {
+  static {
+    /* init logging class */
+    LoggingUtility.setFirstTimeLoggingFile(System.getProperty("user.dir")
+        +System.getProperty("file.separator")+"clientLog.txt"); //NON-NLS
+  }
 
   private static final String SETTINGS_FILE = "durakSettings.xml"; //NON-NLS
+  private static final Logger LOGGER = LoggingUtility.getLogger(StartClient.class.getName());
 
   public static void main(String[] args) {
     init();
@@ -25,19 +33,27 @@ public class StartClient {
   }
 
   private static void init() {
-    /* init logging class */
-    String loggingPath = System.getProperty("user.dir")
-        +System.getProperty("file.separator")+"clientLog.txt"; //NON-NLS
-    LoggingUtility.setFirstTimeLoggingFile(loggingPath);
-
     /* init look and feel */
     try {
+      LOGGER.info("Load Look And Feel...");
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+      LOGGER.info("Look And Feel loaded");
     } catch(Exception e){}
 
     /* init settings */
+    LOGGER.info("Load Settings...");
     final GlobalSettings settings = GlobalSettings.getInstance();
-    settings.readGlobalSettings(SETTINGS_FILE);
-    Locale.setDefault(settings.general.getLocale());
+    try {
+      settings.readGlobalSettings(SETTINGS_FILE);
+      Locale.setDefault(settings.general.getLocale());
+      LOGGER.info("Settings loaded");
+    } catch (IOException e) {
+      LOGGER.info("Couldn't load settings file: "+e.getMessage()+"\n\t-> Start with default");
+    }
+    try {
+      settings.writeGlobalSettings(SETTINGS_FILE);
+    } catch (IOException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    }
   }
 }

@@ -3,6 +3,8 @@ package client.gui.frame;
 import client.business.Client;
 import client.business.ConnectionInfo;
 import client.business.client.GameClient;
+import client.data.GlobalSettings;
+import client.data.xStreamModel.PopupSettings;
 import client.gui.ActionCollection;
 import client.gui.frame.chat.ChatFrame;
 import client.gui.frame.playerTypePanel.PlayerTypePanel;
@@ -100,14 +102,16 @@ public class ClientFrame extends JFrame implements Observer {
     if(logEntry) {
       message = LoggingUtility.SHORT_STARS+" "+message+" "+LoggingUtility.SHORT_STARS;
     } else {
-      if(!frame.isVisible()) {
+      final PopupSettings popupSettings = GlobalSettings.getInstance().popup;
+      if(!frame.isVisible() && popupSettings.isEnabled() && popupSettings.getChat().isEnabled()) {
         /* Make a popup that shows a message and has a button to open the chat */
         final Action openChatAction =
             WidgetCreator.createActionCopy(ActionCollection.OPEN_CHAT_DIALOG);
         openChatAction.putValue(Action.NAME,
             I18nSupport.getValue(CLIENT_BUNDLE, "action.name.open.chat"));
         WidgetCreator.createPopup(USER_MESSAGE_INFO_COLOUR, message, openChatAction,
-            true, getBounds(), DurakPopup.LOCATION_DOWN_LEFT, 5.0).setVisible(true);
+            true, getBounds(), DurakPopup.LOCATION_DOWN_LEFT,
+            popupSettings.getChat().getDuration()).setVisible(true);
       }
     }
     frame.addMessage(message);
@@ -124,22 +128,27 @@ public class ClientFrame extends JFrame implements Observer {
 
   public void showRuleException(Object ruleException) {
     messenger.showRulePopup(ruleException.toString(), Compute.getFramelessBounds(this));
-    ResourceGetter.playSound("computer.says.no");
+    if(GlobalSettings.getInstance().sound.isRuleException())
+      ResourceGetter.playSound("computer.says.no");
+  }
+
+  public void showGamePopup(String message) {
+    messenger.showGamePopup(message, Compute.getFramelessBounds(this));
   }
 
   public void showInformationPopup(String message) {
-    messenger.showMessagePopup(USER_MESSAGE_INFO_COLOUR, message,
-        Compute.getFramelessBounds(this));
+    messenger.showMessagePopup(USER_MESSAGE_INFO_COLOUR, message, Compute.getFramelessBounds(this),
+        DEFAULT_POPUP_TIME);
   }
 
   public void showWarningPopup(String message) {
     messenger.showMessagePopup(USER_MESSAGE_WARNING_COLOUR, message,
-        Compute.getFramelessBounds(this));
+        Compute.getFramelessBounds(this), DEFAULT_POPUP_TIME);
   }
 
   public void showErrorPopup(String message) {
     messenger.showMessagePopup(USER_MESSAGE_ERROR_COLOUR, message,
-        Compute.getFramelessBounds(this));
+        Compute.getFramelessBounds(this), DEFAULT_POPUP_TIME);
   }
 
   /**
@@ -378,13 +387,23 @@ class UserMessageDistributor {
   }
 
   public void showRulePopup(String ruleMessage, Rectangle parentBounds) {
-    WidgetCreator.createPopup(ClientGUIConstants.GAME_TABLE_COLOUR, ruleMessage, parentBounds,
-        DurakPopup.LOCATION_DOWN_RIGHT, 3).setVisible(true);
+    final GlobalSettings settings = GlobalSettings.getInstance();
+    if(settings.popup.isEnabled() && settings.popup.getRule().isEnabled())
+      WidgetCreator.createPopup(ClientGUIConstants.GAME_TABLE_COLOUR, ruleMessage, parentBounds,
+        DurakPopup.LOCATION_DOWN_RIGHT, settings.popup.getRule().getDuration()).setVisible(true);
   }
 
-  public void showMessagePopup(Color background, String message, Rectangle parentBounds) {
+  public void showMessagePopup(Color background, String message, Rectangle parentBounds,
+                               double duration) {
     WidgetCreator.createPopup(background, message, parentBounds,
-        DurakPopup.LOCATION_UP_LEFT, 3).setVisible(true);
+        DurakPopup.LOCATION_UP_LEFT, duration).setVisible(true);
+  }
+
+  public void showGamePopup(String message, Rectangle parentBounds) {
+    final PopupSettings popupSettings = GlobalSettings.getInstance().popup;
+    if(popupSettings.isEnabled() && popupSettings.getGame().isEnabled())
+      showMessagePopup(ClientGUIConstants.USER_MESSAGE_INFO_COLOUR, message, parentBounds,
+          popupSettings.getGame().getDuration());
   }
 }
 

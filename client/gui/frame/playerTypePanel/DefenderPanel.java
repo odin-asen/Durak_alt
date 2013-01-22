@@ -78,7 +78,7 @@ public class DefenderPanel extends AbstractDurakGamePanel {
     final boolean allCardsCovered = getGameProcessContainer().inGameCardsAreCovered();
     final boolean roundCanBeFinished = !roundFinished && attackerFinished && allCardsCovered;
     if (roundCanBeFinished)
-      ClientFrame.getInstance().showInformationPopup(
+      ClientFrame.getInstance().showGamePopup(
           I18nSupport.getValue(MSGS_BUNDLE, "next.round.available"));
     takeCardsButton.setEnabled(!roundFinished && cardsOnTable);
     roundDoneButton.setEnabled(roundCanBeFinished);

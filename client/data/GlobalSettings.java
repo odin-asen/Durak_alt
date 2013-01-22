@@ -6,9 +6,7 @@ import client.data.xStreamModel.PopupSettings;
 import client.data.xStreamModel.SoundSettings;
 import com.thoughtworks.xstream.XStream;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 
 /**
  * User: Timm Herrmann
@@ -44,9 +42,17 @@ public class GlobalSettings {
 
   /* Methods */
 
-  public void readGlobalSettings(String filePath) {
-    final XStream xStream = new XStream();
-    globalSettings = (GlobalSettings) xStream.fromXML(filePath);
+  /**
+   * Reads the global settings from a specified file.
+   * @param filePath File path of the settings file.
+   * @throws IOException see {@link java.io.FileReader#FileReader(String)} or if the reader
+   * couldn't be closed.
+   */
+  public void readGlobalSettings(String filePath) throws IOException {
+    final Reader reader = new FileReader(filePath);
+    final XStream xStream = initialiseXStream();
+    globalSettings = (GlobalSettings) xStream.fromXML(reader);
+    reader.close();
   }
 
   /**

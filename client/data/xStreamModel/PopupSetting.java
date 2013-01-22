@@ -25,7 +25,7 @@ public class PopupSetting {
     this.duration = duration;
   }
 
-  public boolean getEnabled() {
+  public boolean isEnabled() {
     return enabled;
   }
 

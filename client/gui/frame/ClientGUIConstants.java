@@ -38,4 +38,5 @@ public interface ClientGUIConstants {
 
   int CHAT_WRITE_AREA_HEIGHT = 70;
   String DEFAULT_IP_ADDRESS = "127.0.0.1";
+  double DEFAULT_POPUP_TIME = 3.0;
 }
