@@ -10,6 +10,7 @@ import common.utilities.gui.FramePosition;
 import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,22 +37,14 @@ public class ConnectionDialog extends AbstractDefaultDialog {
   private static final int STRUT_HEIGHT = 5;
   private static final int STRUT_WIDTH = 5;
 
-  /* Some parameters have a component that will be used to edit this parameter and
-   * another component if the parameter should be not editable. E.g. for the
-   * server address, the editable component is a combo box and the non editable is a
-   * label. */
-  private JComboBox<String> serverAddressCombo;
-  private JLabel serverAddressLabel;
-  private JTextField serverPortField;
-  private JLabel serverPortLabel;
   private JTextField passwordField;
-  private JTextField nameField;
-  private JLabel nameLabel;
-  private JCheckBox spectatorCheckBox;
-  private JLabel spectatorLabel;
-  private JPanel buttonPanel;
+  private TwoStateComponent<JComboBox<String>,JLabel,String> serverAddressField;
+  private TwoStateComponent<JTextField,JLabel,String> serverPortField;
+  private TwoStateComponent<JTextField,JLabel,String> nameField;
+  private TwoStateComponent<JCheckBox,JLabel,Boolean> spectatorField;
 
   private boolean editable;
+  private DialogChangeListener dialogChangeListener;
 
   /* Constructors */
 
@@ -62,8 +55,10 @@ public class ConnectionDialog extends AbstractDefaultDialog {
     final JPanel dialogContent = getDialogContent();
 
     dialogContent.setLayout(new BoxLayout(dialogContent, BoxLayout.PAGE_AXIS));
-    dialogContent.add(getServerInfoPanel());
-    dialogContent.add(getClientInfoPanel());
+    dialogContent.add(createMainPanel(I18nSupport.getValue(CLIENT_GUI, "border.settings.server"),
+        getServerAddressPanel(), getServerPortPanel(), getPasswordPanel()));
+    dialogContent.add(createMainPanel(I18nSupport.getValue(CLIENT_GUI, "border.settings.client"),
+        getClientNamePanel(), getSpectatorPanel()));
 
     if(editable) setConnectionButton();
     withApplyButton(editable);
@@ -78,9 +73,11 @@ public class ConnectionDialog extends AbstractDefaultDialog {
 
     setBounds(position.getRectangle());
     setResizable(false);
-    setTitle(I18nSupport.getValue(CLIENT_GUI, "dialog.title.connection"));
+    setUnchangedTitle(I18nSupport.getValue(CLIENT_GUI, "dialog.title.connection"));
     setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     pack();
+
+    initChangeListener();
   }
 
   public static void main(String[] args) {
@@ -89,6 +86,17 @@ public class ConnectionDialog extends AbstractDefaultDialog {
   }
 
   /* Methods */
+
+  private void initChangeListener() {
+    dialogChangeListener = new DialogChangeListener(this);
+    nameField.getFirstComponent().addCaretListener(dialogChangeListener);
+    serverAddressField.getFirstComponent().addActionListener(dialogChangeListener);
+    serverPortField.getFirstComponent().addCaretListener(dialogChangeListener);
+    spectatorField.getFirstComponent().addActionListener(dialogChangeListener);
+    if(editable)
+      passwordField.addCaretListener(dialogChangeListener);
+    change();
+  }
 
   private void setConnectionButton() {
     for (ActionListener listener : okayButton.getActionListeners()) {
@@ -114,37 +122,27 @@ public class ConnectionDialog extends AbstractDefaultDialog {
   void saveContent() {
     /* save connection info */
     final ConnectionInfo connectionInfo = ConnectionInfo.getOwnInstance();
-    connectionInfo.setServerAddress(serverAddressCombo.getSelectedItem().toString());
-    connectionInfo.setServerPort(Integer.parseInt(serverPortField.getText()));
+    connectionInfo.setServerAddress(serverAddressField.getValue());
+    connectionInfo.setServerPort(Integer.parseInt(serverPortField.getValue()));
     connectionInfo.setPassword(passwordField.getText());
 
     /* save client info */
     final Client client = Client.getOwnInstance();
-    client.setName(nameField.getText());
-    client.setSpectating(spectatorCheckBox.isSelected());
+    client.setName(nameField.getValue());
+    client.setSpectating(spectatorField.getValue());
+    change();
   }
 
   void resetContent() {
     final ConnectionInfo connectionInfo = ConnectionInfo.getOwnInstance();
     final Client client = Client.getOwnInstance();
 
-    if(editable) {
-      /* server fields */
-      serverAddressCombo.setSelectedItem(connectionInfo.getServerAddress());
-      serverPortField.setText(connectionInfo.getServerPort().toString());
-      passwordField.setText(connectionInfo.getPassword());
-      /* client fields */
-      nameField.setText(client.getName());
-      spectatorCheckBox.setSelected(client.getSpectating());
-    } else {
-      /* server fields */
-      serverAddressLabel.setText(connectionInfo.getServerAddress());
-      serverPortLabel.setText(connectionInfo.getServerPort().toString());
-      /* client fields */
-      nameLabel.setText(client.getName());
-      String key = "label.text.spectator."+client.getSpectating().toString(); //NON-NLS
-      spectatorLabel.setText(I18nSupport.getValue(CLIENT_GUI, key));
-    }
+    serverAddressField.setValue(connectionInfo.getServerAddress());
+    serverPortField.setValue(connectionInfo.getServerPort().toString());
+    if(editable) passwordField.setText(connectionInfo.getPassword());
+    nameField.setValue(client.getName());
+    spectatorField.setValue(client.getSpectating());
+    change();
   }
 
   void closeDialog() {
@@ -152,139 +150,142 @@ public class ConnectionDialog extends AbstractDefaultDialog {
     dispose();
   }
 
-  /* Getter and Setter */
+  private ValueAccessor createTextLabelAccessor(final JTextComponent field, final JLabel label) {
+    return new ValueAccessor<String>() {
+      public String getValue() {
+        return field.getText();
+      }
+      public void setValue(String value) {
+        field.setText(value);
+        label.setText(value);
+      }
+    };
+  }
 
-  private JPanel getServerInfoPanel() {
+  protected boolean valuesHaveChanged() {
+    final ConnectionInfo connectionInfo = ConnectionInfo.getOwnInstance();
+    final Client client = Client.getOwnInstance();
+
+    return !serverAddressField.getValue().equals(connectionInfo.getServerAddress())
+        || !serverPortField.getValue().equals(connectionInfo.getServerPort().toString())
+        || !passwordField.getText().equals(connectionInfo.getPassword())
+        || !nameField.getValue().equals(client.getName())
+        || !spectatorField.getValue().equals(client.getSpectating());
+  }
+
+  private JPanel createHorizontalPanel(String labelString, Component... components) {
+    final JPanel panel = new JPanel();
+    panel.setLayout(new GridLayout(1, 2));
+    if(labelString != null) {
+      final JLabel label = new JLabel(labelString);
+      label.setMaximumSize(label.getPreferredSize());
+      panel.add(label);
+    }
+    for(Component component : components)
+      panel.add(component);
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
+
+    return panel;
+  }
+
+  private JPanel createMainPanel(String borderTitle, JPanel... panels) {
     final JPanel mainPanel = new JPanel();
 
-    mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.PAGE_AXIS));
-    mainPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_GUI, "border.settings.server")));
+    mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
+    mainPanel.setBorder(BorderFactory.createTitledBorder(borderTitle));
 
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-    mainPanel.add(getServerAddressPanel());
-    mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-    mainPanel.add(getServerPortPanel());
-    if(editable) {
+    for (JPanel panel : panels) {
+      mainPanel.add(panel);
       mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-      mainPanel.add(getPasswordPanel());
     }
-
-    mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-
     return mainPanel;
   }
 
+  /* Getter and Setter */
+
   private JPanel getPasswordPanel() {
-    final JPanel panel = new JPanel();
-    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_GUI, "label.text.password"));
-    label.setMaximumSize(label.getPreferredSize());
     try {
       passwordField = WidgetCreator.makeTextField(JPasswordField.class,
           ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-          I18nSupport.getValue(CLIENT_GUI, "checkbox.tooltip.show.password"));
-      panel.setLayout(new GridLayout(1, 2));
-      panel.add(label);
-      panel.add(passwordField);
-      panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
+          I18nSupport.getValue(CLIENT_GUI, "checkbox.tooltip.password"));
     } catch (Exception e) {
       LOGGER.severe("Error creating password panel.\nMessage: "+e.getMessage());
     }
-    return panel;
+
+    if(!editable)
+      return new JPanel();
+
+    return createHorizontalPanel(I18nSupport.getValue(CLIENT_GUI, "label.text.password"),
+        passwordField);
   }
 
   private JPanel getServerPortPanel() {
-    final JPanel panel = new JPanel();
-    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_GUI, "label.text.port"));
-    label.setMaximumSize(label.getPreferredSize());
-    serverPortField = WidgetCreator.makeIntegerTextField("",
+    final JTextField field = WidgetCreator.makeIntegerTextField("",
         ClientGUIConstants.PREFERRED_FIELD_WIDTH,
         I18nSupport.getValue(CLIENT_GUI, "field.tooltip.server.port"));
-    serverPortLabel = new JLabel("");
+    final JLabel valueLabel = new JLabel("");
+    final ValueAccessor<String> accessor = createTextLabelAccessor(field, valueLabel);
+    serverPortField = new TwoStateComponent<JTextField,JLabel,String>(field, valueLabel, accessor);
 
-    panel.setLayout(new GridLayout(1, 2));
-    panel.add(label);
-    if(editable)
-      panel.add(serverPortField);
-    else panel.add(serverPortLabel);
-
-    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
-    return panel;
+    return createHorizontalPanel(I18nSupport.getValue(CLIENT_GUI, "label.text.port"),
+        serverPortField.getComponent(editable));
   }
 
   private JPanel getServerAddressPanel() {
-    final JPanel panel = new JPanel();
-    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_GUI, "label.text.address"));
-    label.setMaximumSize(label.getPreferredSize());
     final Vector<String> comboBoxContent = new Vector<String>();
-    serverAddressCombo = WidgetCreator.makeComboBox(comboBoxContent, 3,
-        ClientGUIConstants.PREFERRED_FIELD_WIDTH,
+    final JComboBox<String> combobox = WidgetCreator.makeComboBox(
+        comboBoxContent, 3, ClientGUIConstants.PREFERRED_FIELD_WIDTH,
         I18nSupport.getValue(CLIENT_GUI, "combobox.tooltip.server.address"));
-    serverAddressCombo.addActionListener(new IPComboBoxListener(serverAddressCombo, comboBoxContent));
-    serverAddressLabel = new JLabel("");
+    combobox.addActionListener(new IPComboBoxListener(combobox, comboBoxContent));
+    final JLabel valueLabel = new JLabel("");
+    final ValueAccessor<String> accessor = new ValueAccessor<String>() {
+      public String getValue() {return combobox.getSelectedItem().toString();}
+      public void setValue(String value) {
+        valueLabel.setText(value);
+        combobox.setSelectedItem(value);
+      }
+    };
+    serverAddressField = new TwoStateComponent<JComboBox<String>,JLabel,String>(
+        combobox,valueLabel,accessor);
 
-    panel.setLayout(new GridLayout(1, 2));
-    panel.add(label);
-    if(editable)
-      panel.add(serverAddressCombo);
-    else panel.add(serverAddressLabel);
-
-    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
-    return panel;
-  }
-
-  private JPanel getClientInfoPanel() {
-    final JPanel mainPanel = new JPanel();
-
-    mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.PAGE_AXIS));
-    mainPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_GUI, "border.settings.client")));
-
-    mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-    mainPanel.add(getClientNamePanel());
-    mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-    mainPanel.add(getSpectatorPanel());
-
-    mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
-
-    return mainPanel;
+    return createHorizontalPanel(I18nSupport.getValue(CLIENT_GUI, "label.text.address"),
+        serverAddressField.getComponent(editable));
   }
 
   private JPanel getSpectatorPanel() {
-    final JPanel panel = new JPanel();
-    spectatorCheckBox = new JCheckBox(
+    final JCheckBox checkbox = new JCheckBox(
         I18nSupport.getValue(CLIENT_GUI, "checkbox.text.spectator"));
-    spectatorCheckBox.setSelected(false);
-    spectatorLabel = new JLabel("");
+    final JLabel valueLabel = new JLabel("");
+    final ValueAccessor<Boolean> accessor = new ValueAccessor<Boolean>() {
+      public Boolean getValue() {return checkbox.isSelected();}
+      public void setValue(Boolean value) {
+        String key = "label.text.spectator."+value.toString(); //NON-NLS
+        valueLabel.setText(I18nSupport.getValue(CLIENT_GUI, key));
+        checkbox.setSelected(value);
+      }
+    };
+    spectatorField = new TwoStateComponent<JCheckBox,JLabel,Boolean>(checkbox,valueLabel,accessor);
 
-    panel.setLayout(new GridLayout(1, 2));
-    if(editable) {
-      panel.add(Box.createHorizontalStrut(STRUT_WIDTH));
-      panel.add(spectatorCheckBox);
-    } else {
-      panel.add(new JLabel(I18nSupport.getValue(CLIENT_GUI, "label.text.status")));
-      panel.add(spectatorLabel);
-    }
-    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
+    final JPanel panel;
+
+    if(editable)
+      panel = createHorizontalPanel(null, Box.createHorizontalStrut(STRUT_WIDTH),
+          spectatorField.getComponent(editable));
+    else panel = createHorizontalPanel(I18nSupport.getValue(CLIENT_GUI, "label.text.status"),
+        spectatorField.getComponent(editable));
 
     return panel;
   }
 
   private JPanel getClientNamePanel() {
-    final JPanel panel = new JPanel();
-    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_GUI, "label.text.player.name"));
-    label.setMaximumSize(label.getPreferredSize());
-    nameField = new JTextField(Client.getOwnInstance().getName());
-    nameLabel = new JLabel("");
+    final JTextField field = new JTextField(Client.getOwnInstance().getName());
+    final JLabel valueLabel = new JLabel("");
+    final ValueAccessor<String> accessor = createTextLabelAccessor(field, valueLabel);
+    nameField = new TwoStateComponent<JTextField, JLabel, String>(field, valueLabel, accessor);
 
-    panel.setLayout(new GridLayout(1, 2));
-    panel.add(label);
-    if(editable)
-      panel.add(nameField);
-    else panel.add(nameLabel);
-    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
-
-    return panel;
+    return createHorizontalPanel(I18nSupport.getValue(CLIENT_GUI, "label.text.player.name"),
+        nameField.getComponent(editable));
   }
 
   /* Inner Classes */
@@ -311,4 +312,42 @@ class IPComboBoxListener implements ActionListener {
       comboBox.setSelectedIndex(comboBox.getItemCount()-1);
     }
   }
+}
+
+class TwoStateComponent<A extends JComponent, B extends JComponent,T> {
+  private A firstComponent;
+  private B secondComponent;
+  private ValueAccessor<T> valueAccessor;
+
+  TwoStateComponent(A firstComponent, B secondComponent, ValueAccessor<T> accessor) {
+    this.firstComponent = firstComponent;
+    this.secondComponent = secondComponent;
+    this.valueAccessor = accessor;
+  }
+
+  public JComponent getComponent(boolean firstState) {
+    if(firstState) return firstComponent;
+    else return secondComponent;
+  }
+
+  public A getFirstComponent() {
+    return firstComponent;
+  }
+
+  public B getSecondComponent() {
+    return secondComponent;
+  }
+
+  public T getValue() {
+    return valueAccessor.getValue();
+  }
+
+  public void setValue(T value) {
+    valueAccessor.setValue(value);
+  }
+}
+
+interface ValueAccessor<T> {
+  public T getValue();
+  public void setValue(T value);
 }

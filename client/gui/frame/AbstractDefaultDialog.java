@@ -5,8 +5,13 @@ import common.resources.ResourceGetter;
 import common.utilities.gui.WidgetCreator;
 
 import javax.swing.*;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -30,11 +35,12 @@ import static common.i18n.BundleStrings.CLIENT_GUI;
  * {@link #resetContent} method and also {@code closeDialog}. The apply button just calls just the
  * {@link #saveContent} method.
  */
-public abstract class AbstractDefaultDialog extends JDialog {
+public abstract class AbstractDefaultDialog extends JDialog implements Changeable {
   private static final int ACTION_OKAY = 0;
   private static final int ACTION_CANCEL = 1;
   private static final int ACTION_APPLY = 2;
 
+  protected String unchangedTitle;
   protected JButton okayButton;
   protected JButton cancelButton;
   protected JButton applyButton;
@@ -64,6 +70,14 @@ public abstract class AbstractDefaultDialog extends JDialog {
 
   /* Methods */
 
+  public void change() {
+    final boolean changed = valuesHaveChanged();
+    if(changed)
+      setTitle(I18nSupport.getValue(CLIENT_GUI, "title.0.changed", unchangedTitle));
+    else setTitle(unchangedTitle);
+    applyButton.setEnabled(changed);
+  }
+
   protected void withApplyButton(boolean with) {
     applyButton.setVisible(with);
   }
@@ -75,6 +89,8 @@ public abstract class AbstractDefaultDialog extends JDialog {
   protected void withOkayButton(boolean with) {
     okayButton.setVisible(with);
   }
+
+  abstract protected boolean valuesHaveChanged();
 
   /**
    * Saves the content of the content panel somewhere.
@@ -92,6 +108,10 @@ public abstract class AbstractDefaultDialog extends JDialog {
   abstract void closeDialog();
 
   /* Getter and Setter */
+
+  public void setUnchangedTitle(String unchangedTitle) {
+    this.unchangedTitle = unchangedTitle;
+  }
 
   protected JPanel getDialogContent() {
     if(dialogContent != null)
@@ -152,4 +172,34 @@ public abstract class AbstractDefaultDialog extends JDialog {
       }
     }
   }
+}
+
+/**
+ * This listener can be registered by subcomponents in a dialog. As the class implements several
+ * listeners an object of this class can be added to a subcomponent for the specified purpose, e.g.
+ * for caret changes in a TextComponent. The dialog should implement the Changeable interface,
+ * because its only method will be called in the listener method implementations.
+ */
+class DialogChangeListener implements ChangeListener, CaretListener, ActionListener {
+  Changeable changeable;
+
+  DialogChangeListener(Changeable changeable) {
+    this.changeable = changeable;
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    changeable.change();
+  }
+
+  public void caretUpdate(CaretEvent e) {
+    changeable.change();
+  }
+
+  public void stateChanged(ChangeEvent e) {
+    changeable.change();
+  }
+}
+
+interface Changeable {
+  public void change();
 }

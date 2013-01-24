@@ -37,6 +37,7 @@ public class SettingsDialog extends AbstractDefaultDialog {
   private PopupSettingPanel panelPopupRule;
   private JComboBox<FlagLocale> comboboxLanguage;
   private JCheckBox checkboxSoundRule;
+  private DialogChangeListener dialogChangeListener;
 
   /* Constructors */
 
@@ -57,9 +58,10 @@ public class SettingsDialog extends AbstractDefaultDialog {
 
     setBounds(position.getRectangle());
     setResizable(false);
-    setTitle(I18nSupport.getValue(CLIENT_GUI, "dialog.title.settings"));
+    setUnchangedTitle(I18nSupport.getValue(CLIENT_GUI, "dialog.title.settings"));
     resetContent();
     pack();
+    initChangeListener();
   }
 
   /* Methods */
@@ -68,6 +70,86 @@ public class SettingsDialog extends AbstractDefaultDialog {
     GlobalSettings.getInstance().readGlobalSettings();
     new SettingsDialog().setVisible(true);
   }
+
+  private void initChangeListener() {
+    dialogChangeListener = new DialogChangeListener(this);
+    checkboxPopups.addActionListener(dialogChangeListener);
+    panelPopupChat.addChangeListener(dialogChangeListener);
+    panelPopupGame.addChangeListener(dialogChangeListener);
+    panelPopupRule.addChangeListener(dialogChangeListener);
+    checkboxSoundRule.addActionListener(dialogChangeListener);
+    comboboxLanguage.addActionListener(dialogChangeListener);
+    change();
+  }
+
+  void saveContent() {
+    final GlobalSettings settings = GlobalSettings.getInstance();
+
+    settings.popup.setEnabled(checkboxPopups.isSelected());
+    settings.popup.getChat().setEnabled(panelPopupChat.isSelected());
+    settings.popup.getChat().setDuration(panelPopupChat.getDuration());
+    settings.popup.getGame().setEnabled(panelPopupGame.isSelected());
+    settings.popup.getGame().setDuration(panelPopupGame.getDuration());
+    settings.popup.getRule().setEnabled(panelPopupRule.isSelected());
+    settings.popup.getRule().setDuration(panelPopupRule.getDuration());
+
+    settings.sound.setRuleException(checkboxSoundRule.isSelected());
+
+    settings.general.setLocale(((FlagLocale) comboboxLanguage.getSelectedItem()).locale);
+
+    try {
+      settings.writeGlobalSettings();
+    } catch (IOException e) {
+      LOGGER.warning("Could not save settings!");
+    }
+    change();
+  }
+
+  void resetContent() {
+    final GlobalSettings settings = GlobalSettings.getInstance();
+
+    final boolean popupsEnabled = settings.popup.isEnabled();
+    checkboxPopups.setSelected(popupsEnabled);
+    panelPopupChat.setEnabled(popupsEnabled);
+    panelPopupGame.setEnabled(popupsEnabled);
+    panelPopupRule.setEnabled(popupsEnabled);
+
+    panelPopupChat.setSelected(settings.popup.getChat().isEnabled());
+    panelPopupChat.setDuration((int) settings.popup.getChat().getDuration());
+    panelPopupGame.setSelected(settings.popup.getGame().isEnabled());
+    panelPopupGame.setDuration((int) settings.popup.getGame().getDuration());
+    panelPopupRule.setSelected(settings.popup.getRule().isEnabled());
+    panelPopupRule.setDuration((int) settings.popup.getRule().getDuration());
+
+    checkboxSoundRule.setSelected(settings.sound.getRuleException());
+
+    final FlagLocale item = FlagLocale.findVlaue(settings.general.getLocale());
+    if(item != null)
+      comboboxLanguage.setSelectedItem(item);
+    else comboboxLanguage.setSelectedIndex(0);
+    change();
+  }
+
+  void closeDialog() {
+    setVisible(false);
+    dispose();
+  }
+
+  protected boolean valuesHaveChanged() {
+    final GlobalSettings settings = GlobalSettings.getInstance();
+
+    return !(checkboxPopups.isSelected() == settings.popup.isEnabled())
+        || !(panelPopupChat.isSelected() == settings.popup.getChat().isEnabled())
+        || !(panelPopupChat.getDuration() == settings.popup.getChat().getDuration())
+        || !(panelPopupGame.isSelected() == settings.popup.getGame().isEnabled())
+        || !(panelPopupGame.getDuration() == settings.popup.getGame().getDuration())
+        || !(panelPopupRule.isSelected() == settings.popup.getRule().isEnabled())
+        || !(panelPopupRule.getDuration() == settings.popup.getRule().getDuration())
+        || !(checkboxSoundRule.isSelected() == settings.sound.getRuleException())
+        || !((FlagLocale) comboboxLanguage.getSelectedItem()).locale.equals(settings.general.getLocale());
+  }
+
+  /* Getter and Setter */
 
   private JPanel getGeneralPanel() {
     if(generalPanel != null)
@@ -142,57 +224,6 @@ public class SettingsDialog extends AbstractDefaultDialog {
     soundPanel.add(checkboxSoundRule);
 
     return soundPanel;
-  }
-
-  void saveContent() {
-    final GlobalSettings settings = GlobalSettings.getInstance();
-
-    settings.popup.setEnabled(checkboxPopups.isSelected());
-    settings.popup.getChat().setEnabled(panelPopupChat.isSelected());
-    settings.popup.getChat().setDuration(panelPopupChat.getDuration());
-    settings.popup.getGame().setEnabled(panelPopupGame.isSelected());
-    settings.popup.getGame().setDuration(panelPopupGame.getDuration());
-    settings.popup.getRule().setEnabled(panelPopupRule.isSelected());
-    settings.popup.getRule().setDuration(panelPopupRule.getDuration());
-
-    settings.sound.setRuleException(checkboxSoundRule.isSelected());
-
-    settings.general.setLocale(((FlagLocale) comboboxLanguage.getSelectedItem()).locale);
-
-    try {
-      settings.writeGlobalSettings();
-    } catch (IOException e) {
-      LOGGER.warning("Could not save settings!");
-    }
-  }
-
-  void resetContent() {
-    final GlobalSettings settings = GlobalSettings.getInstance();
-
-    final boolean popupsEnabled = settings.popup.isEnabled();
-    checkboxPopups.setSelected(popupsEnabled);
-    panelPopupChat.setEnabled(popupsEnabled);
-    panelPopupGame.setEnabled(popupsEnabled);
-    panelPopupRule.setEnabled(popupsEnabled);
-
-    panelPopupChat.setSelected(settings.popup.getChat().isEnabled());
-    panelPopupChat.setDuration((int) settings.popup.getChat().getDuration());
-    panelPopupGame.setSelected(settings.popup.getGame().isEnabled());
-    panelPopupGame.setDuration((int) settings.popup.getGame().getDuration());
-    panelPopupRule.setSelected(settings.popup.getRule().isEnabled());
-    panelPopupRule.setDuration((int) settings.popup.getRule().getDuration());
-
-    checkboxSoundRule.setSelected(settings.sound.getRuleException());
-
-    final FlagLocale item = FlagLocale.findVlaue(settings.general.getLocale());
-    if(item != null)
-      comboboxLanguage.setSelectedItem(item);
-    else comboboxLanguage.setSelectedIndex(0);
-  }
-
-  void closeDialog() {
-    setVisible(false);
-    dispose();
   }
 
   /* Inner classes */
@@ -334,5 +365,10 @@ class PopupSettingPanel extends JPanel {
 
   public void setDuration(int duration) {
     sliderDuration.setValue(duration);
+  }
+
+  public void addChangeListener(DialogChangeListener dcListener) {
+    checkboxEnabled.addActionListener(dcListener);
+    spinnerDuration.addChangeListener(dcListener);
   }
 }
