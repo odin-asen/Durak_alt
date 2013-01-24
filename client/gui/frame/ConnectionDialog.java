@@ -29,14 +29,10 @@ import static common.i18n.BundleStrings.CLIENT_GUI;
  * {@link client.business.ConnectionInfo} objects. It can either be a dialog that makes the
  * objects of the Client and ConnectionInfo classes modifyable or it just shows their attributes.
  */
-public class ConnectionDialog extends JDialog {
+public class ConnectionDialog extends AbstractDefaultDialog {
   private static final Logger LOGGER =
       LoggingUtility.getLogger(ConnectionDialog.class.getName());
 
-  //TODO eine DefaultDurakDialog Klasse schreiben, die methoden besitzt für Abbrechen, Übernehmen und Okay. Alle anderen Dialog, die die 3 Knöpfe brauchen sollten von der Klasse erben. Eine DefaultAction für Okay, Abbrechen und Übernehmen sollte den StandardDialog gebrauchen.
-  private static final String ACTION_COMMAND_CANCEL = "cancel";  //NON-NLS
-  private static final String ACTION_COMMAND_CLOSE_SAVE = "closeSave";  //NON-NLS
-  private static final String ACTION_COMMAND_CLOSE = "close"; //NON-NLS
   private static final int STRUT_HEIGHT = 5;
   private static final int STRUT_WIDTH = 5;
 
@@ -63,13 +59,17 @@ public class ConnectionDialog extends JDialog {
     this.editable = editable;
 
     /* initialise gui stuff */
-    getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
-    getContentPane().add(getServerInfoPanel());
-    getContentPane().add(Box.createGlue());
-    getContentPane().add(getClientInfoPanel());
-    getContentPane().add(Box.createGlue());
-    getContentPane().add(getButtonPanel());
-    resetFields();
+    final JPanel dialogContent = getDialogContent();
+
+    dialogContent.setLayout(new BoxLayout(dialogContent, BoxLayout.PAGE_AXIS));
+    dialogContent.add(getServerInfoPanel());
+    dialogContent.add(getClientInfoPanel());
+
+    if(editable) setConnectionButton();
+    withApplyButton(editable);
+    withOkayButton(editable);
+
+    resetContent();
 
     /* initialise frame */
     final FramePosition position = FramePosition.createFramePositions(
@@ -77,7 +77,7 @@ public class ConnectionDialog extends JDialog {
         getContentPane().getPreferredSize().height);
 
     setBounds(position.getRectangle());
-
+    setResizable(false);
     setTitle(I18nSupport.getValue(CLIENT_GUI, "frame.title.setup"));
     setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     pack();
@@ -88,20 +88,68 @@ public class ConnectionDialog extends JDialog {
     new ConnectionDialog(false).setVisible(true);
   }
 
-
   /* Methods */
 
-  private void fillConnectionInfo() {
+  private void setConnectionButton() {
+    for (ActionListener listener : okayButton.getActionListeners()) {
+      okayButton.removeActionListener(listener);
+    }
+    /* It seems that the action listener that will be added last, will be executed first. */
+    /* Therefore the fill-methods listener will be added last. */
+    okayButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        if(GameClient.getClient().isConnected()) {
+          closeDialog();
+        }
+      }
+    });
+    okayButton.setAction(ActionCollection.CONNECT);
+    okayButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        saveContent();
+      }
+    });
+  }
+
+  void saveContent() {
+    /* save connection info */
     final ConnectionInfo connectionInfo = ConnectionInfo.getOwnInstance();
     connectionInfo.setServerAddress(serverAddressCombo.getSelectedItem().toString());
     connectionInfo.setServerPort(Integer.parseInt(serverPortField.getText()));
     connectionInfo.setPassword(passwordField.getText());
-  }
 
-  private void fillClientInfo() {
+    /* save client info */
     final Client client = Client.getOwnInstance();
     client.setName(nameField.getText());
     client.setSpectating(spectatorCheckBox.isSelected());
+  }
+
+  void resetContent() {
+    final ConnectionInfo connectionInfo = ConnectionInfo.getOwnInstance();
+    final Client client = Client.getOwnInstance();
+
+    if(editable) {
+      /* server fields */
+      serverAddressCombo.setSelectedItem(connectionInfo.getServerAddress());
+      serverPortField.setText(connectionInfo.getServerPort().toString());
+      passwordField.setText(connectionInfo.getPassword());
+      /* client fields */
+      nameField.setText(client.getName());
+      spectatorCheckBox.setSelected(client.getSpectating());
+    } else {
+      /* server fields */
+      serverAddressLabel.setText(connectionInfo.getServerAddress());
+      serverPortLabel.setText(connectionInfo.getServerPort().toString());
+      /* client fields */
+      nameLabel.setText(client.getName());
+      String key = "label.text.spectator."+client.getSpectating().toString(); //NON-NLS
+      spectatorLabel.setText(I18nSupport.getValue(CLIENT_GUI, key));
+    }
+  }
+
+  void closeDialog() {
+    setVisible(false);
+    dispose();
   }
 
   /* Getter and Setter */
@@ -172,7 +220,6 @@ public class ConnectionDialog extends JDialog {
     serverAddressCombo = WidgetCreator.makeComboBox(comboBoxContent, 3,
         ClientGUIConstants.PREFERRED_FIELD_WIDTH,
         I18nSupport.getValue(CLIENT_GUI, "combobox.tooltip.server.address"));
-    serverAddressCombo.setMaximumSize(serverAddressCombo.getPreferredSize());
     serverAddressCombo.addActionListener(new IPComboBoxListener(serverAddressCombo, comboBoxContent));
     serverAddressLabel = new JLabel("");
 
@@ -238,102 +285,6 @@ public class ConnectionDialog extends JDialog {
     panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
 
     return panel;
-  }
-
-  private JPanel getButtonPanel() {
-    if(buttonPanel != null)
-      return buttonPanel;
-
-    buttonPanel = new JPanel();
-
-    buttonPanel.setLayout(new FlowLayout(FlowLayout.TRAILING));
-    if(editable) {
-      buttonPanel.add(createConnectionButton());
-      buttonPanel.add(WidgetCreator.makeButton(null,
-          I18nSupport.getValue(CLIENT_GUI, "button.text.close.save"),
-          I18nSupport.getValue(CLIENT_GUI, "button.tooltip.close.save"), null,
-          new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-              saveAndClose();
-            }
-          }));
-      buttonPanel.add(WidgetCreator.makeButton(null,
-          I18nSupport.getValue(CLIENT_GUI, "button.text.cancel"),
-          I18nSupport.getValue(CLIENT_GUI, "button.tooltip.cancel"), null,
-          new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-              resetFields();
-              setVisible(false);
-              dispose();
-            }
-          }));
-    } else {
-      buttonPanel.add(WidgetCreator.makeButton(null,
-          I18nSupport.getValue(CLIENT_GUI, "button.text.close"), null, null,
-          new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-              setVisible(false);
-              dispose();
-            }
-          }));
-    }
-
-    buttonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, buttonPanel.getPreferredSize().height));
-
-    return buttonPanel;
-  }
-
-  private JButton createConnectionButton() {
-    final JButton button = new JButton();
-    /* It seems that the action listener that will be added last, will be executed first.
-       * Therefore the fill-methods listener will be added last. */
-    button.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        if(GameClient.getClient().isConnected()) {
-          setVisible(false);
-          dispose();
-        }
-      }
-    });
-    button.setAction(ActionCollection.CONNECT);
-    button.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        fillClientInfo();
-        fillConnectionInfo();
-      }
-    });
-
-    return button;
-  }
-
-  private void saveAndClose() {
-    fillClientInfo();
-    fillConnectionInfo();
-    setVisible(false);
-    dispose();
-  }
-
-  public void resetFields() {
-    final ConnectionInfo connectionInfo = ConnectionInfo.getOwnInstance();
-    final Client client = Client.getOwnInstance();
-
-    if(editable) {
-      /* server fields */
-      serverAddressCombo.setSelectedItem(connectionInfo.getServerAddress());
-      serverPortField.setText(connectionInfo.getServerPort().toString());
-      passwordField.setText(connectionInfo.getPassword());
-      /* client fields */
-      nameField.setText(client.getName());
-      spectatorCheckBox.setSelected(client.getSpectating());
-    } else {
-      /* server fields */
-      serverAddressLabel.setText(connectionInfo.getServerAddress());
-      serverPortLabel.setText(connectionInfo.getServerPort().toString());
-      /* client fields */
-      nameLabel.setText(client.getName());
-      String key = "label.text.spectator."+client.getSpectating().toString(); //NON-NLS
-      spectatorLabel.setText(I18nSupport.getValue(CLIENT_GUI, key));
-    }
   }
 
   /* Inner Classes */

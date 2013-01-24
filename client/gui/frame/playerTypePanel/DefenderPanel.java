@@ -15,6 +15,8 @@ import java.awt.event.ActionListener;
 
 import static client.gui.frame.ClientGUIConstants.CARD_STACK_PANEL_WIDTH;
 import static client.gui.frame.ClientGUIConstants.OPPONENT_PANEL_HEIGHT;
+import static common.i18n.BundleStrings.CLIENT_GUI;
+import static common.i18n.BundleStrings.USER_MESSAGES;
 
 /**
  * User: Timm Herrmann

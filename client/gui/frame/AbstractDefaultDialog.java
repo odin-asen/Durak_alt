@@ -65,15 +65,15 @@ public abstract class AbstractDefaultDialog extends JDialog {
   /* Methods */
 
   protected void withApplyButton(boolean with) {
-
+    applyButton.setVisible(with);
   }
 
-  protected void withCloseButton(boolean with) {
-
+  protected void withCancelButton(boolean with) {
+    cancelButton.setVisible(with);
   }
 
   protected void withOkayButton(boolean with) {
-
+    okayButton.setVisible(with);
   }
 
   /**

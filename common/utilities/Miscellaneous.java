@@ -2,10 +2,9 @@ package common.utilities;
 
 import common.dto.DTOClient;
 
-import java.net.*;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -19,10 +18,10 @@ import java.util.List;
 public class Miscellaneous {
 
   /**
-   * The client comparator comparates two clients with their ip address and port
-   * attributes. The compare method returns 0 if the clients have the same ip address
-   * and port or both are null. If one ip address or port differs from the other, either
-   * a value less than 0 or bigger than 0 will be returned.
+   * The client comparator comparates two clients by their name attributes.
+   * The compare method returns 0 if the clients have the same name or both names are null.
+   * If one name differs from the other, either a value less than or bigger than 0 will be
+   * returned.
    */
   public static final Comparator<DTOClient> CLIENT_COMPARATOR = new Comparator<DTOClient>() {
     public int compare(DTOClient o1, DTOClient o2) {

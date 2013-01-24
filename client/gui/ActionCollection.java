@@ -52,9 +52,8 @@ public class ActionCollection {
     }
 
     public void actionPerformed(ActionEvent e) {
-      final ConnectionDialog dialog =
-          new ConnectionDialog(!GameClient.getClient().isConnected());
-      dialog.setModalityType(Dialog.ModalityType.TOOLKIT_MODAL);
+      final ConnectionDialog dialog = new ConnectionDialog(!GameClient.getClient().isConnected());
+      dialog.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
       dialog.setVisible(true);
     }
   }
@@ -117,7 +116,7 @@ public class ActionCollection {
 
     public void actionPerformed(ActionEvent e) {
       final SettingsDialog dialog = new SettingsDialog();
-      dialog.setModalityType(Dialog.ModalityType.TOOLKIT_MODAL);
+      dialog.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
       dialog.setVisible(true);
     }
   }

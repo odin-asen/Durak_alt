@@ -4,8 +4,10 @@ import common.utilities.LoggingUtility;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.util.Vector;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.logging.Logger;
 
 /**
@@ -42,6 +44,7 @@ public class DurakPopup extends JWindow {
     addMouseListener(listener);
     setSize(getPrefferedSize());
     setLocation(computeLocation());
+    setAlwaysOnTop(true);
   }
 
   /* Methods */

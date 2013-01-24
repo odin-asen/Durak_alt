@@ -36,7 +36,7 @@ public class OpponentsPanel extends JPanel {
       final OpponentHandWidget widget = (OpponentHandWidget) component;
       final DTOClient opponent = widget.getOpponent();
       if(Miscellaneous.CLIENT_COMPARATOR.compare(opponent,info) == 0)
-        return widget;    //TODO comparator funktioniert nur, weil nur der name verglichen wird, andere lösung finden oder comparator alles vom client testen lassen
+        return widget;
     }
 
     return null;
