@@ -41,8 +41,6 @@ public class SettingsDialog extends AbstractDefaultDialog {
   /* Constructors */
 
   public SettingsDialog() {
-    super();
-
     final GlobalSettings settings = GlobalSettings.getInstance();
 
     final JPanel dialogContent = getDialogContent();
@@ -59,7 +57,7 @@ public class SettingsDialog extends AbstractDefaultDialog {
 
     setBounds(position.getRectangle());
     setResizable(false);
-    setTitle(I18nSupport.getValue(CLIENT_GUI, "frame.title.setup"));
+    setTitle(I18nSupport.getValue(CLIENT_GUI, "dialog.title.settings"));
     resetContent();
     pack();
   }

@@ -78,7 +78,7 @@ public class ConnectionDialog extends AbstractDefaultDialog {
 
     setBounds(position.getRectangle());
     setResizable(false);
-    setTitle(I18nSupport.getValue(CLIENT_GUI, "frame.title.setup"));
+    setTitle(I18nSupport.getValue(CLIENT_GUI, "dialog.title.connection"));
     setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     pack();
   }
@@ -223,7 +223,7 @@ public class ConnectionDialog extends AbstractDefaultDialog {
     serverAddressCombo.addActionListener(new IPComboBoxListener(serverAddressCombo, comboBoxContent));
     serverAddressLabel = new JLabel("");
 
-    panel.setLayout(new GridLayout(1,2));
+    panel.setLayout(new GridLayout(1, 2));
     panel.add(label);
     if(editable)
       panel.add(serverAddressCombo);
@@ -257,7 +257,7 @@ public class ConnectionDialog extends AbstractDefaultDialog {
     spectatorCheckBox.setSelected(false);
     spectatorLabel = new JLabel("");
 
-    panel.setLayout(new GridLayout(1,2));
+    panel.setLayout(new GridLayout(1, 2));
     if(editable) {
       panel.add(Box.createHorizontalStrut(STRUT_WIDTH));
       panel.add(spectatorCheckBox);
