@@ -128,7 +128,7 @@ public class ClientFrame extends JFrame implements Observer {
 
   public void showRuleException(Object ruleException) {
     messenger.showRulePopup(ruleException.toString(), Compute.getFramelessBounds(this));
-    if(GlobalSettings.getInstance().sound.isRuleException())
+    if(GlobalSettings.getInstance().sound.getRuleException())
       ResourceGetter.playSound("computer.says.no");
   }
 

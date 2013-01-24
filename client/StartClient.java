@@ -21,7 +21,6 @@ public class StartClient {
         +System.getProperty("file.separator")+"clientLog.txt"); //NON-NLS
   }
 
-  private static final String SETTINGS_FILE = "durakSettings.xml"; //NON-NLS
   private static final Logger LOGGER = LoggingUtility.getLogger(StartClient.class.getName());
 
   public static void main(String[] args) {
@@ -44,16 +43,11 @@ public class StartClient {
     LOGGER.info("Load Settings...");
     final GlobalSettings settings = GlobalSettings.getInstance();
     try {
-      settings.readGlobalSettings(SETTINGS_FILE);
+      settings.readGlobalSettings();
       Locale.setDefault(settings.general.getLocale());
       LOGGER.info("Settings loaded");
     } catch (IOException e) {
       LOGGER.info("Couldn't load settings file: "+e.getMessage()+"\n\t-> Start with default");
-    }
-    try {
-      settings.writeGlobalSettings(SETTINGS_FILE);
-    } catch (IOException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
     }
   }
 }

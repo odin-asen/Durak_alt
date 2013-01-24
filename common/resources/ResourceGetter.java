@@ -26,6 +26,7 @@ public class ResourceGetter {
   private static final String PICTURES_ROOT = "icons/"; //NON-NLS
   private static final String STATUS_ROOT = PICTURES_ROOT + "status/"; //NON-NLS
   private static final String CARDS_ROOT = PICTURES_ROOT + "cards/"; //NON-NLS
+  private static final String GENERAL_ROOT = PICTURES_ROOT + "general/"; //NON-NLS
 
   private static final String IMAGES_BUNDLE = "resources.images"; //NON-NLS
   private static final String SOUNDS_BUNDLE = "resources.sounds"; //NON-NLS
@@ -154,6 +155,10 @@ public class ResourceGetter {
   public static ImageIcon getStatusIcon(String statusBundleKey) {
     return getImage(STATUS_ROOT+I18nSupport.getValue(IMAGES_BUNDLE, statusBundleKey),
         "png"); //NON-NLS
+  }
+
+  public static ImageIcon getGeneralIcon(String bundleKey) {
+    return getImage(GENERAL_ROOT+I18nSupport.getValue(IMAGES_BUNDLE, bundleKey),"png"); //NON-NLS
   }
 
   /**********************/

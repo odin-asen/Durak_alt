@@ -1,14 +1,8 @@
 package client.business;
 
-import client.gui.frame.ClientGUIConstants;
 import common.dto.DTOClient;
 import common.i18n.I18nSupport;
-import common.utilities.Miscellaneous;
-import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.constants.PlayerConstants;
-
-import java.net.Inet4Address;
-import java.net.InetAddress;
 
 /**
  * User: Timm Herrmann
@@ -16,7 +10,8 @@ import java.net.InetAddress;
  * Time: 15:54
  *
  * This class is a singleton class to be sure that each program can only create one
- * client object.
+ * client object. The Client class represents the information of the user that is accessable to
+ * all other clients that are connected to the same server.
  */
 public class Client {
   private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS

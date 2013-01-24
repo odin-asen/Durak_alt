@@ -14,6 +14,8 @@ import java.io.*;
  * Time: 19:25
  */
 public class GlobalSettings {
+  public static final String DEFAULT_FILE = "durakSettings.xml"; //NON-NLS
+
   private static final String ALIAS_GLOBAL = "durakSettings"; //NON-NLS
   private static final String ALIAS_POPUP = "popup"; //NON-NLS
   private static final String ALIAS_SOUND = "sound"; //NON-NLS
@@ -51,8 +53,19 @@ public class GlobalSettings {
   public void readGlobalSettings(String filePath) throws IOException {
     final Reader reader = new FileReader(filePath);
     final XStream xStream = initialiseXStream();
-    globalSettings = (GlobalSettings) xStream.fromXML(reader);
+    final GlobalSettings newSettings = (GlobalSettings) xStream.fromXML(reader);
+    globalSettings.setSettings(newSettings);
     reader.close();
+  }
+
+  private void setSettings(GlobalSettings newSettings) {
+    general = newSettings.general;
+    popup = newSettings.popup;
+    sound = newSettings.sound;
+  }
+
+  public void readGlobalSettings() throws IOException {
+    readGlobalSettings(DEFAULT_FILE);
   }
 
   /**
@@ -66,6 +79,10 @@ public class GlobalSettings {
     final Writer writer = new FileWriter(filePath);
     xStream.toXML(globalSettings, writer);
     writer.close();
+  }
+
+  public void writeGlobalSettings() throws IOException {
+    writeGlobalSettings(DEFAULT_FILE);
   }
 
   private XStream initialiseXStream() {

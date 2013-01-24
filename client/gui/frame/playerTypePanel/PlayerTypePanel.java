@@ -270,7 +270,7 @@ public class PlayerTypePanel extends JPanel {
     final JScrollPane listScrollPane = new JScrollPane(clientList);
 
     listPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_BUNDLE, "border.title.opponents")));
+        I18nSupport.getValue(CLIENT_BUNDLE, "border.opponents")));
     listPanel.setLayout(new BorderLayout());
     listPanel.add(listScrollPane, BorderLayout.CENTER);
     listPanel.setMinimumSize(new Dimension(0,0));

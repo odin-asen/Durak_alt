@@ -13,7 +13,7 @@ import java.net.InetAddress;
  * Time: 23:12
  *
  * This class is a singleton class to be sure that each program has one and only one
- * connection information holder.
+ * connection information holder. This class represents the connection to a server.
  */
 
 public class ConnectionInfo {

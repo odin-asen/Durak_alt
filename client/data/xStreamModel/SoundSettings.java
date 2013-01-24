@@ -14,7 +14,7 @@ public class SoundSettings {
     ruleException = false;
   }
 
-  public boolean isRuleException() {
+  public boolean getRuleException() {
     return ruleException;
   }
 

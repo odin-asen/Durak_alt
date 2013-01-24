@@ -1,7 +1,7 @@
 package client.gui.frame;
 
-import client.business.ConnectionInfo;
 import client.business.Client;
+import client.business.ConnectionInfo;
 import client.business.client.GameClient;
 import client.gui.ActionCollection;
 import common.i18n.I18nSupport;
@@ -22,13 +22,17 @@ import java.util.logging.Logger;
  * User: Timm Herrmann
  * Date: 05.01.13
  * Time: 22:15
+ *
+ * This dialog shows the information of the {@link client.business.Client} and
+ * {@link client.business.ConnectionInfo} objects. It can either be a dialog that makes the
+ * objects of the Client and ConnectionInfo classes modifyable or it just shows their attributes.
  */
 public class ConnectionDialog extends JDialog {
   private static final Logger LOGGER =
       LoggingUtility.getLogger(ConnectionDialog.class.getName());
 
+  //TODO eine DefaultDurakDialog Klasse schreiben, die methoden besitzt für Abbrechen, Übernehmen und Okay. Alle anderen Dialog, die die 3 Knöpfe brauchen sollten von der Klasse erben. Eine DefaultAction für Okay, Abbrechen und Übernehmen sollte den StandardDialog gebrauchen.
   private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
-  private static final String ACTION_COMMAND_CONNECT = "connect"; //NON-NLS
   private static final String ACTION_COMMAND_CANCEL = "cancel";  //NON-NLS
   private static final String ACTION_COMMAND_CLOSE_SAVE = "closeSave";  //NON-NLS
   private static final String ACTION_COMMAND_CLOSE = "close"; //NON-NLS
@@ -71,11 +75,11 @@ public class ConnectionDialog extends JDialog {
         getContentPane().getPreferredSize().width,
         getContentPane().getPreferredSize().height);
 
-    this.setBounds(position.getRectangle());
+    setBounds(position.getRectangle());
 
-    this.setTitle(I18nSupport.getValue(CLIENT_BUNDLE, "frame.title.setup"));
-    this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    this.pack();
+    setTitle(I18nSupport.getValue(CLIENT_BUNDLE, "frame.title.setup"));
+    setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+    pack();
   }
 
   public static void main(String[] args) {
@@ -106,7 +110,7 @@ public class ConnectionDialog extends JDialog {
 
     mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.PAGE_AXIS));
     mainPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_BUNDLE,"border.title.server.settings")));
+        I18nSupport.getValue(CLIENT_BUNDLE, "border.settings.server")));
 
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
     mainPanel.add(getServerAddressPanel());
@@ -129,7 +133,7 @@ public class ConnectionDialog extends JDialog {
     try {
       passwordField = WidgetCreator.makeTextField(JPasswordField.class,
           ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-          I18nSupport.getValue(CLIENT_BUNDLE, "check.box.tooltip.show.password"));
+          I18nSupport.getValue(CLIENT_BUNDLE, "checkbox.tooltip.show.password"));
       panel.setLayout(new GridLayout(1, 2));
       panel.add(label);
       panel.add(passwordField);
@@ -166,7 +170,7 @@ public class ConnectionDialog extends JDialog {
     final Vector<String> comboBoxContent = new Vector<String>();
     serverAddressCombo = WidgetCreator.makeComboBox(comboBoxContent, 3,
         ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-        I18nSupport.getValue(CLIENT_BUNDLE, "combo.box.tooltip.server.address"));
+        I18nSupport.getValue(CLIENT_BUNDLE, "combobox.tooltip.server.address"));
     serverAddressCombo.setMaximumSize(serverAddressCombo.getPreferredSize());
     serverAddressCombo.addActionListener(new IPComboBoxListener(serverAddressCombo, comboBoxContent));
     serverAddressLabel = new JLabel("");
@@ -186,7 +190,7 @@ public class ConnectionDialog extends JDialog {
 
     mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.PAGE_AXIS));
     mainPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_BUNDLE, "border.title.client.settings")));
+        I18nSupport.getValue(CLIENT_BUNDLE, "border.settings.client")));
 
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
     mainPanel.add(getClientNamePanel());
@@ -201,7 +205,7 @@ public class ConnectionDialog extends JDialog {
   private JPanel getSpectatorPanel() {
     final JPanel panel = new JPanel();
     spectatorCheckBox = new JCheckBox(
-        I18nSupport.getValue(CLIENT_BUNDLE,"check.box.spectator"));
+        I18nSupport.getValue(CLIENT_BUNDLE, "checkbox.text.spectator"));
     spectatorCheckBox.setSelected(false);
     spectatorLabel = new JLabel("");
 
