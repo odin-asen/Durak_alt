@@ -204,7 +204,7 @@ public class ServerFrame extends JFrame implements Observer {
     portField.setPreferredSize(new Dimension(PREFERRED_FIELD_WIDTH, portField.getPreferredSize().height));
     portField.setMaximumSize(new Dimension(Integer.MAX_VALUE, portField.getPreferredSize().height));
 
-    panel.setBorder(BorderFactory.createTitledBorder(I18nSupport.getValue(SERVER_GUI, "border.title.server.port")));
+    panel.setBorder(BorderFactory.createTitledBorder(I18nSupport.getValue(SERVER_GUI, "border.server.port")));
 
     GridBagConstraints constraints = new GridBagConstraints();
     panel.add(portField, constraints);
@@ -239,7 +239,7 @@ public class ServerFrame extends JFrame implements Observer {
     stackSizeCombo.setMaximumSize(stackSizeCombo.getPreferredSize());
     gameSettingsPanel.setLayout(new GridLayout(0, 2, 2, 0));
     gameSettingsPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(SERVER_GUI, "border.title.game.settings")));
+        I18nSupport.getValue(SERVER_GUI, "border.game.settings")));
     gameSettingsPanel.add(stackSizeLabel);
     gameSettingsPanel.add(stackSizeCombo);
 

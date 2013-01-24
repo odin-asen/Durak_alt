@@ -280,7 +280,7 @@ class PopupSettingPanel extends JPanel {
 
     panelDuration.setLayout(new FlowLayout(FlowLayout.LEADING));
     panelDuration.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_GUI, "label.text.duration.seconds")));
+        I18nSupport.getValue(CLIENT_GUI, "border.duration.seconds")));
     panelDuration.add(sliderDuration);
     panelDuration.add(spinnerDuration);
     panelDuration.setMaximumSize(panelDuration.getPreferredSize());
