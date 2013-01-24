@@ -16,7 +16,10 @@ import server.business.GameServerException;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -27,6 +30,8 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Logger;
 
+import static common.i18n.BundleStrings.SERVER_GUI;
+import static common.i18n.BundleStrings.USER_MESSAGES;
 import static server.gui.ServerGUIConstants.*;
 
 /**
@@ -35,8 +40,6 @@ import static server.gui.ServerGUIConstants.*;
  * Time: 19:33
  */
 public class ServerFrame extends JFrame implements Observer {
-  private static final String SERVER_BUNDLE = "server.server"; //NON-NLS
-  private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
   private static Logger LOGGER = LoggingUtility.getLogger(ServerFrame.class.getName());
 
   private static final String VERSION_NUMBER = "0.1";
@@ -67,8 +70,9 @@ public class ServerFrame extends JFrame implements Observer {
     initComponents();
 
     GameServer.getServerInstance().addObserver(this);
-    setTitle(MessageFormat.format("{0} - {1} {2}", I18nSupport.getValue(SERVER_BUNDLE,"application.title"),
-        I18nSupport.getValue(SERVER_BUNDLE,"version"), VERSION_NUMBER));
+    setTitle(MessageFormat.format("{0} - {1} {2}",
+        I18nSupport.getValue(SERVER_GUI,"application.title"),
+        I18nSupport.getValue(SERVER_GUI,"version"), VERSION_NUMBER));
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
@@ -146,7 +150,7 @@ public class ServerFrame extends JFrame implements Observer {
 
     statusBar = new DurakStatusBar();
 
-    statusBar.setText(I18nSupport.getValue(MSGS_BUNDLE, "status.server.inactive"));
+    statusBar.setText(I18nSupport.getValue(USER_MESSAGES, "status.server.inactive"));
     statusBar.setPreferredSize(new Dimension(0, 16));
 
     return statusBar;
@@ -200,7 +204,7 @@ public class ServerFrame extends JFrame implements Observer {
     portField.setPreferredSize(new Dimension(PREFERRED_FIELD_WIDTH, portField.getPreferredSize().height));
     portField.setMaximumSize(new Dimension(Integer.MAX_VALUE, portField.getPreferredSize().height));
 
-    panel.setBorder(BorderFactory.createTitledBorder(I18nSupport.getValue(SERVER_BUNDLE, "border.title.server.port")));
+    panel.setBorder(BorderFactory.createTitledBorder(I18nSupport.getValue(SERVER_GUI, "border.title.server.port")));
 
     GridBagConstraints constraints = new GridBagConstraints();
     panel.add(portField, constraints);
@@ -228,14 +232,14 @@ public class ServerFrame extends JFrame implements Observer {
 
     gameSettingsPanel = new JPanel();
     stackSizeCombo = new JComboBox<Integer>(new Integer[]{12,36,40,44,48,52});
-    JLabel stackSizeLabel = new JLabel(I18nSupport.getValue(SERVER_BUNDLE, "label.text.card.number"));
+    JLabel stackSizeLabel = new JLabel(I18nSupport.getValue(SERVER_GUI, "label.text.card.number"));
 
     stackSizeCombo.setEditable(false);
-    stackSizeCombo.setToolTipText(I18nSupport.getValue(SERVER_BUNDLE,"combo.box.tooltip.card.number"));
+    stackSizeCombo.setToolTipText(I18nSupport.getValue(SERVER_GUI,"combo.box.tooltip.card.number"));
     stackSizeCombo.setMaximumSize(stackSizeCombo.getPreferredSize());
     gameSettingsPanel.setLayout(new GridLayout(0, 2, 2, 0));
     gameSettingsPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(SERVER_BUNDLE, "border.title.game.settings")));
+        I18nSupport.getValue(SERVER_GUI, "border.title.game.settings")));
     gameSettingsPanel.add(stackSizeLabel);
     gameSettingsPanel.add(stackSizeCombo);
 
@@ -256,11 +260,11 @@ public class ServerFrame extends JFrame implements Observer {
     private void setAction(boolean start) {
       if(start) {
         WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_S, ACTION_COMMAND_START,
-            "", I18nSupport.getValue(SERVER_BUNDLE, "button.tooltip.start.server"),
+            "", I18nSupport.getValue(SERVER_GUI, "button.tooltip.start.server"),
             ResourceGetter.getToolbarIcon("toolbar.play"));
       } else {
         WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_S, ACTION_COMMAND_STOP,
-            "", I18nSupport.getValue(SERVER_BUNDLE, "button.tooltip.stop.server"),
+            "", I18nSupport.getValue(SERVER_GUI, "button.tooltip.stop.server"),
             ResourceGetter.getToolbarIcon("toolbar.stop.player"));
       }
     }
@@ -271,7 +275,7 @@ public class ServerFrame extends JFrame implements Observer {
         setAction(false);
       } else if (ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
         GameServer.getServerInstance().shutdownServer();
-        setStatusBarText(I18nSupport.getValue(MSGS_BUNDLE, "status.server.inactive"));
+        setStatusBarText(I18nSupport.getValue(USER_MESSAGES, "status.server.inactive"));
         gameButton.setAction(new GameStartStop(true));
         setAction(true);
       }
@@ -288,7 +292,7 @@ public class ServerFrame extends JFrame implements Observer {
           ipAddress = InetAddress.getLoopbackAddress().getHostAddress();
         }
         gameServer.startServer(""); //TODO hier passwort setzen
-        setStatusBarText(I18nSupport.getValue(MSGS_BUNDLE, "status.server.running"));
+        setStatusBarText(I18nSupport.getValue(USER_MESSAGES, "status.server.running"));
       } catch (GameServerException e) {
         setStatusBarText(e.getMessage());
       }
@@ -306,7 +310,7 @@ public class ServerFrame extends JFrame implements Observer {
           setAction(false);
       } else if(ACTION_COMMAND_STOP_GAME.equals(e.getActionCommand())) {
         GameServer.getServerInstance().stopGame(true,
-            I18nSupport.getValue(MSGS_BUNDLE, "game.abort.server"));
+            I18nSupport.getValue(USER_MESSAGES, "game.abort.server"));
         setAction(true);
       }
     }
@@ -314,11 +318,11 @@ public class ServerFrame extends JFrame implements Observer {
     private void setAction(boolean start) {
       if(start) {
         WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_G, ACTION_COMMAND_START_GAME,
-            "", I18nSupport.getValue(SERVER_BUNDLE, "action.short.description.start.game"),
+            "", I18nSupport.getValue(SERVER_GUI, "action.short.description.start.game"),
             ResourceGetter.getToolbarIcon("toolbar.game.start"));
       } else {
         WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_G, ACTION_COMMAND_STOP_GAME,
-            "", I18nSupport.getValue(SERVER_BUNDLE, "action.short.description.stop.game"),
+            "", I18nSupport.getValue(SERVER_GUI, "action.short.description.stop.game"),
             ResourceGetter.getToolbarIcon("toolbar.game.stop"));
       }
     }

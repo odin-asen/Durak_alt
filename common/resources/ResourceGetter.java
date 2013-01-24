@@ -17,6 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static common.i18n.BundleStrings.RESOURCES_IMAGES;
+import static common.i18n.BundleStrings.RESOURCES_SOUNDS;
+
 /**
  * User: Timm Herrmann
  * Date: 03.10.12
@@ -27,9 +30,6 @@ public class ResourceGetter {
   private static final String STATUS_ROOT = PICTURES_ROOT + "status/"; //NON-NLS
   private static final String CARDS_ROOT = PICTURES_ROOT + "cards/"; //NON-NLS
   private static final String GENERAL_ROOT = PICTURES_ROOT + "general/"; //NON-NLS
-
-  private static final String IMAGES_BUNDLE = "resources.images"; //NON-NLS
-  private static final String SOUNDS_BUNDLE = "resources.sounds"; //NON-NLS
 
   private static final Logger LOGGER = LoggingUtility.getLogger(ResourceGetter.class.getName());
 
@@ -71,7 +71,7 @@ public class ResourceGetter {
   /********************************/
 
   public static ImageIcon getBackCard() {
-    return getImage(CARDS_ROOT+I18nSupport.getValue(IMAGES_BUNDLE,"card.back"), "png"); //NON-NLS
+    return getImage(CARDS_ROOT+I18nSupport.getValue(RESOURCES_IMAGES,"card.back"), "png"); //NON-NLS
   }
 
   public static ImageIcon getPlayerTypeIcon(PlayerConstants.PlayerType type, Integer height) {
@@ -90,7 +90,7 @@ public class ResourceGetter {
 
     if(iconName != null) {
       return Compute.getScaledImage(
-          getImage(STATUS_ROOT+I18nSupport.getValue(IMAGES_BUNDLE, iconName), "png"), //NON-NLS
+          getImage(STATUS_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, iconName), "png"), //NON-NLS
           null, height);
     } else return null;
   }
@@ -131,7 +131,7 @@ public class ResourceGetter {
       string = "card.colour.spades";
     }
 
-    return I18nSupport.getValue(IMAGES_BUNDLE, string);
+    return I18nSupport.getValue(RESOURCES_IMAGES, string);
   }
 
   private static ImageIcon getCardFromStripe(ImageIcon imageIcon, Integer cardNumber) {
@@ -148,17 +148,17 @@ public class ResourceGetter {
 
   public static ImageIcon getToolbarIcon(String toolbarBundleKey) {
     return getImage(
-        PICTURES_ROOT+"toolbar/"+I18nSupport.getValue(IMAGES_BUNDLE, toolbarBundleKey), //NON-NLS
+        PICTURES_ROOT+"toolbar/"+I18nSupport.getValue(RESOURCES_IMAGES, toolbarBundleKey), //NON-NLS
         "png"); //NON-NLS
   }
 
   public static ImageIcon getStatusIcon(String statusBundleKey) {
-    return getImage(STATUS_ROOT+I18nSupport.getValue(IMAGES_BUNDLE, statusBundleKey),
+    return getImage(STATUS_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, statusBundleKey),
         "png"); //NON-NLS
   }
 
   public static ImageIcon getGeneralIcon(String bundleKey) {
-    return getImage(GENERAL_ROOT+I18nSupport.getValue(IMAGES_BUNDLE, bundleKey),"png"); //NON-NLS
+    return getImage(GENERAL_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, bundleKey),"png"); //NON-NLS
   }
 
   /**********************/
@@ -166,7 +166,7 @@ public class ResourceGetter {
   /**********************/
 
   public static void playSound(String soundBundleKey) {
-    final String path = "sounds/"+I18nSupport.getValue(SOUNDS_BUNDLE, soundBundleKey); //NON-NLS
+    final String path = "sounds/"+I18nSupport.getValue(RESOURCES_SOUNDS, soundBundleKey); //NON-NLS
     try {
       new Thread(new Runnable() {
         public void run() {

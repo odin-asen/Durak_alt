@@ -21,7 +21,6 @@ import java.util.List;
  * Time: 00:52
  */
 public class AttackCardMoveListener extends CardMoveListener {
-  private static final String BUNDLE_NAME = "user.messages"; //NON-NLS
   private final PointedCardContainer pointedWidgets;
   private Float relativePointHeight;
   private CardContainer<GameCardWidget> cardContainer;

@@ -25,7 +25,6 @@ import java.util.logging.Logger;
  * at the constructor. The most touched CombatCardPanel without a defense card will be highlighted.
  */
 public class DefenseCardMoveListener extends CardMoveListener {
-  private static final String BUNDLE_NAME = "user.messages"; //NON-NLS
   private static final Logger LOGGER = LoggingUtility.getLogger(
       DefenseCardMoveListener.class.getName());
   private CombatCardPanel currentCurtain;

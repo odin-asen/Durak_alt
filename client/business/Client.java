@@ -1,6 +1,7 @@
 package client.business;
 
 import common.dto.DTOClient;
+import common.i18n.BundleStrings;
 import common.i18n.I18nSupport;
 import common.utilities.constants.PlayerConstants;
 
@@ -14,7 +15,6 @@ import common.utilities.constants.PlayerConstants;
  * all other clients that are connected to the same server.
  */
 public class Client {
-  private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
   private static Client ownClient;
 
   private String name;
@@ -26,7 +26,7 @@ public class Client {
 
   private Client() {
     String name = System.getProperty("user.name", //NON-NLS
-        I18nSupport.getValue(CLIENT_BUNDLE, "default.player.name"));
+        I18nSupport.getValue(BundleStrings.CLIENT_GUI, "default.player.name"));
     setName(name);
     setCardCount(0);
     setPlayerType(PlayerConstants.PlayerType.DEFAULT);

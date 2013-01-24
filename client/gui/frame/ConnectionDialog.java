@@ -18,6 +18,8 @@ import java.net.UnknownHostException;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import static common.i18n.BundleStrings.CLIENT_GUI;
+
 /**
  * User: Timm Herrmann
  * Date: 05.01.13
@@ -32,7 +34,6 @@ public class ConnectionDialog extends JDialog {
       LoggingUtility.getLogger(ConnectionDialog.class.getName());
 
   //TODO eine DefaultDurakDialog Klasse schreiben, die methoden besitzt für Abbrechen, Übernehmen und Okay. Alle anderen Dialog, die die 3 Knöpfe brauchen sollten von der Klasse erben. Eine DefaultAction für Okay, Abbrechen und Übernehmen sollte den StandardDialog gebrauchen.
-  private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
   private static final String ACTION_COMMAND_CANCEL = "cancel";  //NON-NLS
   private static final String ACTION_COMMAND_CLOSE_SAVE = "closeSave";  //NON-NLS
   private static final String ACTION_COMMAND_CLOSE = "close"; //NON-NLS
@@ -77,7 +78,7 @@ public class ConnectionDialog extends JDialog {
 
     setBounds(position.getRectangle());
 
-    setTitle(I18nSupport.getValue(CLIENT_BUNDLE, "frame.title.setup"));
+    setTitle(I18nSupport.getValue(CLIENT_GUI, "frame.title.setup"));
     setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     pack();
   }
@@ -110,7 +111,7 @@ public class ConnectionDialog extends JDialog {
 
     mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.PAGE_AXIS));
     mainPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_BUNDLE, "border.settings.server")));
+        I18nSupport.getValue(CLIENT_GUI, "border.settings.server")));
 
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
     mainPanel.add(getServerAddressPanel());
@@ -128,12 +129,12 @@ public class ConnectionDialog extends JDialog {
 
   private JPanel getPasswordPanel() {
     final JPanel panel = new JPanel();
-    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.password"));
+    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_GUI, "label.text.password"));
     label.setMaximumSize(label.getPreferredSize());
     try {
       passwordField = WidgetCreator.makeTextField(JPasswordField.class,
           ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-          I18nSupport.getValue(CLIENT_BUNDLE, "checkbox.tooltip.show.password"));
+          I18nSupport.getValue(CLIENT_GUI, "checkbox.tooltip.show.password"));
       panel.setLayout(new GridLayout(1, 2));
       panel.add(label);
       panel.add(passwordField);
@@ -146,11 +147,11 @@ public class ConnectionDialog extends JDialog {
 
   private JPanel getServerPortPanel() {
     final JPanel panel = new JPanel();
-    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.port"));
+    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_GUI, "label.text.port"));
     label.setMaximumSize(label.getPreferredSize());
     serverPortField = WidgetCreator.makeIntegerTextField("",
         ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-        I18nSupport.getValue(CLIENT_BUNDLE, "field.tooltip.server.port"));
+        I18nSupport.getValue(CLIENT_GUI, "field.tooltip.server.port"));
     serverPortLabel = new JLabel("");
 
     panel.setLayout(new GridLayout(1, 2));
@@ -165,12 +166,12 @@ public class ConnectionDialog extends JDialog {
 
   private JPanel getServerAddressPanel() {
     final JPanel panel = new JPanel();
-    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.address"));
+    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_GUI, "label.text.address"));
     label.setMaximumSize(label.getPreferredSize());
     final Vector<String> comboBoxContent = new Vector<String>();
     serverAddressCombo = WidgetCreator.makeComboBox(comboBoxContent, 3,
         ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-        I18nSupport.getValue(CLIENT_BUNDLE, "combobox.tooltip.server.address"));
+        I18nSupport.getValue(CLIENT_GUI, "combobox.tooltip.server.address"));
     serverAddressCombo.setMaximumSize(serverAddressCombo.getPreferredSize());
     serverAddressCombo.addActionListener(new IPComboBoxListener(serverAddressCombo, comboBoxContent));
     serverAddressLabel = new JLabel("");
@@ -190,7 +191,7 @@ public class ConnectionDialog extends JDialog {
 
     mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.PAGE_AXIS));
     mainPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_BUNDLE, "border.settings.client")));
+        I18nSupport.getValue(CLIENT_GUI, "border.settings.client")));
 
     mainPanel.add(Box.createVerticalStrut(STRUT_HEIGHT));
     mainPanel.add(getClientNamePanel());
@@ -205,7 +206,7 @@ public class ConnectionDialog extends JDialog {
   private JPanel getSpectatorPanel() {
     final JPanel panel = new JPanel();
     spectatorCheckBox = new JCheckBox(
-        I18nSupport.getValue(CLIENT_BUNDLE, "checkbox.text.spectator"));
+        I18nSupport.getValue(CLIENT_GUI, "checkbox.text.spectator"));
     spectatorCheckBox.setSelected(false);
     spectatorLabel = new JLabel("");
 
@@ -214,7 +215,7 @@ public class ConnectionDialog extends JDialog {
       panel.add(Box.createHorizontalStrut(STRUT_WIDTH));
       panel.add(spectatorCheckBox);
     } else {
-      panel.add(new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.status")));
+      panel.add(new JLabel(I18nSupport.getValue(CLIENT_GUI, "label.text.status")));
       panel.add(spectatorLabel);
     }
     panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
@@ -224,7 +225,7 @@ public class ConnectionDialog extends JDialog {
 
   private JPanel getClientNamePanel() {
     final JPanel panel = new JPanel();
-    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_BUNDLE, "label.text.player.name"));
+    JLabel label = new JLabel(I18nSupport.getValue(CLIENT_GUI, "label.text.player.name"));
     label.setMaximumSize(label.getPreferredSize());
     nameField = new JTextField(Client.getOwnInstance().getName());
     nameLabel = new JLabel("");
@@ -249,16 +250,16 @@ public class ConnectionDialog extends JDialog {
     if(editable) {
       buttonPanel.add(createConnectionButton());
       buttonPanel.add(WidgetCreator.makeButton(null,
-          I18nSupport.getValue(CLIENT_BUNDLE, "button.text.close.save"),
-          I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.close.save"), null,
+          I18nSupport.getValue(CLIENT_GUI, "button.text.close.save"),
+          I18nSupport.getValue(CLIENT_GUI, "button.tooltip.close.save"), null,
           new ActionListener() {
             public void actionPerformed(ActionEvent e) {
               saveAndClose();
             }
           }));
       buttonPanel.add(WidgetCreator.makeButton(null,
-          I18nSupport.getValue(CLIENT_BUNDLE, "button.text.cancel"),
-          I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.cancel"), null,
+          I18nSupport.getValue(CLIENT_GUI, "button.text.cancel"),
+          I18nSupport.getValue(CLIENT_GUI, "button.tooltip.cancel"), null,
           new ActionListener() {
             public void actionPerformed(ActionEvent e) {
               resetFields();
@@ -268,7 +269,7 @@ public class ConnectionDialog extends JDialog {
           }));
     } else {
       buttonPanel.add(WidgetCreator.makeButton(null,
-          I18nSupport.getValue(CLIENT_BUNDLE, "button.text.close"), null, null,
+          I18nSupport.getValue(CLIENT_GUI, "button.text.close"), null, null,
           new ActionListener() {
             public void actionPerformed(ActionEvent e) {
               setVisible(false);
@@ -331,7 +332,7 @@ public class ConnectionDialog extends JDialog {
       /* client fields */
       nameLabel.setText(client.getName());
       String key = "label.text.spectator."+client.getSpectating().toString(); //NON-NLS
-      spectatorLabel.setText(I18nSupport.getValue(CLIENT_BUNDLE, key));
+      spectatorLabel.setText(I18nSupport.getValue(CLIENT_GUI, key));
     }
   }
 

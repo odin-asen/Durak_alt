@@ -2,20 +2,20 @@ package common.utilities.constants;
 
 import common.i18n.I18nSupport;
 
+import static common.i18n.BundleStrings.GENERAL_CARDS;
+
 /**
  * User: Timm Herrmann
  * Date: 07.10.12
  * Time: 14:27
  */
 public interface GameCardConstants {
-  String BUNDLE_NAME = "general.cards"; //NON-NLS
-
   /* Card Color */
   public static enum CardColour {
-    SPADES(0, I18nSupport.getValue(BUNDLE_NAME,"colour.spades")),
-    CLUBS(1, I18nSupport.getValue(BUNDLE_NAME,"colour.clubs")),
-    HEARTS(2, I18nSupport.getValue(BUNDLE_NAME,"colour.hearts")),
-    DIAMONDS(3, I18nSupport.getValue(BUNDLE_NAME,"colour.diamonds"));
+    SPADES(0, I18nSupport.getValue(GENERAL_CARDS,"colour.spades")),
+    CLUBS(1, I18nSupport.getValue(GENERAL_CARDS,"colour.clubs")),
+    HEARTS(2, I18nSupport.getValue(GENERAL_CARDS,"colour.hearts")),
+    DIAMONDS(3, I18nSupport.getValue(GENERAL_CARDS,"colour.diamonds"));
 
     private final Integer value;
     private final String name;
@@ -52,10 +52,10 @@ public interface GameCardConstants {
     EIGHT(7, "8"),
     NINE(8, "9"),
     TEN(9, "10"),
-    JACK(10, I18nSupport.getValue(BUNDLE_NAME,"value.jack")),
-    QUEEN(11, I18nSupport.getValue(BUNDLE_NAME,"value.queen")),
-    KING(12, I18nSupport.getValue(BUNDLE_NAME,"value.king")),
-    ACE(0, I18nSupport.getValue(BUNDLE_NAME,"value.ace"));
+    JACK(10, I18nSupport.getValue(GENERAL_CARDS,"value.jack")),
+    QUEEN(11, I18nSupport.getValue(GENERAL_CARDS,"value.queen")),
+    KING(12, I18nSupport.getValue(GENERAL_CARDS,"value.king")),
+    ACE(0, I18nSupport.getValue(GENERAL_CARDS,"value.ace"));
 
     private final Integer value;
     private final String valueName;

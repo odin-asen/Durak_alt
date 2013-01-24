@@ -14,20 +14,19 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.logging.Logger;
 
+import static common.i18n.BundleStrings.GENERAL_FORMAT;
+import static common.i18n.BundleStrings.SERVER_GUI;
+
 /**
  * User: Timm Herrmann
  * Date: 08.10.12
  * Time: 19:37
  */
 public class DurakStatusBar extends JPanel implements Runnable {
-  private static final String SERVER_BUNDLE = "server.server"; //NON-NLS
-  private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
-  private static final String FORMAT_BUNDLE = "general.format"; //NON-NLS
-
   private static final Logger LOGGER = LoggingUtility.getLogger(DurakStatusBar.class.getName());
 
   private static final DateFormat format =
-      new SimpleDateFormat(I18nSupport.getValue(FORMAT_BUNDLE,"date"), Locale.getDefault());
+      new SimpleDateFormat(I18nSupport.getValue(GENERAL_FORMAT,"date"), Locale.getDefault());
   private static final Calendar calendar = GregorianCalendar.getInstance(Locale.getDefault());
 
   private JPanel besideLabelPanel;
@@ -85,7 +84,7 @@ public class DurakStatusBar extends JPanel implements Runnable {
     if(spectators < 0) spectators = 0;
 
     String text = takers+"/"+spectators;
-    String tooltip = I18nSupport.getValue(SERVER_BUNDLE, "label.tooltip.takers.spectators",
+    String tooltip = I18nSupport.getValue(SERVER_GUI, "label.tooltip.takers.spectators",
         takers, spectators);
     playerCountLabel.setText(text);
     playerCountLabel.setToolTipText(tooltip);

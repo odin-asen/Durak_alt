@@ -6,6 +6,7 @@ import client.business.client.GameClient;
 import client.business.client.GameClientException;
 import client.gui.frame.ClientFrame;
 import client.gui.frame.ConnectionDialog;
+import client.gui.frame.SettingsDialog;
 import client.gui.frame.chat.ChatFrame;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
@@ -18,15 +19,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
+import static common.i18n.BundleStrings.CLIENT_GUI;
+import static common.i18n.BundleStrings.USER_MESSAGES;
+
 /**
  * User: Timm Herrmann
  * Date: 11.01.13
  * Time: 03:11
  */
 public class ActionCollection {
-  private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
-  private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
-
   /************************/
   /**** Static Actions ****/
   /************************/
@@ -38,10 +39,7 @@ public class ActionCollection {
   public static final Action DISCONNECT = new ConnectionAction(false);
 
   private static class OpenConnectionDialog extends AbstractAction {
-    private boolean editable;
-
     private OpenConnectionDialog(boolean editable) {
-      this.editable = editable;
       String iconString = "toolbar.network.info";
       int virtualKey = KeyEvent.VK_I;
       if(editable) {
@@ -49,7 +47,7 @@ public class ActionCollection {
         virtualKey = KeyEvent.VK_V;
       }
       WidgetCreator.initialiseAction(this, null, null, virtualKey, null,
-          I18nSupport.getValue(CLIENT_BUNDLE, "action.name.connection.information"),
+          I18nSupport.getValue(CLIENT_GUI, "action.name.connection.information"),
           null, ResourceGetter.getToolbarIcon(iconString));
     }
 
@@ -71,12 +69,12 @@ public class ActionCollection {
 
       if(connect)
         WidgetCreator.initialiseAction(this, null, null, null, null,
-            I18nSupport.getValue(CLIENT_BUNDLE, "action.name.connect"),
-            I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.connect"),
+            I18nSupport.getValue(CLIENT_GUI, "action.name.connect"),
+            I18nSupport.getValue(CLIENT_GUI, "action.tooltip.connect"),
             ResourceGetter.getToolbarIcon("toolbar.network"));
       else WidgetCreator.initialiseAction(this, null, null, null, null,
-          I18nSupport.getValue(CLIENT_BUNDLE, "action.name.disconnect"),
-          I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.disconnect"),
+          I18nSupport.getValue(CLIENT_GUI, "action.name.disconnect"),
+          I18nSupport.getValue(CLIENT_GUI, "action.tooltip.disconnect"),
           ResourceGetter.getToolbarIcon("toolbar.network.close"));
     }
 
@@ -85,7 +83,7 @@ public class ActionCollection {
         connectClient();
       } else {
         ClientFrame.getInstance().resetAll(
-            I18nSupport.getValue(MSGS_BUNDLE, "status.has.been.disconnected"), false);
+            I18nSupport.getValue(USER_MESSAGES, "status.has.been.disconnected"), false);
       }
     }
 
@@ -97,7 +95,7 @@ public class ActionCollection {
       try {
         if(gameClient.reconnect(connection.getServerAddress(), connection.getServerPort(),
             Client.getOwnInstance().toDTO(), connection.getPassword())) {
-          final String message = I18nSupport.getValue(MSGS_BUNDLE, "status.connected");
+          final String message = I18nSupport.getValue(USER_MESSAGES, "status.connected");
           mainFrame.addChatMessage(message,true);
           mainFrame.setStatus(message, true, "["+gameClient.getSocketAddress()+"]");
         }
@@ -113,19 +111,21 @@ public class ActionCollection {
   private static class OpenSetupAction extends AbstractAction {
     private OpenSetupAction() {
       WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_E, null,
-          "", I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.open.setup"),
+          "", I18nSupport.getValue(CLIENT_GUI, "action.tooltip.open.setup"),
           ResourceGetter.getToolbarIcon("toolbar.pinion"));
     }
 
     public void actionPerformed(ActionEvent e) {
-      //TODO Dialog wegen Einstellungen für die Oberfläche, Datenspeicherung usw öffnen
+      final SettingsDialog dialog = new SettingsDialog();
+      dialog.setModalityType(Dialog.ModalityType.TOOLKIT_MODAL);
+      dialog.setVisible(true);
     }
   }
 
   private static class OpenChatAction extends AbstractAction {
     private OpenChatAction() {
       WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_C, null,
-          "", I18nSupport.getValue(CLIENT_BUNDLE, "action.tooltip.open.chat.frame"),
+          "", I18nSupport.getValue(CLIENT_GUI, "action.tooltip.open.chat.frame"),
           ResourceGetter.getToolbarIcon("toolbar.chat"));
     }
 

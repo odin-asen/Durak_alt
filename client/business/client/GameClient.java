@@ -2,10 +2,7 @@ package client.business.client;
 
 import common.dto.DTOCard;
 import common.dto.DTOClient;
-import common.dto.message.BroadcastType;
-import common.dto.message.GameUpdateType;
 import common.dto.message.MessageObject;
-import common.dto.message.MessageType;
 import common.i18n.I18nSupport;
 import common.simon.Callbackable;
 import common.simon.ServerInterface;
@@ -27,13 +24,14 @@ import java.util.List;
 import java.util.Observable;
 import java.util.logging.Logger;
 
+import static common.i18n.BundleStrings.USER_MESSAGES;
+
 /**
  * User: Timm Herrmann
  * Date: 04.10.12
  * Time: 01:37
  */
 public class GameClient extends Observable {
-  private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
   private static GameClient client;
 
   private static final Logger LOGGER =
@@ -94,14 +92,14 @@ public class GameClient extends Observable {
             +" "+LoggingUtility.STARS);
       } catch (UnknownHostException e) {
         LOGGER.warning("Failed connection try to " + getSocketAddress());
-        throw new GameClientException(I18nSupport.getValue(MSGS_BUNDLE, "server.0.not.found",
+        throw new GameClientException(I18nSupport.getValue(USER_MESSAGES, "server.0.not.found",
             getSocketAddress()));
       } catch (LookupFailedException e) {
         LOGGER.warning("LookupFailedException occured while connection: "+e.getMessage());
-        throw new GameClientException(I18nSupport.getValue(MSGS_BUNDLE, "could.not.find.service"));
+        throw new GameClientException(I18nSupport.getValue(USER_MESSAGES, "could.not.find.service"));
       } catch (EstablishConnectionFailed e) {
         LOGGER.warning("EstablishConnectionFailed occured while connecting: " + e.getMessage());
-        throw new GameClientException(I18nSupport.getValue(MSGS_BUNDLE, "server.0.not.found",
+        throw new GameClientException(I18nSupport.getValue(USER_MESSAGES, "server.0.not.found",
             getSocketAddress()));
       }
     }

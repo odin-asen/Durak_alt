@@ -16,20 +16,18 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.logging.Logger;
 
+import static common.i18n.BundleStrings.*;
+
 /**
  * User: Timm Herrmann
  * Date: 08.10.12
  * Time: 19:37
  */
 public class DurakStatusBar extends JPanel implements Runnable {
-  private static final String CLIENT_BUNDLE = "client.client";  //NON-NLS
-  private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
-  private static final String FORMAT_BUNDLE = "general.format"; //NON-NLS
-
   private static final Logger LOGGER = LoggingUtility.getLogger(DurakStatusBar.class.getName());
 
   private static final DateFormat format =
-      new SimpleDateFormat(I18nSupport.getValue(FORMAT_BUNDLE,"date"), Locale.getDefault());
+      new SimpleDateFormat(I18nSupport.getValue(GENERAL_FORMAT, "date"), Locale.getDefault());
   private static final Calendar calendar = GregorianCalendar.getInstance(Locale.getDefault());
   private static final ImageIcon connectedIcon = ResourceGetter.getStatusIcon("status.connected");
   private static final ImageIcon disconnectedIcon =
@@ -77,7 +75,7 @@ public class DurakStatusBar extends JPanel implements Runnable {
     clockLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     gameStatusLabel.setBorder(border);
     gameStatusLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-    gameStatusLabel.setToolTipText(I18nSupport.getValue(CLIENT_BUNDLE,"label.tooltip.game.status"));
+    gameStatusLabel.setToolTipText(I18nSupport.getValue(CLIENT_GUI,"label.tooltip.game.status"));
     connectionLabel.setBorder(border);
     connectionLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
@@ -95,10 +93,10 @@ public class DurakStatusBar extends JPanel implements Runnable {
   public void setConnected(Boolean connected, String serverAddress) {
     if(connected) {
       connectionLabel.setIcon(connectedIcon);
-      connectionLabel.setToolTipText(I18nSupport.getValue(MSGS_BUNDLE,"status.connected.with.0", serverAddress));
+      connectionLabel.setToolTipText(I18nSupport.getValue(USER_MESSAGES,"status.connected.with.0", serverAddress));
     } else {
       connectionLabel.setIcon(disconnectedIcon);
-      connectionLabel.setToolTipText(I18nSupport.getValue(MSGS_BUNDLE,"status.disconnected"));
+      connectionLabel.setToolTipText(I18nSupport.getValue(USER_MESSAGES,"status.disconnected"));
     }
   }
 

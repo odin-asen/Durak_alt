@@ -15,9 +15,6 @@ import java.util.logging.Logger;
  * Time: 20:44
  */
 public class DurakToolBar extends JToolBar {
-  private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
-  private static final String MESSAGE_BUNDLE = "user.messages"; //NON-NLS
-
   private static final Logger LOGGER = LoggingUtility.getLogger(DurakToolBar.class.getName());
   
   private JButton connectionButton;

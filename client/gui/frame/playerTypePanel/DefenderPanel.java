@@ -49,8 +49,8 @@ public class DefenderPanel extends AbstractDurakGamePanel {
     /* Game Button Panel */
     JPanel panel = getGameButtonsContainer();
     takeCardsButton = WidgetCreator.makeButton(null,
-        I18nSupport.getValue(CLIENT_BUNDLE, "button.text.take.cards"),
-        I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.take.cards"), null,
+        I18nSupport.getValue(CLIENT_GUI, "button.text.take.cards"),
+        I18nSupport.getValue(CLIENT_GUI, "button.tooltip.take.cards"), null,
         new ActionListener() {
           public void actionPerformed(ActionEvent e) {
             GameClient.getClient().finishRound(Client.getOwnInstance().toDTO(),
@@ -58,8 +58,8 @@ public class DefenderPanel extends AbstractDurakGamePanel {
           }
         });
     roundDoneButton = WidgetCreator.makeButton(null,
-        I18nSupport.getValue(CLIENT_BUNDLE, "button.text.finish.round"),
-        I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.finish.round"), null,
+        I18nSupport.getValue(CLIENT_GUI, "button.text.finish.round"),
+        I18nSupport.getValue(CLIENT_GUI, "button.tooltip.finish.round"), null,
         new ActionListener() {
           public void actionPerformed(ActionEvent e) {
             GameClient.getClient().finishRound(Client.getOwnInstance().toDTO(),
@@ -79,7 +79,7 @@ public class DefenderPanel extends AbstractDurakGamePanel {
     final boolean roundCanBeFinished = !roundFinished && attackerFinished && allCardsCovered;
     if (roundCanBeFinished)
       ClientFrame.getInstance().showGamePopup(
-          I18nSupport.getValue(MSGS_BUNDLE, "next.round.available"));
+          I18nSupport.getValue(USER_MESSAGES, "next.round.available"));
     takeCardsButton.setEnabled(!roundFinished && cardsOnTable);
     roundDoneButton.setEnabled(roundCanBeFinished);
   }

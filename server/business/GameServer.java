@@ -24,6 +24,8 @@ import java.net.UnknownHostException;
 import java.util.*;
 import java.util.logging.Logger;
 
+import static common.i18n.BundleStrings.USER_MESSAGES;
+
 /**
  * User: Timm Herrmann
  * Date: 03.10.12
@@ -31,7 +33,6 @@ import java.util.logging.Logger;
  */
 public class GameServer extends Observable {
   private static Logger LOGGER = LoggingUtility.getLogger(GameServer.class.getName());
-  private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
 
   private static GameServer gameServer;
 
@@ -84,13 +85,13 @@ public class GameServer extends Observable {
         running = true;
       } catch (NameBindingException e) {
         LOGGER.warning("Name \"" + name + "\"already bound: " + e.getMessage());
-        throw new GameServerException(I18nSupport.getValue(MSGS_BUNDLE, ""));
+        throw new GameServerException(I18nSupport.getValue(USER_MESSAGES, ""));
       } catch (UnknownHostException e) {
         LOGGER.warning("Could not find ip address: "+e.getMessage());
-        throw new GameServerException(I18nSupport.getValue(MSGS_BUNDLE, "network.error"));
+        throw new GameServerException(I18nSupport.getValue(USER_MESSAGES, "network.error"));
       } catch (IOException e) {
         LOGGER.severe("I/O exception: " + e.getMessage());
-        throw new GameServerException(I18nSupport.getValue(MSGS_BUNDLE, "network.error"));
+        throw new GameServerException(I18nSupport.getValue(USER_MESSAGES, "network.error"));
       }
       LOGGER.info(LoggingUtility.STARS+" Server started "+LoggingUtility.STARS);
     }
@@ -264,7 +265,7 @@ public class GameServer extends Observable {
     final DTOClient client = getClient(callbackable);
     if(gameUpdate.removeClient(callbackable)) {
       if(!client.spectating) {
-        stopGame(true, I18nSupport.getValue(MSGS_BUNDLE, "game.abort.player.0.logged.off",
+        stopGame(true, I18nSupport.getValue(USER_MESSAGES, "game.abort.player.0.logged.off",
             client.name));
       }
       notifyClientLists(null);
@@ -350,7 +351,6 @@ public class GameServer extends Observable {
 /******************************************/
 @SimonRemote(value={ServerInterface.class})
 class DurakServices implements ServerInterface {
-  private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
   private static final Logger LOGGER = LoggingUtility.getLogger(DurakServices.class.getName());
 
   private String password;
@@ -367,10 +367,10 @@ class DurakServices implements ServerInterface {
       if(!server.clientNameExists(client.name))
         result = server.addClient(callbackable, client);
       else server.sendMessage(callbackable, new MessageObject(MessageType.STATUS_MESSAGE,
-          I18nSupport.getValue(MSGS_BUNDLE, "status.name.0.already.exists", client.name)));
+          I18nSupport.getValue(USER_MESSAGES, "status.name.0.already.exists", client.name)));
     } else {
       server.sendMessage(callbackable, new MessageObject(MessageType.STATUS_MESSAGE,
-          I18nSupport.getValue(MSGS_BUNDLE,"status.permission.denied")));
+          I18nSupport.getValue(USER_MESSAGES,"status.permission.denied")));
     }
     return result;
   }

@@ -34,6 +34,8 @@ import java.util.Observer;
 import java.util.logging.Logger;
 
 import static client.gui.frame.ClientGUIConstants.*;
+import static common.i18n.BundleStrings.CLIENT_GUI;
+import static common.i18n.BundleStrings.USER_MESSAGES;
 import static common.utilities.constants.PlayerConstants.PlayerType;
 
 /**
@@ -44,9 +46,6 @@ import static common.utilities.constants.PlayerConstants.PlayerType;
 public class ClientFrame extends JFrame implements Observer {
   private static ClientFrame frameInstance;
   private final Logger LOGGER = LoggingUtility.getLogger(ClientFrame.class.getName());
-
-  private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
-  private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
 
   private static final String VERSION_NUMBER = "0.2";
 
@@ -67,8 +66,8 @@ public class ClientFrame extends JFrame implements Observer {
 
     setIconImages(ResourceGetter.getApplicationIcons());
     setTitle(MessageFormat.format("{0} - {1} {2}",
-        I18nSupport.getValue(CLIENT_BUNDLE,"application.title"),
-        I18nSupport.getValue(CLIENT_BUNDLE,"version"), VERSION_NUMBER));
+        I18nSupport.getValue(CLIENT_GUI,"application.title"),
+        I18nSupport.getValue(CLIENT_GUI,"version"), VERSION_NUMBER));
     setBounds(position.getRectangle());
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     addWindowListener(new WindowAdapter() {
@@ -108,7 +107,7 @@ public class ClientFrame extends JFrame implements Observer {
         final Action openChatAction =
             WidgetCreator.createActionCopy(ActionCollection.OPEN_CHAT_DIALOG);
         openChatAction.putValue(Action.NAME,
-            I18nSupport.getValue(CLIENT_BUNDLE, "action.name.open.chat"));
+            I18nSupport.getValue(CLIENT_GUI, "action.name.open.chat"));
         WidgetCreator.createPopup(USER_MESSAGE_INFO_COLOUR, message, openChatAction,
             true, getBounds(), DurakPopup.LOCATION_DOWN_LEFT,
             popupSettings.getChat().getDuration()).setVisible(true);
@@ -256,7 +255,7 @@ public class ClientFrame extends JFrame implements Observer {
       } else if(BroadcastType.LOGIN_LIST.equals(object.getType())) {
         centrePanel.updateClients((List<DTOClient>) object.getSendingObject());
       } else if(BroadcastType.SERVER_SHUTDOWN.equals(object.getType())) {
-        resetAll(I18nSupport.getValue(MSGS_BUNDLE, "status.closed.server"), true);
+        resetAll(I18nSupport.getValue(USER_MESSAGES, "status.closed.server"), true);
       }
     }
 
@@ -281,13 +280,13 @@ public class ClientFrame extends JFrame implements Observer {
       } else if(GameUpdateType.CLIENT_CARDS.equals(object.getType())) {
         centrePanel.setCards(Converter.fromDTO((List<DTOCard>) object.getSendingObject()));
       } else if(GameUpdateType.GAME_ABORTED.equals(object.getType())) {
-        final String message = I18nSupport.getValue(MSGS_BUNDLE, "game.aborted.0",
+        final String message = I18nSupport.getValue(USER_MESSAGES, "game.aborted.0",
             object.getSendingObject());
         resetAll(message, false, false, true);
         LOGGER.info(LoggingUtility.STARS+" Game finished "+LoggingUtility.STARS);
       } else if(GameUpdateType.GAME_FINISHED.equals(object.getType())) {
         showGameOverMessage();
-        final String message = I18nSupport.getValue(MSGS_BUNDLE, "game.finished");
+        final String message = I18nSupport.getValue(USER_MESSAGES, "game.finished");
         resetAll(message, false, false, false);
         LOGGER.info(LoggingUtility.STARS+" Game finished "+LoggingUtility.STARS);
       }
@@ -302,8 +301,8 @@ public class ClientFrame extends JFrame implements Observer {
           Miscellaneous.addAllToCollection(defenderCards, cards.get(1));
         } else {
           JOptionPane.showMessageDialog(frameInstance,
-              I18nSupport.getValue(CLIENT_BUNDLE,"dialog.text.error.server.error"),
-              I18nSupport.getValue(CLIENT_BUNDLE,"dialog.title.error"),
+              I18nSupport.getValue(CLIENT_GUI,"dialog.text.error.server.error"),
+              I18nSupport.getValue(CLIENT_GUI,"dialog.title.error"),
               JOptionPane.ERROR_MESSAGE);
           LOGGER.severe("Server sends the wrong format for the client!");
         }
@@ -323,7 +322,6 @@ public class ClientFrame extends JFrame implements Observer {
 }
 
 class UserMessageDistributor {
-  private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
   private static final Logger LOGGER =
       LoggingUtility.getLogger(UserMessageDistributor.class.getName());
 
@@ -339,12 +337,12 @@ class UserMessageDistributor {
 
   private void showNotLoserOption() {
     final String message =
-        I18nSupport.getValue(CLIENT_BUNDLE,"dialog.text.game.finished.not.loser");
+        I18nSupport.getValue(CLIENT_GUI,"dialog.text.game.finished.not.loser");
     final Object[] strings =
-        new Object[]{I18nSupport.getValue(CLIENT_BUNDLE,"dialog.button.play.again"),
-            I18nSupport.getValue(CLIENT_BUNDLE,"dialog.button.option.no")};
+        new Object[]{I18nSupport.getValue(CLIENT_GUI,"dialog.button.play.again"),
+            I18nSupport.getValue(CLIENT_GUI,"dialog.button.option.no")};
     int option = JOptionPane.showOptionDialog(ClientFrame.getInstance(), message,
-        I18nSupport.getValue(CLIENT_BUNDLE,"dialog.title.game.finished"),
+        I18nSupport.getValue(CLIENT_GUI,"dialog.title.game.finished"),
         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[0]);
     if(option != 0) {
       updateInformation(true);
@@ -353,12 +351,12 @@ class UserMessageDistributor {
 
   private void showLoserOption() {
     final String message =
-        I18nSupport.getValue(CLIENT_BUNDLE,"dialog.text.game.finished.loser");
+        I18nSupport.getValue(CLIENT_GUI,"dialog.text.game.finished.loser");
     final Object[] strings =
-        new Object[]{I18nSupport.getValue(CLIENT_BUNDLE,"dialog.button.play.again.revenge"),
-            I18nSupport.getValue(CLIENT_BUNDLE,"dialog.button.option.no")};
+        new Object[]{I18nSupport.getValue(CLIENT_GUI,"dialog.button.play.again.revenge"),
+            I18nSupport.getValue(CLIENT_GUI,"dialog.button.option.no")};
     int option = JOptionPane.showOptionDialog(ClientFrame.getInstance(), message,
-        I18nSupport.getValue(CLIENT_BUNDLE,"dialog.title.game.finished"),
+        I18nSupport.getValue(CLIENT_GUI,"dialog.title.game.finished"),
         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[0]);
     if(option != 0) {
       updateInformation(true);
@@ -367,12 +365,12 @@ class UserMessageDistributor {
 
   private void showNoPlayerOption() {
     final String message =
-        I18nSupport.getValue(CLIENT_BUNDLE,"dialog.text.game.finished.no.player");
+        I18nSupport.getValue(CLIENT_GUI,"dialog.text.game.finished.no.player");
     final Object[] strings =
-        new Object[]{I18nSupport.getValue(CLIENT_BUNDLE,"dialog.button.join.game"),
-            I18nSupport.getValue(CLIENT_BUNDLE,"dialog.button.option.no")};
+        new Object[]{I18nSupport.getValue(CLIENT_GUI,"dialog.button.join.game"),
+            I18nSupport.getValue(CLIENT_GUI,"dialog.button.option.no")};
     int option = JOptionPane.showOptionDialog(ClientFrame.getInstance(), message,
-        I18nSupport.getValue(CLIENT_BUNDLE,"dialog.title.game.finished"),
+        I18nSupport.getValue(CLIENT_GUI,"dialog.title.game.finished"),
         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[1]);
     if(option == 0) {
       updateInformation(false);

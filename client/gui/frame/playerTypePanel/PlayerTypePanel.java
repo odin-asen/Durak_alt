@@ -5,6 +5,7 @@ import client.gui.frame.gamePanel.GamePanel;
 import common.dto.DTOCardStack;
 import common.dto.DTOClient;
 import common.game.GameCard;
+import common.i18n.BundleStrings;
 import common.i18n.I18nSupport;
 import common.utilities.LoggingUtility;
 
@@ -25,8 +26,6 @@ import static common.utilities.constants.PlayerConstants.PlayerType;
  * Time: 00:37
  */
 public class PlayerTypePanel extends JPanel {
-  private static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
-  private static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
   private static final Logger LOGGER = LoggingUtility.getLogger(PlayerTypePanel.class.getName());
 
   private JPanel listPanel;
@@ -232,7 +231,7 @@ public class PlayerTypePanel extends JPanel {
 
       if(defenderTookCards && !currentType.equals(PlayerType.DEFENDER)) {
         final String key = "defender.took.cards." + defenderTookCards; //NON-NLS
-        ClientFrame.getInstance().showGamePopup(I18nSupport.getValue(MSGS_BUNDLE, key));
+        ClientFrame.getInstance().showGamePopup(I18nSupport.getValue(BundleStrings.USER_MESSAGES, key));
       }
     }
   }
@@ -270,7 +269,7 @@ public class PlayerTypePanel extends JPanel {
     final JScrollPane listScrollPane = new JScrollPane(clientList);
 
     listPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_BUNDLE, "border.opponents")));
+        I18nSupport.getValue(BundleStrings.CLIENT_GUI, "border.opponents")));
     listPanel.setLayout(new BorderLayout());
     listPanel.add(listScrollPane, BorderLayout.CENTER);
     listPanel.setMinimumSize(new Dimension(0,0));
@@ -329,7 +328,7 @@ public class PlayerTypePanel extends JPanel {
       final Color foreground;
       if (client.spectating) {
         foreground = new Color(164, 164, 164);
-        this.setToolTipText(I18nSupport.getValue(CLIENT_BUNDLE, "list.tooltip.audience"));
+        this.setToolTipText(I18nSupport.getValue(BundleStrings.CLIENT_GUI, "list.tooltip.audience"));
       } else {
         foreground = superComponent.getForeground();
         this.setToolTipText(null);
@@ -349,9 +348,6 @@ public class PlayerTypePanel extends JPanel {
  */
 abstract class AbstractDurakGamePanel extends JPanel implements DurakGamePanel {
   private final Logger LOGGER = LoggingUtility.getLogger(AbstractDurakGamePanel.class.getName());
-
-  protected static final String CLIENT_BUNDLE = "client.client"; //NON-NLS
-  protected static final String MSGS_BUNDLE = "user.messages"; //NON-NLS
 
   private OpponentsPanel opponentsPanel;
   private GamePanel gamePanel;

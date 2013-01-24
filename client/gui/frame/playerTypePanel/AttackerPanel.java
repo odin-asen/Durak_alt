@@ -55,8 +55,8 @@ public class AttackerPanel extends AbstractDurakGamePanel {
     /* Game Button Panel */
     JPanel panel = getGameButtonsContainer();
     roundDoneButton = WidgetCreator.makeButton(null,
-        I18nSupport.getValue(CLIENT_BUNDLE, "button.text.finish.round"),
-        I18nSupport.getValue(CLIENT_BUNDLE, "button.tooltip.finish.round"), null,
+        I18nSupport.getValue(CLIENT_GUI, "button.text.finish.round"),
+        I18nSupport.getValue(CLIENT_GUI, "button.tooltip.finish.round"), null,
         new ActionListener() {
           public void actionPerformed(ActionEvent e) {
             if (GameClient.getClient().finishRound(Client.getOwnInstance().toDTO(),

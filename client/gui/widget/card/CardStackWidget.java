@@ -10,13 +10,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
+import static common.i18n.BundleStrings.CLIENT_GUI;
+
 /**
  * User: Timm Herrmann
  * Date: 06.10.12
  * Time: 03:57
  */
 public class CardStackWidget extends JComponent {
-  private static final String BUNDLE_NAME = "client.client"; //NON-NLS
   public static final int ORIENTATION_HORIZONTAL = 0;
   public static final int ORIENTATION_VERTICAL = 1;
   public static final float ALIGNMENT_CARD_HEIGHT = 0.9f;
@@ -143,7 +144,7 @@ public class CardStackWidget extends JComponent {
 
   public void updateTooltip() {
     setToolTipText(
-        I18nSupport.getValue(BUNDLE_NAME, "card.stack.tooltip.card.number.0.trump.colour.1",
+        I18nSupport.getValue(CLIENT_GUI, "card.stack.tooltip.card.number.0.trump.colour.1",
         cardCount, trump.cardColour.getName()));
   }
 

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static common.i18n.BundleStrings.USER_MESSAGES;
 import static common.utilities.constants.GameCardConstants.CardColour;
 import static common.utilities.constants.GameCardConstants.CardValue;
 import static common.utilities.constants.PlayerConstants.PlayerType;
@@ -23,7 +24,6 @@ import static common.utilities.constants.PlayerConstants.PlayerType;
  * if a move can be done or not.
  */
 public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spieler, mehr als 2 Spieler, 2 gegen 2 Spieler
-  private static final String BUNDLE_NAME = "user.messages"; //NON-NLS
   private static final Logger LOGGER = LoggingUtility.getLogger(RuleChecker.class.getName());
 
   private CardColour trumpColour;
@@ -86,13 +86,13 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   public void doDefenseMove(Player defender, Boolean attackerCardsEmpty,
                             GameCard defenderCard, GameCard attackerCard)
       throws RuleException {
-    final String notHigherText = I18nSupport.getValue(BUNDLE_NAME, "value.0.lower.than.1",
+    final String notHigherText = I18nSupport.getValue(USER_MESSAGES, "value.0.lower.than.1",
         defenderCard.getCardValue().getValueName(), attackerCard.getCardValue().getValueName());
-    final String noTrumpText = I18nSupport.getValue(BUNDLE_NAME, "card.0.is.not.trump",
+    final String noTrumpText = I18nSupport.getValue(USER_MESSAGES, "card.0.is.not.trump",
         defenderCard.getColourAndValue());
     checkAuthentication(defender);
     if(attackerCardsEmpty)
-      throw new RuleException(I18nSupport.getValue(BUNDLE_NAME, "no.cards.to.defend"));
+      throw new RuleException(I18nSupport.getValue(USER_MESSAGES, "no.cards.to.defend"));
 
     checkDefense(defenderCard, attackerCard, notHigherText, noTrumpText);
 
@@ -100,7 +100,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   }
 
   private String getCardsNotOnGamePanelMessage(String nonExistingCards) {
-    return I18nSupport.getValue(BUNDLE_NAME, "move.not.valid.cards.0.not.on.field",
+    return I18nSupport.getValue(USER_MESSAGES, "move.not.valid.cards.0.not.on.field",
         nonExistingCards);
   }
 
@@ -142,25 +142,25 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
     throws RuleException {
     final int newAttackCardsCount = currentAttackCards.size() + attackCards.size();
     if(wantsToAttack.equals(secondAttacker) && currentAttackCards.isEmpty())
-      throw new RuleException(I18nSupport.getValue(BUNDLE_NAME,"second.attacker.not.allowed"));
+      throw new RuleException(I18nSupport.getValue(USER_MESSAGES,"second.attacker.not.allowed"));
     else if(initAttack && (newAttackCardsCount > 5))
-      throw new RuleException(I18nSupport.getValue(BUNDLE_NAME,"first.attack.five.card.restriction"));
+      throw new RuleException(I18nSupport.getValue(USER_MESSAGES,"first.attack.five.card.restriction"));
     else if(newAttackCardsCount > 6)
-      throw new RuleException(I18nSupport.getValue(BUNDLE_NAME,"not.more.than.six.cards"));
+      throw new RuleException(I18nSupport.getValue(USER_MESSAGES,"not.more.than.six.cards"));
     else if(attackCards.size() > defender.getCards().size())
-      throw new RuleException(I18nSupport.getValue(BUNDLE_NAME, "defender.too.few.cards"));
+      throw new RuleException(I18nSupport.getValue(USER_MESSAGES, "defender.too.few.cards"));
     else if(currentAttackCards.isEmpty()) {
       final CardValue currentValue = attackCards.get(0).getCardValue();
       for (GameCard attackCard : attackCards) {
         if (!currentValue.equals(attackCard.getCardValue()))
-          throw new RuleException(I18nSupport.getValue(BUNDLE_NAME, "cards.not.same.value"));
+          throw new RuleException(I18nSupport.getValue(USER_MESSAGES, "cards.not.same.value"));
       }
     }
   }
 
   private void checkAuthentication(Player player) throws RuleException {
     if(!player.equals(firstAttacker) && !player.equals(secondAttacker) && !player.equals(defender))
-      throw new RuleException(I18nSupport.getValue(BUNDLE_NAME,"only.attacker.and.defender.allowed"));
+      throw new RuleException(I18nSupport.getValue(USER_MESSAGES,"only.attacker.and.defender.allowed"));
   }
 
   private void checkDefense(GameCard defenderCard, GameCard attackerCard,
@@ -176,7 +176,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
           if(defenderCard.getCardValue().compareTo(attackerCard.getCardValue()) <= 0)
             throw new RuleException(notHigherText);
         } else {
-          throw new RuleException(I18nSupport.getValue(BUNDLE_NAME,
+          throw new RuleException(I18nSupport.getValue(USER_MESSAGES,
               "card.0.neither.trump.nor.colour.1",defenderCard.getColourAndValue(),
               attackerCard.getCardColour().getName()));
         }
