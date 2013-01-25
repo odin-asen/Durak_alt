@@ -7,7 +7,6 @@ import common.resources.ResourceGetter;
 import common.utilities.LoggingUtility;
 import common.utilities.Miscellaneous;
 import common.utilities.constants.GameConfigurationConstants;
-import common.utilities.gui.Constraints;
 import common.utilities.gui.FramePosition;
 import common.utilities.gui.WidgetCreator;
 import server.business.GUIObserverType;
@@ -32,7 +31,7 @@ import java.util.logging.Logger;
 
 import static common.i18n.BundleStrings.SERVER_GUI;
 import static common.i18n.BundleStrings.USER_MESSAGES;
-import static server.gui.ServerGUIConstants.*;
+import static server.gui.ServerGUIConstants.LIST_WIDTH;
 
 /**
  * User: Timm Herrmann
@@ -42,31 +41,27 @@ import static server.gui.ServerGUIConstants.*;
 public class ServerFrame extends JFrame implements Observer {
   private static Logger LOGGER = LoggingUtility.getLogger(ServerFrame.class.getName());
 
-  private static final String VERSION_NUMBER = "0.1";
+  private static final String VERSION_NUMBER = "0.5";
   private static final String ACTION_COMMAND_START = "start"; //NON-NLS
   private static final String ACTION_COMMAND_STOP = "stop"; //NON-NLS
   private static final String ACTION_COMMAND_START_GAME = "gameStart"; //NON-NLS
   private static final String ACTION_COMMAND_STOP_GAME = "gameStop"; //NON-NLS
 
-  private JToolBar toolBar;
-  private JScrollPane settingsPanel;
-  private JFormattedTextField portField;
-  private JScrollPane clientListPanel;
-  private DurakStatusBar statusBar;
+  private JToolBar toolbar;
+  private JPanel panelSettings;
+  private JFormattedTextField fieldPort;
+  private JPasswordField fieldPassword;
+  private JScrollPane panelClientList;
+  private DurakStatusBar statusbar;
 
   private JList<DTOClient> clientList;
   private DefaultListModel<DTOClient> listModel;
-  private JComboBox<Integer> stackSizeCombo;
-  private JPanel gameSettingsPanel;
-  private JButton serverButton;
-  private JButton gameButton;
+  private JComboBox<Integer> comboStackSize;
+  private JButton buttonServer;
+  private JButton buttonGame;
 
   /* Constructors */
   public ServerFrame() {
-    FramePosition position = FramePosition.createFramePositions(
-        MAIN_FRAME_SCREEN_SIZE, MAIN_FRAME_SCREEN_SIZE);
-
-    setBounds(position.getRectangle());
     initComponents();
 
     GameServer.getServerInstance().addObserver(this);
@@ -82,19 +77,22 @@ public class ServerFrame extends JFrame implements Observer {
         System.exit(0);
       }
     });
+    pack();
+
+    setBounds(FramePosition.createFramePositions(getWidth(), getHeight()).getRectangle());
   }
 
   /* Methods */
   private void initComponents() {
     getContentPane().setLayout(new BorderLayout());
-    getContentPane().add(getToolBar(), BorderLayout.PAGE_START);
-    getContentPane().add(getClientListPanel(), BorderLayout.LINE_START);
-    getContentPane().add(getSettingsPanel(), BorderLayout.CENTER);
-    getContentPane().add(getStatusBar(), BorderLayout.PAGE_END);
+    getContentPane().add(getToolbar(), BorderLayout.PAGE_START);
+    getContentPane().add(getPanelClientList(), BorderLayout.LINE_START);
+    getContentPane().add(getPanelSettings(), BorderLayout.CENTER);
+    getContentPane().add(getStatusbar(), BorderLayout.PAGE_END);
   }
 
   public Integer getStackSize() {
-    return (Integer) stackSizeCombo.getSelectedItem();
+    return (Integer) comboStackSize.getSelectedItem();
   }
 
   public void update(Observable o, Object arg) {
@@ -112,7 +110,7 @@ public class ServerFrame extends JFrame implements Observer {
       else playing++;
       listModel.add(listModel.size(), client);
     }
-    statusBar.setPlayerCount(playing,spectating);
+    statusbar.setPlayerCount(playing, spectating);
   }
 
   private void handleUpdate(MessageObject object) {
@@ -121,7 +119,7 @@ public class ServerFrame extends JFrame implements Observer {
     } else if (GUIObserverType.REMOVE_CLIENTS.equals(object.getType())) {
       listModel.clear();
     } else if(GUIObserverType.GAME_FINISHED.equals(object.getType())) {
-      gameButton.setAction(new GameStartStop(true));
+      buttonGame.setAction(new GameStartStop(true));
     }
   }
 
@@ -135,115 +133,129 @@ public class ServerFrame extends JFrame implements Observer {
   }
 
   public void setStatusBarText(String status) {
-    statusBar.setText(status);
+    statusbar.setText(status);
   }
 
   public Integer getPortValue() {
-    return Integer.parseInt(portField.getText());
+    return Integer.parseInt(fieldPort.getText());
   }
 
   /* Getter and Setter */
 
-  private JPanel getStatusBar() {
-    if(statusBar != null)
-      return statusBar;
+  private JPanel getStatusbar() {
+    if(statusbar != null)
+      return statusbar;
 
-    statusBar = new DurakStatusBar();
+    statusbar = new DurakStatusBar();
 
-    statusBar.setText(I18nSupport.getValue(USER_MESSAGES, "status.server.inactive"));
-    statusBar.setPreferredSize(new Dimension(0, 16));
+    statusbar.setText(I18nSupport.getValue(USER_MESSAGES, "status.server.inactive"));
+    statusbar.setPreferredSize(new Dimension(0, 16));
 
-    return statusBar;
+    return statusbar;
   }
 
-  private JToolBar getToolBar() {
-    if(toolBar != null)
-      return toolBar;
+  private JToolBar getToolbar() {
+    if(toolbar != null)
+      return toolbar;
 
-    toolBar = new JToolBar();
-    serverButton = new JButton(new ServerStartStop(true));
-    gameButton = new JButton(new GameStartStop(true));
+    toolbar = new JToolBar();
+    buttonServer = new JButton(new ServerStartStop(true));
+    buttonGame = new JButton(new GameStartStop(true));
 
-    toolBar.setMargin(new Insets(5, 5, 5, 5));
-    toolBar.setRollover(true);
-    toolBar.setFloatable(false);
+    toolbar.setMargin(new Insets(5, 5, 5, 5));
+    toolbar.setRollover(true);
+    toolbar.setFloatable(false);
 
-    toolBar.add(serverButton);
-    toolBar.addSeparator();
-    toolBar.add(gameButton);
+    toolbar.add(buttonServer);
+    toolbar.addSeparator();
+    toolbar.add(buttonGame);
 
-    return toolBar;
+    return toolbar;
   }
 
-  private JScrollPane getSettingsPanel() {
-    if(settingsPanel != null)
-      return settingsPanel;
+  private JPanel getPanelSettings() {
+    if(panelSettings != null)
+      return panelSettings;
 
-    settingsPanel = new JScrollPane();
-    JPanel panel = new JPanel(new GridBagLayout());
-    GridBagConstraints constraints;
+    panelSettings = new JPanel();
 
-    constraints = Constraints.getDefaultFieldConstraintLeft(0,0,1,1);
-    constraints.ipady = 5;
-    panel.add(getPortPanel(), constraints);
-    constraints.gridy = 1;
-    panel.add(getGameSettingsPanel(), constraints);
+    panelSettings.setLayout(new BoxLayout(panelSettings, BoxLayout.PAGE_AXIS));
+    panelSettings.add(getServerSettingsPanel());
+    panelSettings.add(getGameSettingsPanel());
+    panelSettings.add(Box.createGlue());
 
-    settingsPanel.setViewportView(panel);
-    return settingsPanel;
+    return panelSettings;
   }
 
-  private JPanel getPortPanel() {
-    JPanel panel = new JPanel(new GridBagLayout());
+  private JPanel getServerSettingsPanel() {
+    final JPanel panel = new JPanel();
+
     NumberFormat format = NumberFormat.getNumberInstance();
     format.setMaximumFractionDigits(0);
     format.setGroupingUsed(false);
 
-    portField = new JFormattedTextField(format);
-    portField.setText(GameConfigurationConstants.DEFAULT_PORT.toString());
-    portField.setPreferredSize(new Dimension(PREFERRED_FIELD_WIDTH, portField.getPreferredSize().height));
-    portField.setMaximumSize(new Dimension(Integer.MAX_VALUE, portField.getPreferredSize().height));
+    fieldPort = new JFormattedTextField(format);
+    fieldPort.setText(GameConfigurationConstants.DEFAULT_PORT.toString());
 
-    panel.setBorder(BorderFactory.createTitledBorder(I18nSupport.getValue(SERVER_GUI, "border.server.port")));
+    fieldPassword = new JPasswordField();                                     //TODO SERVER_GUI und CLIENT_GUI zu GUI zusammenführen
+    fieldPassword.setToolTipText(I18nSupport.getValue(SERVER_GUI, "label.tooltip.password"));
 
-    GridBagConstraints constraints = new GridBagConstraints();
-    panel.add(portField, constraints);
+    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+    panel.setBorder(BorderFactory.createTitledBorder(
+        I18nSupport.getValue(SERVER_GUI, "border.server")));
+    panel.add(getGridLinePanel(
+        new JLabel(I18nSupport.getValue(SERVER_GUI, "label.text.port")), fieldPort));
+    panel.add(getGridLinePanel(
+        new JLabel(I18nSupport.getValue(SERVER_GUI, "label.text.password")), fieldPassword));
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
+
     return panel;
   }
 
-  private JScrollPane getClientListPanel() {
-    if(clientListPanel != null)
-      return clientListPanel;
+  private JPanel getGridLinePanel(Component... components) {
+    final JPanel panel = new JPanel();
 
-    clientListPanel = new JScrollPane();
+    panel.setLayout(new GridLayout(1,0));
+    for (Component component : components)
+      panel.add(component);
+
+    return panel;
+  }
+  private JPanel getPasswordPanel() {
+    final JPanel panel = new JPanel();
+    return panel;
+  }
+
+  private JScrollPane getPanelClientList() {
+    if(panelClientList != null)
+      return panelClientList;
+
+    panelClientList = new JScrollPane();
     listModel = new DefaultListModel<DTOClient>();
     clientList = new JList<DTOClient>(listModel);
     clientList.setCellRenderer(new DefaultListCellRenderer());
     clientList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-    clientListPanel.setPreferredSize(new Dimension(LIST_WIDTH, clientListPanel.getPreferredSize().height));
-    clientListPanel.setViewportView(clientList);
+    panelClientList.setPreferredSize(new Dimension(LIST_WIDTH, panelClientList.getPreferredSize().height));
+    panelClientList.setViewportView(clientList);
 
-    return clientListPanel;
+    return panelClientList;
   }
 
   public JPanel getGameSettingsPanel() {
-    if(gameSettingsPanel != null)
-      return gameSettingsPanel;
+    final JPanel panel = new JPanel();
 
-    gameSettingsPanel = new JPanel();
-    stackSizeCombo = new JComboBox<Integer>(new Integer[]{12,36,40,44,48,52});
-    JLabel stackSizeLabel = new JLabel(I18nSupport.getValue(SERVER_GUI, "label.text.card.number"));
+    comboStackSize = new JComboBox<Integer>(new Integer[]{12,36,40,44,48,52});
+    comboStackSize.setEditable(false);
+    comboStackSize.setToolTipText(I18nSupport.getValue(SERVER_GUI, "combo.box.tooltip.card.number"));
 
-    stackSizeCombo.setEditable(false);
-    stackSizeCombo.setToolTipText(I18nSupport.getValue(SERVER_GUI,"combo.box.tooltip.card.number"));
-    stackSizeCombo.setMaximumSize(stackSizeCombo.getPreferredSize());
-    gameSettingsPanel.setLayout(new GridLayout(0, 2, 2, 0));
-    gameSettingsPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(SERVER_GUI, "border.game.settings")));
-    gameSettingsPanel.add(stackSizeLabel);
-    gameSettingsPanel.add(stackSizeCombo);
+    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+    panel.setBorder(BorderFactory.createTitledBorder(
+        I18nSupport.getValue(SERVER_GUI, "border.game")));
+    panel.add(getGridLinePanel(
+        new JLabel(I18nSupport.getValue(SERVER_GUI, "label.text.card.number")), comboStackSize));
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
 
-    return gameSettingsPanel;
+    return panel;
   }
 
   public DefaultListModel<DTOClient> getClientList() {
@@ -276,7 +288,7 @@ public class ServerFrame extends JFrame implements Observer {
       } else if (ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
         GameServer.getServerInstance().shutdownServer();
         setStatusBarText(I18nSupport.getValue(USER_MESSAGES, "status.server.inactive"));
-        gameButton.setAction(new GameStartStop(true));
+        buttonGame.setAction(new GameStartStop(true));
         setAction(true);
       }
     }
@@ -291,7 +303,7 @@ public class ServerFrame extends JFrame implements Observer {
         } catch (SocketException e) {
           ipAddress = InetAddress.getLoopbackAddress().getHostAddress();
         }
-        gameServer.startServer(""); //TODO hier passwort setzen
+        gameServer.startServer(String.copyValueOf(fieldPassword.getPassword()));
         setStatusBarText(I18nSupport.getValue(USER_MESSAGES, "status.server.running"));
       } catch (GameServerException e) {
         setStatusBarText(e.getMessage());
