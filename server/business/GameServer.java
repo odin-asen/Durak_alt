@@ -65,6 +65,8 @@ public class GameServer extends Observable implements ClosedListener {
   private GameServer() {
     port = GameConfigurationConstants.DEFAULT_PORT;
     this.gameUpdate = new GameUpdate();
+    Simon.setDefaultKeepAliveInterval(5);
+    Simon.setDefaultKeepAliveTimeout(5);
   }
 
   /* Methods */
@@ -343,7 +345,7 @@ public class GameServer extends Observable implements ClosedListener {
     return port;
   }
 
-  public Boolean isServerRunning() {
+  public boolean isServerRunning() {
     return registry != null && registry.isRunning();
   }
 

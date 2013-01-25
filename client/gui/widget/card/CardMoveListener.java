@@ -16,7 +16,7 @@ import java.util.List;
  */
 public abstract class CardMoveListener
     implements ComponentListener, MouseListener, MouseMotionListener {
-  protected Boolean dragged;
+  protected boolean dragged;
 
   private Point oldPoint;
   private Point grabbingPoint;

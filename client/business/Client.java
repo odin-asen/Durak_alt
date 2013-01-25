@@ -19,7 +19,7 @@ public class Client {
 
   private String name;
   private Integer cardCount;
-  private Boolean spectating;
+  private boolean spectating;
   private PlayerConstants.PlayerType playerType;
 
   /* Constructors */
@@ -79,13 +79,11 @@ public class Client {
     this.playerType = playerType;
   }
 
-  public Boolean getSpectating() {
+  public boolean getSpectating() {
     return spectating;
   }
 
-  public void setSpectating(Boolean spectating) {
-    if(spectating == null)
-      spectating = true;
+  public void setSpectating(boolean spectating) {
     this.spectating = spectating;
   }
 

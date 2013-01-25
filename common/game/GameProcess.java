@@ -35,8 +35,8 @@ public class GameProcess<ID> {
   private final ListMap<ID,Player> playerHolder;
 
   private GameCardStack stack;
-  private Boolean gameInProcess;
-  private Boolean initialiseNew;
+  private boolean gameInProcess;
+  private boolean initialiseNew;
 
   private RuleChecker ruleChecker;
   private RoundStateHandler roundState;
@@ -75,7 +75,7 @@ public class GameProcess<ID> {
    * @param cardsPerColour Number of cards per colour for this game.
    * @return True, if the game has been initialised, otherwise false.
    */
-  public Boolean initialiseNewGame(Integer cardsPerColour) {
+  public boolean initialiseNewGame(Integer cardsPerColour) {
     if(playerHolder.size() > 1) {
       ruleChecker = RuleFactory.getStandardRules();
       distributeCards(cardsPerColour);
@@ -332,11 +332,11 @@ public class GameProcess<ID> {
     return roundState.attackersReadyForNextRound();
   }
 
-  public Boolean defenderTookCards() {
+  public boolean defenderTookCards() {
     return roundState.defenderTookCards();
   }
 
-  public Boolean gameHasFinished() {
+  public boolean gameHasFinished() {
     return determineLoser() != null;
   }
 
@@ -350,7 +350,7 @@ public class GameProcess<ID> {
 
   /* Getter and Setter */
 
-  public Boolean isGameInProcess() {
+  public boolean isGameInProcess() {
     return gameInProcess;
   }
 

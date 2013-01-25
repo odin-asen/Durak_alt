@@ -207,7 +207,7 @@ public class ClientFrame extends JFrame implements Observer {
    * @param connected Indicates whether the client is connected or not.
    * @param serverAddress Shows the server address as tooltip.
    */
-  public void setStatus(String mainText, Boolean connected, String serverAddress) {
+  public void setStatus(String mainText, boolean connected, String serverAddress) {
     centrePanel.setStatus(mainText);
     centrePanel.setStatus(connected, serverAddress);
     toolBar.setConnection(connected);

@@ -33,7 +33,7 @@ public class DurakStatusBar extends JPanel implements Runnable {
   private JLabel mainStatusLabel;
   private JLabel playerCountLabel;
   private JLabel clockLabel;
-  private Boolean running;
+  private boolean running;
 
   /* Constructors */
   public DurakStatusBar() {

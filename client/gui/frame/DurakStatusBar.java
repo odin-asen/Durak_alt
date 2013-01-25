@@ -38,7 +38,7 @@ public class DurakStatusBar extends JPanel implements Runnable {
   private JLabel gameStatusLabel;
   private JLabel connectionLabel;
   private JLabel clockLabel;
-  private Boolean running;
+  private boolean running;
 
   /* Constructors */
   public DurakStatusBar() {
@@ -90,17 +90,18 @@ public class DurakStatusBar extends JPanel implements Runnable {
    * @param connected Sets the corresponding icon to the value
    * @param serverAddress Will be set to the tooltip as information
    */
-  public void setConnected(Boolean connected, String serverAddress) {
+  public void setConnected(boolean connected, String serverAddress) {
     if(connected) {
       connectionLabel.setIcon(connectedIcon);
-      connectionLabel.setToolTipText(I18nSupport.getValue(USER_MESSAGES,"status.connected.with.0", serverAddress));
+      connectionLabel.setToolTipText(I18nSupport.getValue(USER_MESSAGES,"status.connected.with.0",
+          serverAddress));
     } else {
       connectionLabel.setIcon(disconnectedIcon);
       connectionLabel.setToolTipText(I18nSupport.getValue(USER_MESSAGES,"status.disconnected"));
     }
   }
 
-  public void setConnected(Boolean connected) {
+  public void setConnected(boolean connected) {
     if(connected) {
       connectionLabel.setIcon(connectedIcon);
     } else setConnected(false, "");

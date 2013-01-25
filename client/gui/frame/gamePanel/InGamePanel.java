@@ -13,7 +13,7 @@ import java.util.List;
 public class InGamePanel extends JPanel implements CurtainWidget {
   private Integer[] grids;
 
-  private Boolean paintCurtain;
+  private boolean paintCurtain;
   private List<CombatCardPanel> cardPanels;
   private List<GameCard> attackCards;
   private List<GameCard> defenseCards;
@@ -136,7 +136,7 @@ public class InGamePanel extends JPanel implements CurtainWidget {
     g2D.setColor(oldColor);
   }
 
-  public Boolean allCardCovered() {
+  public boolean allCardCovered() {
     if(cardPanels.size() <= 0)
       return false;
 

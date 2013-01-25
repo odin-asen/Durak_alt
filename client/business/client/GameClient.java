@@ -39,9 +39,7 @@ public class GameClient extends Observable implements ClosedListener {
   private static final Logger LOGGER =
       LoggingUtility.getLogger(GameClient.class.getName());
 
-  private String address;
-  private Integer port;
-  private Boolean connected;
+  private boolean connected;
 
   private ServerMessageReceiver messageReceiver;
   private Lookup nameLookup;
@@ -56,10 +54,10 @@ public class GameClient extends Observable implements ClosedListener {
   }
 
   private GameClient() {
-    this.address = GameConfigurationConstants.DEFAULT_IP_ADDRESS;
-    this.port = GameConfigurationConstants.DEFAULT_PORT;
     this.connected = false;
     messageReceiver = new ServerMessageReceiver();
+    Simon.setDefaultKeepAliveInterval(5);
+    Simon.setDefaultKeepAliveTimeout(5);
   }
 
   /* Methods */
@@ -82,11 +80,11 @@ public class GameClient extends Observable implements ClosedListener {
    * @throws GameClientException Thrown when a connection could not be established. A user
    * message will be delivered with the Exception.
    */
-  public boolean connect(DTOClient dtoClient, String password)
-      throws GameClientException {
+  public boolean connect(String serverAddress, int serverPort, String password,
+                         DTOClient dtoClient) throws GameClientException {
     if (!connected) {
       try {
-        nameLookup = Simon.createNameLookup(address, port);
+        nameLookup = Simon.createNameLookup(serverAddress, serverPort);
         server = (ServerInterface) nameLookup.lookup(
             GameConfigurationConstants.REGISTRY_NAME_SERVER);
         nameLookup.addClosedListener(server, this);
@@ -131,9 +129,7 @@ public class GameClient extends Observable implements ClosedListener {
       }
     }
     /* setup a new connection */
-    setConnection(serverAddress, serverPort);
-    connect(dtoClient, password);
-    return connected;
+    return connect(serverAddress, serverPort, password, dtoClient);
   }
 
   public void disconnect(boolean shutdown) {
@@ -155,7 +151,7 @@ public class GameClient extends Observable implements ClosedListener {
    * @param cards Used cards for this action.
    * @return True or false, if the server accepts this action or not.
    */
-  public Boolean sendAction(DTOClient dtoClient, List<DTOCard> attackCards,
+  public boolean sendAction(DTOClient dtoClient, List<DTOCard> attackCards,
                             List<DTOCard> defenseCards) {
     if(dtoClient.playerType.equals(PlayerConstants.PlayerType.FIRST_ATTACKER) ||
        dtoClient.playerType.equals(PlayerConstants.PlayerType.SECOND_ATTACKER)) {
@@ -172,7 +168,7 @@ public class GameClient extends Observable implements ClosedListener {
   /**
    * Overloads {@link GameClient#sendAction(common.dto.DTOClient, java.util.List, java.util.List)}.
    */
-  public Boolean sendAction(DTOClient dtoClient, DTOCard attackCard, DTOCard defenseCard) {
+  public boolean sendAction(DTOClient dtoClient, DTOCard attackCard, DTOCard defenseCard) {
     final List<DTOCard> attackCards = new ArrayList<DTOCard>(1);
     final List<DTOCard> defenseCards = new ArrayList<DTOCard>(1);
     attackCards.add(attackCard);
@@ -180,7 +176,7 @@ public class GameClient extends Observable implements ClosedListener {
     return sendAction(dtoClient, attackCards, defenseCards);
   }
 
-  public Boolean finishRound(DTOClient dtoClient, FinishAction.FinishType type) {
+  public boolean finishRound(DTOClient dtoClient, FinishAction.FinishType type) {
     return server.doAction(messageReceiver,
       new FinishAction(type,dtoClient, GameAction.ActionType.ROUND_REQUEST));
   }
@@ -209,20 +205,12 @@ public class GameClient extends Observable implements ClosedListener {
   /* Getter and Setter */
 
   public String getSocketAddress() {
-    return address + ":" + port;
+    if(nameLookup != null)
+      return nameLookup.getServerAddress().getHostAddress() + ":" + nameLookup.getServerPort();
+    else return I18nSupport.getValue(USER_MESSAGES, "no.address");
   }
 
-  /**
-   * Sets the server's address and port that will be used for the connection.
-   * @param address IP-Address of the server.
-   * @param port Port of the server.
-   */
-  public void setConnection(String address, int port) {
-    this.address = address;
-    this.port = port;
-  }
-
-  public Boolean isConnected() {
+  public boolean isConnected() {
     return connected;
   }
 }

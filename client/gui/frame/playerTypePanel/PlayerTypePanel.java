@@ -133,12 +133,12 @@ public class PlayerTypePanel extends JPanel {
     statusBar.setText(mainText);
   }
 
-  public void setStatus(Boolean connected, String serverAddress) {
+  public void setStatus(boolean connected, String serverAddress) {
     statusBar.setConnected(connected, serverAddress);
     statusBar.setPlayerType(currentType);
   }
 
-  public void setStatus(Boolean connected) {
+  public void setStatus(boolean connected) {
     statusBar.setConnected(connected);
   }
 

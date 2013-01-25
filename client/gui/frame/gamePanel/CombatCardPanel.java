@@ -116,15 +116,15 @@ public class CombatCardPanel extends JPanel implements CurtainWidget {
    * Complete means that an attacker card is covered by a defender card.
    * @return Returns true or false whether this panel is complete or not.
    */
-  public Boolean isComplete() {
+  public boolean isComplete() {
     return hasAttackerCard() && hasDefenderCard();
   }
 
-  public Boolean hasDefenderCard() {
+  public boolean hasDefenderCard() {
     return (defenderCard.getCardInfo() != null);
   }
 
-  public Boolean hasAttackerCard() {
+  public boolean hasAttackerCard() {
     return (attackerCard.getCardInfo() != null);
   }
 

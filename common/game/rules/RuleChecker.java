@@ -31,7 +31,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   private Player secondAttacker;
   private Player defender;
 
-  private Boolean initAttack;
+  private boolean initAttack;
 
   /* Constructors */
 
@@ -83,7 +83,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
    * @throws RuleException Throws this exception with the specified message, if the
    * move can't be done.
    */
-  public void doDefenseMove(Player defender, Boolean attackerCardsEmpty,
+  public void doDefenseMove(Player defender, boolean attackerCardsEmpty,
                             GameCard defenderCard, GameCard attackerCard)
       throws RuleException {
     final String notHigherText = I18nSupport.getValue(USER_MESSAGES, "value.0.lower.than.1",
@@ -104,9 +104,9 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
         nonExistingCards);
   }
 
-  private Boolean allCardsExist(List<GameCard> attackerCards, List<GameCard> currentCards,
+  private boolean allCardsExist(List<GameCard> attackerCards, List<GameCard> currentCards,
                                 StringBuilder nonExistingCards) {
-    Boolean allCardsExist = true;
+    boolean allCardsExist = true;
 
     if(currentCards.isEmpty())
       return true;
@@ -124,7 +124,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
     return allCardsExist;
   }
 
-  private Boolean cardValueExists(CardValue value, List<GameCard> cards) {
+  private boolean cardValueExists(CardValue value, List<GameCard> cards) {
     if(value == null)
       return false;
 

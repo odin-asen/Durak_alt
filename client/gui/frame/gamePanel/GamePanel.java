@@ -96,7 +96,7 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
     repaint();
   }
 
-  public void paintInGameCurtain(Boolean paint) {
+  public void paintInGameCurtain(boolean paint) {
     inGamePanel.paintCurtain(paint);
   }
 
@@ -113,11 +113,11 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
     repaint();
   }
 
-  public Boolean hasInGameCards() {
+  public boolean hasInGameCards() {
     return inGamePanel.getCardPanels().size() > 0;
   }
 
-  public Boolean inGameCardsAreCovered() {
+  public boolean inGameCardsAreCovered() {
     return inGamePanel.allCardCovered();
   }
 

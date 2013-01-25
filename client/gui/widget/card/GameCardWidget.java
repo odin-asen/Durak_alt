@@ -23,9 +23,9 @@ public class GameCardWidget extends JComponent implements CurtainWidget {
 
   private Image cardImage;
   private GameCard cardInfo;
-  private Boolean paintCurtain;
+  private boolean paintCurtain;
   private CardMoveListener cardMoveListener;
-  private Boolean movable;
+  private boolean movable;
 
   private Point lastLocation;
   private int lastZOrderIndex;
@@ -139,7 +139,7 @@ public class GameCardWidget extends JComponent implements CurtainWidget {
     return cardInfo;
   }
 
-  public void setMovable(Boolean movable) {
+  public void setMovable(boolean movable) {
     if(movable ^ this.movable) {
       this.movable = movable;
 
@@ -153,7 +153,7 @@ public class GameCardWidget extends JComponent implements CurtainWidget {
     }
   }
 
-  public Boolean isMovable() {
+  public boolean isMovable() {
     return movable;
   }
 

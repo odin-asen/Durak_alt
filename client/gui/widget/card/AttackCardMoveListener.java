@@ -155,7 +155,7 @@ public class AttackCardMoveListener extends CardMoveListener {
     pointedWidgets.widgets.remove(widget);
   }
 
-  private Boolean isWidgetInArea(GameCardWidget widget, Rectangle area) {
+  private boolean isWidgetInArea(GameCardWidget widget, Rectangle area) {
     final Rectangle intersection = new Rectangle(area);
     SwingUtilities.computeIntersection(widget.getX(), widget.getY(), widget.getWidth(),
         widget.getHeight(), intersection);
