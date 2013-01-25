@@ -44,9 +44,9 @@ public class ChatFrame extends JDialog {
     chatMessageHandler = new ChatMessageHandler();
     initComponents();
 
-    this.setBounds(position.getRectangle());
-    this.setTitle(I18nSupport.getValue(CLIENT_GUI,"frame.title.chat"));
-    this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+    setBounds(position.getRectangle());
+    setTitle(I18nSupport.getValue(CLIENT_GUI, "frame.title.chat"));
+    setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
   }
 
   public static ChatFrame getFrame() {
@@ -177,7 +177,7 @@ public class ChatFrame extends JDialog {
       if (!text.isEmpty()) {
         final GameClient client = GameClient.getClient();
         if(client.isConnected()) {
-          GameClient.getClient().sendChatMessage(text);
+          client.sendChatMessage(text);
           chatWriteArea.setText("");
         } else {
           JOptionPane.showMessageDialog(chatFrame,

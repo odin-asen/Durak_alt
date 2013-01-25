@@ -129,10 +129,9 @@ public class ActionCollection {
     }
 
     public void actionPerformed(ActionEvent e) {
-      ChatFrame frame = ChatFrame.getFrame();
-      if(!frame.isVisible())
-        frame.setVisible(true);
-      else frame.setVisible(false);
+      final ChatFrame frame = ChatFrame.getFrame();
+      frame.setAlwaysOnTop(!frame.isVisible());
+      frame.setVisible(!frame.isVisible());
     }
   }
 }

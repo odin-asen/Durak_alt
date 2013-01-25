@@ -1,7 +1,6 @@
 package client.gui.frame;
 
 import client.business.Client;
-import client.business.ConnectionInfo;
 import client.business.client.GameClient;
 import client.data.GlobalSettings;
 import client.data.xStreamModel.PopupSettings;
@@ -161,7 +160,7 @@ public class ClientFrame extends JFrame implements Observer {
     getContentPane().setLayout(new BorderLayout());
     getContentPane().add(toolBar, BorderLayout.PAGE_START);
     getContentPane().add(centrePanel, BorderLayout.CENTER);
-    updateStatusBar();
+    setStatus("", false, "");
   }
 
   public void update(Observable o, Object arg) {
@@ -170,29 +169,28 @@ public class ClientFrame extends JFrame implements Observer {
   }
 
   /**
-   * Resets all game widgets, sets a text in the status bar and the chat and if necessary clears
-   * the client list.
-   * @param statusText Text to be shown in the status bar.
-   * @param serverShutdown Notifies the client whether the reset is because of a
-   *                 server serverShutdown or not.
+   * Resets all game widgets. Depending on the parameter it also empties the client list and
+   * shows a text in a popup window and the chat.
+   * @param statusText Text to be shown in the status bar. If null, nothing will be shown.
+   * @param clientList True, empty the client list. False, don't empty the client list.
    */
-  public void resetAll(String statusText, boolean serverShutdown) {
-    resetAll(statusText, serverShutdown, true, false);
+  public void resetAll(String statusText, boolean clientList) {
+    if(statusText != null) {
+      addChatMessage(statusText, true);
+      showWarningPopup(statusText);
+    }
+    resetAll(clientList);
   }
 
-  public void resetAll(String statusText, boolean serverShutdown,
-                        boolean disconnect, boolean popupMessage) {
-    Client.getOwnInstance().setPlayerType(PlayerType.DEFAULT);
+  /**
+   * Resets all game widgets. Depending on the parameter it also empties the client list.
+   * @param clientList True, empty the client list. False, don't empty the client list.
+   */
+  public void resetAll(boolean clientList) {
     centrePanel.resetGameWidgets();
     centrePanel.setPlayerType(PlayerType.DEFAULT);
-    addChatMessage(statusText, true);
-    if(disconnect) {
+    if(clientList)
       centrePanel.updateClients(null);
-      GameClient.getClient().disconnect(serverShutdown);
-      setStatus(statusText, false, "");
-    } else setStatus(statusText, true, GameClient.getClient().getSocketAddress());
-    if(popupMessage)
-      showWarningPopup(statusText);
   }
 
   /***********************/
@@ -213,13 +211,15 @@ public class ClientFrame extends JFrame implements Observer {
     toolBar.setConnection(connected);
   }
 
-  public void updateStatusBar() {
-    centrePanel.setStatus(GameClient.getClient().isConnected());
-    centrePanel.setStatus("");
+  /**
+   * Sets the text in the status bar.
+   * @param mainText Text to set to the status bar.
+   */
+  public void setStatus(String mainText) {
+    centrePanel.setStatus(mainText);
   }
 
   /* Getter and Setter */
-
   /* Inner Classes */
 
   private class MessageHandler {
@@ -246,13 +246,13 @@ public class ClientFrame extends JFrame implements Observer {
       } else if(MessageType.STATUS_MESSAGE.equals(object.getType())) {
         final String message = (String) object.getSendingObject();
         showInformationPopup(message);
-        setStatus(message, GameClient.getClient().isConnected(),
-            ConnectionInfo.getOwnInstance().getServerAddress()); //TODO statusbar besser zugreifbar machen
+        setStatus(message);
       } else if(MessageType.LOST_CONNECTION.equals(object.getType())) {
         final String message = I18nSupport.getValue(USER_MESSAGES, "client.lost.connection");
-        resetAll(message, false);
         showErrorPopup(message);
         setStatus(message, false, "");
+        addChatMessage(message, true);
+        resetAll(true);
       }
     }
 
@@ -262,6 +262,7 @@ public class ClientFrame extends JFrame implements Observer {
       } else if(BroadcastType.LOGIN_LIST.equals(object.getType())) {
         centrePanel.updateClients((List<DTOClient>) object.getSendingObject());
       } else if(BroadcastType.SERVER_SHUTDOWN.equals(object.getType())) {
+        GameClient.getClient().disconnect(true);
         resetAll(I18nSupport.getValue(USER_MESSAGES, "status.closed.server"), true);
       }
     }
@@ -269,10 +270,10 @@ public class ClientFrame extends JFrame implements Observer {
     private void handleGameUpdateType(MessageObject object) {
       if(GameUpdateType.INITIALISE_PLAYERS.equals(object.getType())) {
         centrePanel.initOpponents((List<DTOClient>) object.getSendingObject());
-        updateStatusBar();
+        setStatus("");
       } else if(GameUpdateType.PLAYERS_UPDATE.equals(object.getType())) {
         centrePanel.updateOpponents((List<DTOClient>) object.getSendingObject(), false);
-        updateStatusBar();
+        setStatus("");
       } else if(GameUpdateType.STACK_UPDATE.equals(object.getType())) {
         centrePanel.updateStack((DTOCardStack) object.getSendingObject());
       } else if(GameUpdateType.INGAME_CARDS.equals(object.getType())) {
@@ -287,14 +288,17 @@ public class ClientFrame extends JFrame implements Observer {
       } else if(GameUpdateType.CLIENT_CARDS.equals(object.getType())) {
         centrePanel.setCards(Converter.fromDTO((List<DTOCard>) object.getSendingObject()));
       } else if(GameUpdateType.GAME_ABORTED.equals(object.getType())) {
-        final String message = I18nSupport.getValue(USER_MESSAGES, "game.aborted.0",
-            object.getSendingObject());
-        resetAll(message, false, false, true);
-        LOGGER.info(LoggingUtility.STARS+" Game finished "+LoggingUtility.STARS);
+        final String message =
+            I18nSupport.getValue(USER_MESSAGES, "game.aborted.0", object.getSendingObject());
+        setStatus(message);
+        resetAll(message, false);
+        LOGGER.info(LoggingUtility.STARS+" Game aborted "+LoggingUtility.STARS);
       } else if(GameUpdateType.GAME_FINISHED.equals(object.getType())) {
         showGameOverMessage();
         final String message = I18nSupport.getValue(USER_MESSAGES, "game.finished");
-        resetAll(message, false, false, false);
+        setStatus(message);
+        addChatMessage(message, true);
+        resetAll(false);
         LOGGER.info(LoggingUtility.STARS+" Game finished "+LoggingUtility.STARS);
       }
     }
