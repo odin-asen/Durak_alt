@@ -182,7 +182,9 @@ public class ClientFrame extends JFrame implements Observer {
 
   public void resetAll(String statusText, boolean serverShutdown,
                         boolean disconnect, boolean popupMessage) {
+    Client.getOwnInstance().setPlayerType(PlayerType.DEFAULT);
     centrePanel.resetGameWidgets();
+    centrePanel.setPlayerType(PlayerType.DEFAULT);
     addChatMessage(statusText, true);
     if(disconnect) {
       centrePanel.updateClients(null);
@@ -246,6 +248,11 @@ public class ClientFrame extends JFrame implements Observer {
         showInformationPopup(message);
         setStatus(message, GameClient.getClient().isConnected(),
             ConnectionInfo.getOwnInstance().getServerAddress()); //TODO statusbar besser zugreifbar machen
+      } else if(MessageType.LOST_CONNECTION.equals(object.getType())) {
+        final String message = I18nSupport.getValue(USER_MESSAGES, "client.lost.connection");
+        resetAll(message, false);
+        showErrorPopup(message);
+        setStatus(message, false, "");
       }
     }
 

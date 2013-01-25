@@ -379,6 +379,10 @@ public class GameProcess<ID> {
     return stack;
   }
 
+  public int getPlayerCount() {
+    return playerHolder.size();
+  }
+
   /* Inner Classes */
 
   private class RoundStateHandler {

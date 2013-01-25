@@ -3,6 +3,7 @@ package client.business.client;
 import common.dto.DTOCard;
 import common.dto.DTOClient;
 import common.dto.message.MessageObject;
+import common.dto.message.MessageType;
 import common.i18n.I18nSupport;
 import common.simon.Callbackable;
 import common.simon.ServerInterface;
@@ -12,6 +13,7 @@ import common.simon.action.GameAction;
 import common.utilities.LoggingUtility;
 import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.constants.PlayerConstants;
+import de.root1.simon.ClosedListener;
 import de.root1.simon.Lookup;
 import de.root1.simon.Simon;
 import de.root1.simon.annotation.SimonRemote;
@@ -31,7 +33,7 @@ import static common.i18n.BundleStrings.USER_MESSAGES;
  * Date: 04.10.12
  * Time: 01:37
  */
-public class GameClient extends Observable {
+public class GameClient extends Observable implements ClosedListener {
   private static GameClient client;
 
   private static final Logger LOGGER =
@@ -87,6 +89,7 @@ public class GameClient extends Observable {
         nameLookup = Simon.createNameLookup(address, port);
         server = (ServerInterface) nameLookup.lookup(
             GameConfigurationConstants.REGISTRY_NAME_SERVER);
+        nameLookup.addClosedListener(server, this);
         connected = server.login(messageReceiver, dtoClient, password);
         LOGGER.info(LoggingUtility.STARS+" Connected to "+getSocketAddress()
             +" "+LoggingUtility.STARS);
@@ -134,13 +137,15 @@ public class GameClient extends Observable {
   }
 
   public void disconnect(boolean shutdown) {
-    if (connected && !shutdown) {
-      server.logoff(messageReceiver);
-      nameLookup.release(server);
+    if(connected) {
+      connected = false;
+      if (!shutdown) {
+        server.logoff(messageReceiver);
+        nameLookup.release(server);
+        LOGGER.info(LoggingUtility.STARS+" Disconnected from "+getSocketAddress()
+            +" "+LoggingUtility.STARS);
+      }
     }
-    LOGGER.info(LoggingUtility.STARS+" Disconnected from "+getSocketAddress()
-        +" "+LoggingUtility.STARS);
-    connected = false;
   }
 
   /**
@@ -187,6 +192,18 @@ public class GameClient extends Observable {
   public void sendClientUpdate(DTOClient dtoClient) {
     if(connected)
       server.updateClient(messageReceiver, dtoClient);
+  }
+
+  /**
+   * Called when the server closed unproperly.
+   */
+  public void closed() {
+    if(connected) {
+      nameLookup.release(server);
+      LOGGER.info(LoggingUtility.STARS + " Lost server connection " + LoggingUtility.STARS);
+      connected = false;
+      setChangedAndNotify(new MessageObject(MessageType.LOST_CONNECTION));
+    }
   }
 
   /* Getter and Setter */

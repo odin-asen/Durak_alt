@@ -14,12 +14,15 @@ import common.utilities.Miscellaneous;
 import common.utilities.constants.GameCardConstants;
 import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.constants.PlayerConstants;
+import de.root1.simon.ClosedListener;
+import de.root1.simon.Lookup;
 import de.root1.simon.Registry;
 import de.root1.simon.Simon;
 import de.root1.simon.annotation.SimonRemote;
 import de.root1.simon.exceptions.NameBindingException;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.logging.Logger;
@@ -31,13 +34,12 @@ import static common.i18n.BundleStrings.USER_MESSAGES;
  * Date: 03.10.12
  * Time: 21:57
  */
-public class GameServer extends Observable {
+public class GameServer extends Observable implements ClosedListener {
   private static Logger LOGGER = LoggingUtility.getLogger(GameServer.class.getName());
 
   private static GameServer gameServer;
 
   private Integer port;
-  private Boolean running;
 
   private DurakServices durakServices;
   private GameUpdate gameUpdate;
@@ -63,7 +65,6 @@ public class GameServer extends Observable {
   private GameServer() {
     port = GameConfigurationConstants.DEFAULT_PORT;
     this.gameUpdate = new GameUpdate();
-    running = false;
   }
 
   /* Methods */
@@ -82,7 +83,6 @@ public class GameServer extends Observable {
       try {
         registry = Simon.createRegistry(port);
         registry.bind(name, durakServices);
-        running = true;
       } catch (NameBindingException e) {
         LOGGER.warning("Name \"" + name + "\"already bound: " + e.getMessage());
         throw new GameServerException(I18nSupport.getValue(USER_MESSAGES, ""));
@@ -107,7 +107,6 @@ public class GameServer extends Observable {
       gameUpdate.stopSession();
       registry.unbind(GameConfigurationConstants.REGISTRY_NAME_SERVER);
       registry.stop();
-      running = false;
       LOGGER.info(LoggingUtility.STARS+" Server shut down "+LoggingUtility.STARS);
     }
   }
@@ -211,12 +210,7 @@ public class GameServer extends Observable {
   }
 
   public void sendMessage(Callbackable callbackable, MessageObject messageObject) {
-    try {
-      callbackable.callback(messageObject);
-    } catch (Exception e) {
-      /* client not reachable, remove */
-      gameUpdate.refreshClients();
-    }
+    callbackable.callback(messageObject);
   }
 
   /**
@@ -248,12 +242,20 @@ public class GameServer extends Observable {
    * @return Returns true if client was added, else false.
    */
   boolean addClient(Callbackable callbackable, DTOClient client) {
-    if(gameUpdate.addClient(callbackable, client))
+    if(gameUpdate.addClient(callbackable, client)) {
       notifyClientLists(callbackable);
-    else return false;
+    } else return false;
 
+    registerCloseListener(callbackable);
     LOGGER.info("Added client: "+client);
+
     return true;
+  }
+
+  private void registerCloseListener(Callbackable callbackable) {
+    final InetSocketAddress address = Simon.getRemoteInetSocketAddress(callbackable);
+    final Lookup lookup = Simon.createNameLookup(address.getAddress(), address.getPort());
+    lookup.addClosedListener(callbackable, this);
   }
 
   /**
@@ -285,8 +287,7 @@ public class GameServer extends Observable {
     setChangedAndNotify(GUIObserverType.CLIENT_LIST);
     if(callbackable != null) {
       DTOClient client = gameUpdate.getClient(callbackable);
-      sendMessage(callbackable, new MessageObject(MessageType.OWN_CLIENT_INFO,
-          client));
+      sendMessage(callbackable, new MessageObject(MessageType.OWN_CLIENT_INFO, client));
     }
     broadcastOtherClients(BroadcastType.LOGIN_LIST);
   }
@@ -322,6 +323,15 @@ public class GameServer extends Observable {
     return exists;
   }
 
+  /**
+   * Called when a client connection was improperly closed.
+   */
+  public void closed() {
+    /* refresh the clients */
+    gameUpdate.refreshClients();
+    setChangedAndNotify(GUIObserverType.CLIENT_LIST);
+  }
+
   /* Getter and Setter */
 
   public void setPort(int port) {
@@ -334,7 +344,7 @@ public class GameServer extends Observable {
   }
 
   public Boolean isServerRunning() {
-    return running;
+    return registry != null && registry.isRunning();
   }
 
   public List<DTOClient> getClients() {
@@ -372,6 +382,7 @@ class DurakServices implements ServerInterface {
       server.sendMessage(callbackable, new MessageObject(MessageType.STATUS_MESSAGE,
           I18nSupport.getValue(USER_MESSAGES,"status.permission.denied")));
     }
+
     return result;
   }
 
@@ -423,10 +434,10 @@ class GameUpdate {
   private Logger LOGGER = LoggingUtility.getLogger(GameUpdate.class.getName());
   private GameProcess<Integer> process;
   private GameServer server = null;
-  private InGameSpectatorHolder<Callbackable,DTOClient> clientHolder;
+  private IngameSpectatorHolder<Callbackable,DTOClient> clientHolder;
 
   public GameUpdate() {
-    this.clientHolder = new InGameSpectatorHolder<Callbackable, DTOClient>();
+    this.clientHolder = new IngameSpectatorHolder<Callbackable, DTOClient>();
     this.process = new GameProcess<Integer>();
   }
 
@@ -508,7 +519,7 @@ class GameUpdate {
 
     if(process.isGameInProcess() || localClient.spectating) {
       localClient.spectating = true;
-      clientHolder.addSpectator(callbackable,localClient);
+      clientHolder.addSpectator(callbackable, localClient);
     } else {
       clientHolder.addInGameValue(callbackable,localClient);
       process.setPlayer(getPlayerID(localClient));
@@ -540,7 +551,7 @@ class GameUpdate {
    * @return Returns the old information.
    */
   public DTOClient updateClientInformation(Callbackable callbackable, DTOClient client) {
-    DTOClient oldClient = clientHolder.getValue(callbackable);
+    DTOClient oldClient = getClient(callbackable);
     removeClient(callbackable);
     addClient(callbackable, client);
     return oldClient;
@@ -574,9 +585,8 @@ class GameUpdate {
       } else updateNextRound();
     } else updateCurrentRound();
 
-    if(process.gameHasFinished()) {   //TODO ausprobieren, ob dieser Block an den Anfang kann oder nicth
+    if(process.gameHasFinished())
       server.stopGame(false, "");
-    }
   }
 
   private void updateNextRound() {
@@ -642,10 +652,15 @@ class GameUpdate {
   }
 
   /**
-   * In case of a client whomes remote reference is lost, refresh the list.
+   * Refreshes the client list and eventually aborts the game.
    */
   public void refreshClients() {
-    //TODO
+    if(clientHolder.refresh()) {
+      /* If somehow a client lost connection to the server, */
+      /* the players in the process should be restored */
+      if(clientHolder.getInGameKeys().size() != process.getPlayerCount())
+        stopGame(false);
+    }
   }
 
   public DTOClient getClient(Callbackable callbackable) {
@@ -673,14 +688,15 @@ class GameUpdate {
   }
 }
 
-class InGameSpectatorHolder<K,V> {
-  private Map<K,V> inGameMap;
+class IngameSpectatorHolder<K,V> {
+  private static final Logger LOGGER = LoggingUtility.getLogger(IngameSpectatorHolder.class.getName());
+  private Map<K,V> ingameMap;
   private Map<K,V> spectatorMap;
 
   /* Constructors */
 
-  InGameSpectatorHolder() {
-    inGameMap = new HashMap<K,V>(6);
+  IngameSpectatorHolder() {
+    ingameMap = new HashMap<K,V>(6);
     spectatorMap = new HashMap<K,V>(6);
   }
 
@@ -688,49 +704,38 @@ class InGameSpectatorHolder<K,V> {
 
   public void addInGameValue(K key, V value) {
     spectatorMap.remove(key);
-    inGameMap.put(key, value);
+    ingameMap.put(key, value);
   }
 
   public void addSpectator(K key, V value) {
-    inGameMap.remove(key);
+    ingameMap.remove(key);
     spectatorMap.put(key, value);
   }
 
   public boolean removeKey(K key) {
-    boolean removed = false;
-    removed = removed || (inGameMap.remove(key) != null);
-    removed = removed || (spectatorMap.remove(key) != null);
-    return removed;
+    return  (ingameMap.remove(key) != null) || (spectatorMap.remove(key) != null);
   }
 
   /* Getter and Setter */
 
   /* Returns a copy of all values as one list */
   public List<V> getAllValues() {
-    final List<V> values = new ArrayList<V>(inGameMap.size()+spectatorMap.size());
-    Miscellaneous.addAllToCollection(values, inGameMap.values());
+    final List<V> values = new ArrayList<V>(ingameMap.size()+spectatorMap.size());
+    Miscellaneous.addAllToCollection(values, ingameMap.values());
     Miscellaneous.addAllToCollection(values, spectatorMap.values());
     return values;
   }
 
   /* Returns a copy of all keys as one list */
   public List<K> getAllKeys() {
-    final List<K> keys = new ArrayList<K>(inGameMap.size()+spectatorMap.size());
-    Miscellaneous.addAllToCollection(keys, inGameMap.keySet());
+    final List<K> keys = new ArrayList<K>(ingameMap.size()+spectatorMap.size());
+    Miscellaneous.addAllToCollection(keys, ingameMap.keySet());
     Miscellaneous.addAllToCollection(keys, spectatorMap.keySet());
     return keys;
   }
 
-  public Map<K,V> getInGameMap() {
-    return inGameMap;
-  }
-
-  public Map<K,V> getSpectatorMap() {
-    return spectatorMap;
-  }
-
   public V getInGameValue(K key) {
-    return inGameMap.get(key);
+    return ingameMap.get(key);
   }
 
   public V getSpectatorValue(K key) {
@@ -738,15 +743,15 @@ class InGameSpectatorHolder<K,V> {
   }
 
   public V getValue(K key) {
-    if(inGameMap.containsKey(key))
-      return inGameMap.get(key);
+    if(ingameMap.containsKey(key))
+      return ingameMap.get(key);
     else if(spectatorMap.containsKey(key))
       return spectatorMap.get(key);
     else return null;
   }
 
   public Collection<K> getInGameKeys() {
-    return inGameMap.keySet();
+    return ingameMap.keySet();
   }
 
   public Collection<K> getSpectatorKeys() {
@@ -754,7 +759,7 @@ class InGameSpectatorHolder<K,V> {
   }
 
   public Collection<V> getInGameValues() {
-    return inGameMap.values();
+    return ingameMap.values();
   }
 
   public Collection<V> getSpectatorValues() {
@@ -762,11 +767,42 @@ class InGameSpectatorHolder<K,V> {
   }
 
   public boolean containsKey(K key) {
-    return inGameMap.containsKey(key) || spectatorMap.containsKey(key);
+    return ingameMap.containsKey(key) || spectatorMap.containsKey(key);
   }
 
   public void clear() {
-    inGameMap.clear();
+    ingameMap.clear();
     spectatorMap.clear();
+  }
+
+  /**
+   * Returns true if something was changed. Otherwise false.
+   */
+  public boolean refresh() {
+    boolean changed = false;
+    Map<K,V> refreshedMap = getRefreshedMap(ingameMap, "ingameMap"); //NON-NLS
+    if(refreshedMap.size() != ingameMap.size()) {
+      ingameMap = refreshedMap;
+      changed = true;
+    }
+
+    refreshedMap = getRefreshedMap(spectatorMap, "spectatorMap"); //NON-NLS
+    if(refreshedMap.size() != spectatorMap.size()) {
+      spectatorMap = refreshedMap;
+      changed = true;
+    }
+    return changed;
+  }
+
+  private Map<K,V> getRefreshedMap(Map<K,V> map, String fieldName) {
+    final Map<K,V> refreshedMap = new HashMap<K, V>(map.size());
+    for (K k : map.keySet()) {
+      try {
+        refreshedMap.put(k,map.get(k));
+      } catch (Exception e) {
+        LOGGER.warning("Could not access to a key in "+fieldName);
+      }
+    }
+    return refreshedMap;
   }
 }
