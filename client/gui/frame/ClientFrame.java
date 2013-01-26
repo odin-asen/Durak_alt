@@ -282,7 +282,7 @@ public class ClientFrame extends JFrame implements Observer {
         setStatus("");
       } else if(GameUpdateType.STACK_UPDATE.equals(object.getType())) {
         centrePanel.updateStack((DTOCardStack) object.getSendingObject());
-      } else if(GameUpdateType.INGAME_CARDS.equals(object.getType())) {
+      } else if(GameUpdateType.IN_GAME_CARDS.equals(object.getType())) {
         final List<List<DTOCard>> cards = (List<List<DTOCard>>) object.getSendingObject();
         final List<DTOCard> attackerCards = new ArrayList<DTOCard>();
         final List<DTOCard> defenderCards = new ArrayList<DTOCard>();
@@ -293,12 +293,12 @@ public class ClientFrame extends JFrame implements Observer {
         centrePanel.updateRoundInfo(roundInfo.get(0), roundInfo.get(1), roundInfo.get(2));
       } else if(GameUpdateType.CLIENT_CARDS.equals(object.getType())) {
         centrePanel.setCards(Converter.fromDTO((List<DTOCard>) object.getSendingObject()));
-      } else if(GameUpdateType.GAME_ABORTED.equals(object.getType())) {
+      } else if(GameUpdateType.GAME_CANCELED.equals(object.getType())) {
         final String message =
-            I18nSupport.getValue(USER_MESSAGES, "game.aborted.0", object.getSendingObject());
+            I18nSupport.getValue(USER_MESSAGES, "game.canceled.0", object.getSendingObject());
         setStatus(message);
         resetAll(message, false);
-        LOGGER.info(LoggingUtility.STARS+" Game aborted "+LoggingUtility.STARS);
+        LOGGER.info(LoggingUtility.STARS+" Game canceled "+LoggingUtility.STARS);
       } else if(GameUpdateType.GAME_FINISHED.equals(object.getType())) {
         showGameOverMessage();
         final String message = I18nSupport.getValue(USER_MESSAGES, "game.finished");

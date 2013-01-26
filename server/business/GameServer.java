@@ -121,16 +121,19 @@ public class GameServer extends Observable implements ClosedListener {
   }
 
   /**
-   * Stops the game. The boolean parameter specifies, if the game was aborted or properly
-   * finished.
-   * @param aborted If true, every client will be notified that it was aborted, else just finished.
+   * Stops the game. The boolean parameter specifies, if the game was canceled or properly
+   * finished. Anyway, if the game is running and the method is called, the clients will be
+   * notified that the game was canceled.
+   * @param canceled If true, every client will be notified that it was canceled, else just finished.
+   * @param reason String that will be send to the client if the game was canceled.
    */
-  public void stopGame(boolean aborted, String reason) {
-    if(gameUpdate.stopGame(false)) {
-      if(aborted)
-        broadcastMessage(GameUpdateType.GAME_ABORTED, reason);
-      else broadcastMessage(GameUpdateType.GAME_FINISHED);
-    }
+  public void stopGame(boolean canceled, String reason) {
+    boolean wasRunning = gameUpdate.stopGame(false);
+
+    if(wasRunning)
+      broadcastMessage(GameUpdateType.GAME_CANCELED, reason);
+    else if(!canceled)
+      broadcastMessage(GameUpdateType.GAME_FINISHED);
     setChangedAndNotify(GUIObserverType.GAME_FINISHED);
     LOGGER.info(LoggingUtility.STARS+" Game stopped "+LoggingUtility.STARS);
   }
@@ -161,7 +164,7 @@ public class GameServer extends Observable implements ClosedListener {
    * @param sendingObject Sending object to send.
    */
   public void broadcastMessage(Enum<?> type, Object sendingObject) {
-    List<Callable> callableList = gameUpdate.getRemoteReferrences();
+    List<Callable> callableList = gameUpdate.getRemoteReferences();
     broadcastMessage(type, callableList, sendingObject);
   }
 
@@ -188,7 +191,7 @@ public class GameServer extends Observable implements ClosedListener {
 
   /* sends to each client a list with all the other logged in clients */
   void broadcastOtherClients(Enum<?> type) {
-    broadcastOtherClients(type, gameUpdate.getRemoteReferrences());
+    broadcastOtherClients(type, gameUpdate.getRemoteReferences());
   }
 
   void broadcastOtherClients(Enum<?> type, Collection<Callable> callables) {
@@ -265,7 +268,7 @@ public class GameServer extends Observable implements ClosedListener {
    * removed.
    */
   private void removeAllClients() {
-    final List<Callable> callables = gameUpdate.getRemoteReferrences();
+    final List<Callable> callables = gameUpdate.getRemoteReferences();
     for (Callable callable : callables)
       getClientLookup(callable).removeClosedListener(callable, this);
     gameUpdate.stopSession();
@@ -282,7 +285,7 @@ public class GameServer extends Observable implements ClosedListener {
     if(gameUpdate.removeClient(callable)) {
       if(!client.spectating) {
         stopGame(true,
-            I18nSupport.getValue(USER_MESSAGES, "game.abort.player.0.logged.off", client.name));
+            I18nSupport.getValue(USER_MESSAGES, "game.canceled.player.0.logged.off", client.name));
       }
       notifyClientLists(null);
     } else return false;
@@ -316,7 +319,8 @@ public class GameServer extends Observable implements ClosedListener {
   void validateAction(Callable callable, GameAction action) throws RuleException {
     boolean nextRound = gameUpdate.getProcess().validateAction(
         action, gameUpdate.getPlayerID(callable));
-    gameUpdate.updateMove(nextRound);
+    if(gameUpdate.updateMove(nextRound))
+      stopGame(false, "");
   }
 
   /**
@@ -473,7 +477,7 @@ class GameUpdate {
   }
 
   /**
-   * Gets the player's ID for the surpassed callbackable calling
+   * Gets the player's ID for the surpassed callable calling
    * {@link #getPlayerID(common.dto.DTOClient)}.
    * @param callable Surpassed client remote reference.
    * @return Should return a unique integer for this object.
@@ -485,13 +489,14 @@ class GameUpdate {
   /**
    * Invokes a game if it is not running already and if there are
    * enough players.
-   * @param stackSize Stacksize for the game.
+   * @param stackSize Stack size for the game.
    * @return Returns true, if the game was invoked, else false.
    */
   public boolean invokeGame(Integer stackSize) {
     boolean invoked = false;
     Integer cardsPerColour = stackSize / GameCardConstants.CardColour.values().length;
-    if (!process.isGameInProcess() && process.initialiseNewGame(cardsPerColour)) {
+    if (!process.isGameInProcess() && process.getPlayerCount() > 1) {
+      process.initialiseNewGame(cardsPerColour);
       server = GameServer.getServerInstance();
       sendClientInit();
       invoked = true;
@@ -517,14 +522,10 @@ class GameUpdate {
   public boolean stopGame(boolean deletePlayers) {
     boolean stopped = process.isGameInProcess();
 
-    /* stop the game with deleting the players */
-    process.reInitialise();
-    if(!deletePlayers) {
-      /* add the deleted players back to the list */
-      for (DTOClient client : clientHolder.getInGameValues()) {
-        process.setPlayer(getPlayerID(client));
-      }
-    }
+    if(deletePlayers)
+      process.reInitialise();
+    else process.stopProcess();
+
     return stopped;
   }
 
@@ -554,7 +555,7 @@ class GameUpdate {
   }
 
   /**
-   * Removes a client from the list if it exists and aborts the game if necessary.
+   * Removes a client from the list if it exists and cancels the game if necessary.
    * @param callable Remote reference of the client.
    * @return True if the client was removed, else false.
    */
@@ -582,7 +583,7 @@ class GameUpdate {
   private void sendClientInit() {
     gameUpdateClients();
     server.broadcastMessage(GameUpdateType.STACK_UPDATE, Converter.toDTO(process.getStack()));
-    informInGamePlayers();
+    informIngamePlayers();
     informSpectators();
   }
 
@@ -599,7 +600,13 @@ class GameUpdate {
     return changed;
   }
 
-  public void updateMove(boolean nextRound) {
+  /**
+   * Updates all players and spectators with the necessary data.
+   * @param nextRound True, the process will go to the next round. False, the process updates
+   *                  the current round.
+   * @return True, the game has finished, else false.
+   */
+  public boolean updateMove(boolean nextRound) {
     if(nextRound) {
       if(!process.goToNextRound()) {
         LOGGER.warning("Couldn't go to next round! GameProcess#readyForNextRound: "
@@ -607,13 +614,12 @@ class GameUpdate {
       } else updateNextRound();
     } else updateCurrentRound();
 
-    if(process.gameHasFinished())
-      server.stopGame(false, "");
+    return process.gameHasFinished();
   }
 
   private void updateNextRound() {
     if(gameUpdateClients()) {
-      informInGamePlayers();
+      informIngamePlayers();
       /* update player list */
       server.broadcastMessage(GameUpdateType.PLAYERS_UPDATE,
           Collections.list(Collections.enumeration(clientHolder.getInGameValues())));
@@ -632,7 +638,7 @@ class GameUpdate {
 
     /* update ingame cards */
     if(process.cardsHaveChanged())
-      server.broadcastMessage(GameUpdateType.INGAME_CARDS,
+      server.broadcastMessage(GameUpdateType.IN_GAME_CARDS,
           Converter.toDTO(process.getAttackCards(), process.getDefenseCards()));
 
     sendNextRoundInfo(false, false, process.attackersReady());
@@ -650,7 +656,7 @@ class GameUpdate {
    * Sends each inGame client his player info and all opponent's info
    * (number of cards, name, etc...)
    */
-  private void informInGamePlayers() {
+  private void informIngamePlayers() {
     for (Callable callable : clientHolder.getInGameKeys()) {
       final DTOClient client = clientHolder.getInGameValue(callable);
       server.sendMessage(callable, new MessageObject(GameUpdateType.CLIENT_CARDS,
@@ -674,14 +680,18 @@ class GameUpdate {
   }
 
   /**
-   * Refreshes the client list and eventually aborts the game.
+   * Refreshes the client list and eventually cancels the game.
    */
   public void refreshClients() {
     if(clientHolder.refresh()) {
       /* If somehow a client lost connection to the server, */
       /* the players in the process should be restored */
-      if(clientHolder.getInGameKeys().size() != process.getPlayerCount())
-        stopGame(false);
+      if(clientHolder.getInGameKeys().size() != process.getPlayerCount()) {
+        stopGame(true);
+        /* add the deleted players back to the list */
+        for (DTOClient client : clientHolder.getInGameValues())
+          process.setPlayer(getPlayerID(client));
+      }
     }
   }
 
@@ -693,7 +703,7 @@ class GameUpdate {
     return clientHolder.getAllValues();
   }
 
-  public List<Callable> getRemoteReferrences() {
+  public List<Callable> getRemoteReferences() {
     return clientHolder.getAllKeys();
   }
 

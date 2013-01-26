@@ -70,8 +70,9 @@ public class InGamePanel extends JPanel implements CurtainWidget {
   public void clearField() {
     removeAll();
     cardPanels.clear();
-    validate();
-    repaint();
+    attackCards.clear();
+    defenseCards.clear();
+    revalidate();
   }
 
   private void addIngameCards(CombatCardPanel panel) {
@@ -94,10 +95,8 @@ public class InGamePanel extends JPanel implements CurtainWidget {
 
   /**
    * Returns the number of rows and columns for the GridLayout of the parent Panel.
-   * @param parent Panel where the GridLayout should be used.
    * @param panelCount Number of panels to be displayed at the {@code parent}
-   * @param widthHeightRatio Ration between the width and the height of a panel
-   *                         in the {@link InGamePanel#inGamePanel}
+   * @param widthHeightRatio Ration between the width and the height of the sub components.
    * @return An array of the class Integer with the length of two where the first value is
    * the number of columns for the GridLayout and the second value is the number of rows.
    */
@@ -156,15 +155,25 @@ public class InGamePanel extends JPanel implements CurtainWidget {
     }
   }
 
+  /**
+   * Asserts if cards is null. The cards will only be set if the list is not equal. Depending on
+   * that true or false will be returned.
+   */
   public boolean setAttackCards(List<GameCard> cards) {
-    if(!attackCards.equals(cards) && cards != null) {
+    assert (cards != null);
+    if(!attackCards.equals(cards)) {
       attackCards = cards;
       return true;
     } else return false;
   }
 
+  /**
+   * Asserts if cards is null. The cards will only be set if the list is not equal. Depending on
+   * that true or false will be returned.
+   */
   public boolean setDefenseCards(List<GameCard> cards) {
-    if(!defenseCards.equals(cards) && cards != null) {
+    assert (cards != null);
+    if(!defenseCards.equals(cards)) {
       defenseCards = cards;
       return true;
     } else return false;

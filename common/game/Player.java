@@ -19,19 +19,23 @@ public class Player {
   private Player leftPlayer;
   private Player rightPlayer;
 
-  private final List<GameCard> cards;
+  private List<GameCard> cards;
   private PlayerType type;
 
   /* Constructors */
   public Player() {
+    initPlayer();
+  }
+
+  /* Methods */
+
+  public void initPlayer() {
     cards = new ArrayList<GameCard>(GameConfigurationConstants.INITIAL_CARD_COUNT);
     leftPlayer = null;
     rightPlayer = null;
     type = PlayerType.DEFAULT;
   }
 
-
-  /* Methods */
   public void pickUpCard(GameCard newCard) {
     if(newCard != null)
       cards.add(newCard);

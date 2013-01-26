@@ -231,7 +231,7 @@ public class ServerFrame extends JFrame implements Observer {
   public JPanel getGameSettingsPanel() {
     final JPanel panel = new JPanel();
 
-    comboStackSize = new JComboBox<Integer>(new Integer[]{12,36,40,44,48,52});
+    comboStackSize = new JComboBox<Integer>(new Integer[]{36,40,44,48,52});
     comboStackSize.setEditable(false);
     comboStackSize.setToolTipText(I18nSupport.getValue(GUI_COMPONENT, "tooltip.card.number"));
 
@@ -308,7 +308,7 @@ public class ServerFrame extends JFrame implements Observer {
         }
       } else {
         GameServer.getServerInstance().stopGame(true,
-            I18nSupport.getValue(USER_MESSAGES, "game.abort.server"));
+            I18nSupport.getValue(USER_MESSAGES, "game.canceled.server"));
         start = true;
         setAction();
       }

@@ -50,8 +50,9 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
   /**
    * Returns true or false whether the move can be done or not.
    * @param attacker Player, who wants to make the move.
-   * @param attackerCard Card to attack with.
-   * @param currentCards Cards already on the table.
+   * @param attackerCards Card to attack with.
+   * @param currentAttackCards Attack cards already on the table.
+   * @param currentDefenderCards Defense cards already on the table.
    * @throws RuleException Throws this exception with the specified message, if the
    * move can't be done.
    */
@@ -190,7 +191,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
    * @param players List of the players.
    * @return Player that begins.
    */
-  public Player initStartPlayer(List<Player> players) {
+  public Player determineStartPlayer(List<Player> players) {
     GameCard currentSmallestCard = null;
     Player starter = null;
     initAttack = true;
@@ -209,15 +210,13 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
       starter = players.get(0);
     }
 
-    setActivePlayers(starter);
-
     return starter;
   }
 
   /**
    * Sets the first attacker in the round and therefore the defender and
    * the second attacker. If {@code nextPlayer}s player type is
-   * {@link utilities.constants.PlayerConstants.PlayerType#NOT_LOSER}
+   * {@link common.utilities.constants.PlayerConstants.PlayerType#NOT_LOSER}
    * the next player who has not this type will be chosen as first attacker.
    * The method returns the player who became the first attacker.
    * @param nextPlayer The player who should be the first attacker
@@ -238,7 +237,6 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
 
       setDefender(defender);
     }
-
     return firstAttacker;
   }
 
@@ -298,6 +296,7 @@ public abstract class RuleChecker { //TODO RuleChecker ableiten für nur 2 Spiel
     }
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public CardColour getTrumpColour() {
     return trumpColour;
   }

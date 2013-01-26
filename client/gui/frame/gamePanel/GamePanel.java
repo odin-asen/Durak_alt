@@ -26,14 +26,13 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
 
   private ClientWidgetHolder clientWidgets;
   private InGamePanel inGamePanel;
-  private final GamePanel.CardReplacer cardReplacer;
   private Rectangle ingameArea;
 
   /* Constructors */
 
   public GamePanel(boolean handCardsVisible) {
     inGamePanel= new InGamePanel();
-    cardReplacer = new CardReplacer();
+    CardReplacer cardReplacer = new CardReplacer();
     clientWidgets = new ClientWidgetHolder(this);
     ingameArea = new Rectangle();
 
@@ -96,10 +95,6 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
     repaint();
   }
 
-  public void paintInGameCurtain(boolean paint) {
-    inGamePanel.paintCurtain(paint);
-  }
-
   public Rectangle computeClientCardArea() {
     if(handCardsVisible)
       return new Rectangle(0, (int) (getHeight()*(1.0f-USER_CARDS_PANEL_HEIGHT)),
@@ -110,7 +105,7 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
   public void deleteCards() {
     clientWidgets.clear();
     inGamePanel.clearField();
-    repaint();
+    revalidate();
   }
 
   public boolean hasInGameCards() {
@@ -276,7 +271,7 @@ class ClientWidgetHolder {
     }
   }
 
-  private void addWidget(Rectangle rect, double distance, GameCard card) {
+  private void addWidget(Rectangle rect, GameCard card) {
     final GameCardWidget widget = new GameCardWidget(card);
     widget.setBounds(rect);
     widget.setCardMoveListener(cardManager);
@@ -309,7 +304,7 @@ class ClientWidgetHolder {
       else {
         if(index > 0)
           rect.x = (int) (rect.x + rect.width * distance);
-        addWidget(rect, distance, clientCards.get(index));
+        addWidget(rect, clientCards.get(index));
       }
     }
     cleanUpWidgetList();

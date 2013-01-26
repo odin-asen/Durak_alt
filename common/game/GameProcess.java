@@ -4,6 +4,8 @@ import common.dto.DTOCard;
 import common.game.rules.RuleChecker;
 import common.game.rules.RuleException;
 import common.game.rules.RuleFactory;
+import common.i18n.BundleStrings;
+import common.i18n.I18nSupport;
 import common.simon.action.CardAction;
 import common.simon.action.FinishAction;
 import common.simon.action.GameAction;
@@ -33,9 +35,11 @@ public class GameProcess<ID> {
   private final ElementPairHolder<GameCard> pairCardHolder;
 
   private final ListMap<ID,Player> playerHolder;
+  private Player currentLoser;
 
   private GameCardStack stack;
   private boolean gameInProcess;
+  /** Indicates whether the game will be initialised for a new constellation of players or not. */
   private boolean initialiseNew;
 
   private RuleChecker ruleChecker;
@@ -53,16 +57,24 @@ public class GameProcess<ID> {
   /* Methods */
 
   /**
+   * Stops the process without deleting the player list.
+   */
+  public void stopProcess() {
+    pairCardHolder.clear();
+    gameInProcess = false;
+    cardsChanged = false;
+    roundState = new RoundStateHandler();
+  }
+
+  /**
    * Sets the game to an initialised state. All variables will be reset and all lists
    * will be emptied.
    */
   public void reInitialise() {
-    pairCardHolder.clear();
+    stopProcess();
+    currentLoser = null;
     playerHolder.clear();
-    gameInProcess = false;
     initialiseNew = true;
-    cardsChanged = false;
-    roundState = new RoundStateHandler();
   }
 
   /**
@@ -72,37 +84,44 @@ public class GameProcess<ID> {
    * player in the game and determines the first and second attacker and the defender of the game.
    * The game will only be initialised if more than one player is in the list. Otherwise it does
    * nothing.
+   * <p/>
+   * Note: The number of added players has to be greater than 1 otherwise the method will assert.
    * @param cardsPerColour Number of cards per colour for this game.
-   * @return True, if the game has been initialised, otherwise false.
    */
-  public boolean initialiseNewGame(Integer cardsPerColour) {
-    if(playerHolder.size() > 1) {
-      ruleChecker = RuleFactory.getStandardRules();
-      distributeCards(cardsPerColour);
-      determineInitialPlayers();
-      gameInProcess = true;
-      roundState.setJustTwoPlayer(playerHolder.size() == 2);
-      return true;
-    } else return false;
+  public void initialiseNewGame(Integer cardsPerColour) {
+    assert playerHolder.size() > 1;
+
+    ruleChecker = RuleFactory.getStandardRules();
+    initPlayers();
+    distributeCards(cardsPerColour);
+    determineInitialPlayers();
+    gameInProcess = true;
+    initialiseNew = false;
+    currentLoser = null;
+    roundState.setJustTwoPlayer(playerHolder.size() == 2);
   }
 
   /**
-   * Determines the first and second attackers and the defender. //TODO Verändern sich die Spieler nicht, wird der Verlierer als erster Verteidiger eingesetzt
+   * Determines the first and second attackers and the defender.
    */
   private void determineInitialPlayers() {
     ruleChecker.setTrumpColour(stack.getTrumpCard().getCardColour());
-    if(initialiseNew)
-      ruleChecker.initStartPlayer(playerHolder.getList());
-    else ruleChecker.setActivePlayers(determineLoser().getRightPlayer());
+
+    final Player starter;
+    if(!initialiseNew && (currentLoser != null))
+      starter = currentLoser.getRightPlayer();
+    else starter = ruleChecker.determineStartPlayer(playerHolder.getList());
+
+    ruleChecker.setActivePlayers(starter);
   }
 
   /**
-   * This method initialises a new game. It sets up a new shuffled stack of 36 cards
-   * and distributes {@link GameConfigurationConstants#INITIAL_CARD_COUNT} cards
-   * to each player in the game and sets the players neighbours.
+   * This method initialises a new game. It sets up a new shuffled stack of the surpassed
+   * number of cards per colour and distributes
+   * {@link GameConfigurationConstants#INITIAL_CARD_COUNT} cards
+   * to each player in the game.
    */
   private void distributeCards(Integer cardsPerColour) {
-    initPlayerNeighbours();
     stack = new GameCardStack();
     stack.initialiseStack(cardsPerColour);
     for(int i = 0; i< GameConfigurationConstants.INITIAL_CARD_COUNT; i++)
@@ -110,9 +129,12 @@ public class GameProcess<ID> {
         player.pickUpCard(stack.drawCard());
   }
 
-  private void initPlayerNeighbours() {
+  /** Initialises the players and sets their neighbours. */
+  private void initPlayers() {
     for (int index = 0; index < playerHolder.size(); index++) {
       final Player player = playerHolder.getList().get(index);
+      player.initPlayer();
+      /* set the neighbours */
       setPlayerNeighbours(index, player);
     }
   }
@@ -134,11 +156,13 @@ public class GameProcess<ID> {
   /**
    * Goes to the next round. This means that the player types of the players may be switched,
    * depending on the fact if the defender took cards or not. The players get also new cards
-   * and it will determined if the game is over.
+   * and it will determined if the game is over. The method will assert if the game is not in process.
    * @return Returns true if next round has started, otherwise false. A round may not be started
    *         if not all players confirmed to go to the next round.
    */
   public boolean goToNextRound() {
+    assert gameInProcess;
+
     if(!roundState.readyForNextRound())
       return false;
 
@@ -160,19 +184,29 @@ public class GameProcess<ID> {
     return true;
   }
 
+  private void nextRoundOrFinish(Player firstAttacker) {
+    if(gameHasFinished()) {
+      currentLoser.setType(PlayerConstants.PlayerType.LOSER);
+      currentLoser.emptyHand();
+      gameInProcess = false;
+    } else ruleChecker.setActivePlayers(firstAttacker);
+  }
+
   /**
    * Validates a surpassed action with the current settings of the RuleChecker
-   * object.
+   * object. The method will assert if the game is not in process.
    * @param action Action to validate.
    * @param playerID Identifier for the player that does the action.
    * @return Returns true, if the next round can be started, else false.
-   * @throws RuleException If a rule has been broken, a
-   * {@link game.rules.RuleException} will be thrown with a message for the client.
+   * @throws RuleException If a rule has been broken, an exception will be thrown
+   *         with a message for the client.
    * @throws IllegalArgumentException If {@code action} is not instanceof
    * {@link common.simon.action.CardAction} or {@link common.simon.action.FinishAction}
    */
   public boolean validateAction(GameAction action, ID playerID)
       throws RuleException, IllegalArgumentException {
+    assert gameInProcess;
+
     cardsChanged = false;
     if(action instanceof CardAction) {
       final CardAction cardAction = (CardAction) action;
@@ -184,14 +218,14 @@ public class GameProcess<ID> {
         cardsChanged = true;
       }
     } else if(action instanceof FinishAction) {
-      validateFinish(playerID, action);
+      validateFinish(action);
     } else throw new IllegalArgumentException("GameAction must be either " +
         "instance of "+CardAction.class.getName()+" or "+FinishAction.class.getName());
 
     return roundState.readyForNextRound();
   }
 
-  private void validateFinish(ID playerID, GameAction action) throws RuleException {
+  private void validateFinish(GameAction action) throws RuleException {
     final FinishAction finishAction;
 
     if(action instanceof FinishAction) {
@@ -227,21 +261,12 @@ public class GameProcess<ID> {
       throws RuleException {
     if(PlayerConstants.PlayerType.DEFENDER.equals(type)) {
       if (!takeCards && !pairCardHolder.hasNoNullPairs())
-        throw new RuleException("nonullpairs"); //TODO gescheite regel beschreiben, dass noch karten gedeckt werden müssen
+        throw new RuleException(I18nSupport.getValue(BundleStrings.USER_MESSAGES, "cards.to.beat"));
       roundState.setDefenderNextRound(true, takeCards);
     } else if(PlayerConstants.PlayerType.FIRST_ATTACKER.equals(type) ||
         PlayerConstants.PlayerType.SECOND_ATTACKER.equals(type)) {
       roundState.setAttackerNextRound(type);
     }
-  }
-
-  private void nextRoundOrFinish(Player firstAttacker) {
-    final Player loser = determineLoser();
-    if(loser != null) {
-      loser.setType(PlayerConstants.PlayerType.LOSER);
-      loser.emptyHand();
-      gameInProcess = false;
-    } else ruleChecker.setActivePlayers(firstAttacker);
   }
 
   private void prepareForNextRound() {
@@ -256,15 +281,6 @@ public class GameProcess<ID> {
     /* The rest */
     pairCardHolder.clear();
     roundState.newRound();
-  }
-
-  private Player determineLoser() {
-    for (Player player : playerHolder.getList()) {
-      if(player.isAlone())
-        return player;
-    }
-
-    return null;
   }
 
   /**
@@ -295,19 +311,32 @@ public class GameProcess<ID> {
     }
   }
 
+  /**
+   * Sets a new player with the specified player id. Game must not be in process.
+   * @param playerID Specified id.
+   */
   public void setPlayer(ID playerID) {
-    if(!gameInProcess) {
-      playerHolder.add(playerID, new Player());
-    }
+    assert !gameInProcess;
+    if(playerHolder.get(playerID) == null)
+      initialiseNew = true;
+
+    playerHolder.add(playerID, new Player());
   }
 
   /**
    * Returns whether a player with this id could be removed or not.
+   * Game must not be in process.
    * @param playerID The player having this id should be removed.
    * @return True, the player existed and is now removed, else false.
    */
   public boolean removePlayer(ID playerID) {
-    return playerHolder.remove(playerID);
+    assert !gameInProcess;
+
+    boolean result = playerHolder.remove(playerID);
+    if(result)
+      initialiseNew = true;
+
+    return result;
   }
 
   public List<DTOCard> getPlayerCards(ID playerID) {
@@ -337,7 +366,17 @@ public class GameProcess<ID> {
   }
 
   public boolean gameHasFinished() {
-    return determineLoser() != null;
+    return currentLoser != null || determineLoser();
+  }
+
+  private boolean determineLoser() {
+    for (Player player : playerHolder.getList()) {
+      if(player.isAlone()) {
+        currentLoser = player;
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -352,15 +391,6 @@ public class GameProcess<ID> {
 
   public boolean isGameInProcess() {
     return gameInProcess;
-  }
-
-  public List<PlayerConstants.PlayerType> getPlayersTypes() {
-    final List<PlayerConstants.PlayerType> types = new ArrayList<PlayerConstants.PlayerType>();
-    for (Player player : playerHolder.getList()) {
-      types.add(player.getType());
-    }
-
-    return types;
   }
 
   public PlayerConstants.PlayerType getPlayerType(ID playerID) {
@@ -417,6 +447,7 @@ public class GameProcess<ID> {
       return firstAttackerNextRound && secondAttackerNextRound;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public void setFirstAttackerNextRound(boolean readyForNextRound) {
       firstAttackerNextRound = readyForNextRound;
     }
@@ -443,7 +474,7 @@ public class GameProcess<ID> {
     }
 
     /**
-     * Retursn a boolean value that indicates if the last defender took the cards or not.
+     * Returns a boolean value that indicates if the last defender took the cards or not.
      * @return True, the last defender took the cards, else false.
      */
     public boolean defenderTookCards() {
@@ -454,7 +485,7 @@ public class GameProcess<ID> {
       if(type.equals(PlayerConstants.PlayerType.FIRST_ATTACKER))
         firstAttackerNextRound = true;
       else if(type.equals(PlayerConstants.PlayerType.SECOND_ATTACKER))
-        secondAttackerNextRound = true;
+        setSecondAttackerNextRound(true);
     }
   }
 }
@@ -466,6 +497,7 @@ class ElementPairHolder<T> {
     elementPairs = new ArrayList<List<T>>();
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   void setPairs(List<T> firstElement, List<T> secondElement) {
     final int size;
     if(firstElement.size() > secondElement.size())
@@ -517,6 +549,7 @@ class ElementPairHolder<T> {
     return elementPairs;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   void setElementPairs(List<List<T>> elementPairs) {
     this.elementPairs = elementPairs;
   }
