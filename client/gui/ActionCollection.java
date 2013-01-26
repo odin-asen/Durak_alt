@@ -39,7 +39,9 @@ public class ActionCollection {
   public static final Action DISCONNECT = new ConnectionAction(false);
 
   private static class OpenConnectionDialog extends AbstractAction {
+    boolean editable;
     private OpenConnectionDialog(boolean editable) {
+      this.editable = editable;
       String iconString = "toolbar.network.info";
       int virtualKey = KeyEvent.VK_I;
       if(editable) {
@@ -52,7 +54,7 @@ public class ActionCollection {
     }
 
     public void actionPerformed(ActionEvent e) {
-      final ConnectionDialog dialog = new ConnectionDialog(!GameClient.getClient().isConnected());
+      final ConnectionDialog dialog = new ConnectionDialog(editable);
       dialog.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
       dialog.setVisible(true);
     }
@@ -82,7 +84,7 @@ public class ActionCollection {
         connectClient();
       } else {
         GameClient.getClient().disconnect(false);
-        ClientFrame.getInstance().setStatus(
+        ClientFrame.getInstance().updateGUIStatus(
             I18nSupport.getValue(USER_MESSAGES, "status.has.been.disconnected"), false, "");
       }
     }
@@ -97,13 +99,13 @@ public class ActionCollection {
             Client.getOwnInstance().toDTO(), connection.getPassword())) {
           final String message = I18nSupport.getValue(USER_MESSAGES, "status.connected");
           mainFrame.addChatMessage(message,true);
-          mainFrame.setStatus(message, true, "["+gameClient.getSocketAddress()+"]");
+          mainFrame.updateGUIStatus(message, true, "[" + gameClient.getSocketAddress() + "]");
         }
       } catch (GameClientException e) {
         final String message = e.getMessage();
         LOGGER.info("Connect action failed: "+message);
         mainFrame.showErrorPopup(message);
-        mainFrame.setStatus(message, false, "");
+        mainFrame.updateGUIStatus(message, false, "");
       }
     }
   }

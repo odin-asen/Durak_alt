@@ -11,38 +11,38 @@ import common.simon.action.GameAction;
 public interface ServerInterface {
   /**
    * Logs the specified client to the server. A password may be required.
-   * @param callbackable Remote object that should be a valid SIMON implementation.
+   * @param callable Remote object that should be a valid SIMON implementation.
    * @param client Client information.
    * @param password Server password.
    * @return Returns true, if the client is logged in, else false.
    */
-  public boolean login(Callbackable callbackable, DTOClient client, String password);
+  public boolean login(Callable callable, DTOClient client, String password);
 
   /**
    * Logs the specified client off the server.
-   * @param callbackable Remote object that should be an implemented SIMON object.
+   * @param callable Remote object that should be an implemented SIMON object.
    */
-  public void logoff(Callbackable callbackable);
+  public void logoff(Callable callable);
 
   /**
    * Sends a message to all other clients.
-   * @param callbackable Remote object that sends the message. Should be a valid SIMON implementation.
+   * @param callable Remote object that sends the message. Should be a valid SIMON implementation.
    * @param message Message text.
    */
-  public void sendChatMessage(Callbackable callbackable, String message);
+  public void sendChatMessage(Callable callable, String message);
 
   /**
    * Executes the action with the specified cards.
-   * @param callbackable Remote object that should be an implemented SIMON object.
+   * @param callable Remote object that should be an implemented SIMON object.
    * @param action Contains information of the action, e.g. which type, which cards, etc...
    * @return True, action was made, else false.
    */
-  public boolean doAction(Callbackable callbackable, GameAction action);
+  public boolean doAction(Callable callable, GameAction action);
 
   /**
    * Updates the client information in the server.
-   * @param callbackable Remote object that should be an implemented SIMON object.
+   * @param callable Remote object that should be an implemented SIMON object.
    * @param dtoClient Client information.
    */
-  public void updateClient(Callbackable callbackable, DTOClient dtoClient);
+  public void updateClient(Callable callable, DTOClient dtoClient);
 }

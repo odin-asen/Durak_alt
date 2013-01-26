@@ -12,6 +12,8 @@ import server.business.GameServer;
 import server.business.GameServerException;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -33,10 +35,6 @@ import static server.gui.ServerGUIConstants.LIST_WIDTH;
  */
 public class ServerFrame extends JFrame implements Observer {
   private static final String VERSION_NUMBER = "0.5";
-  private static final String ACTION_COMMAND_START = "start"; //NON-NLS
-  private static final String ACTION_COMMAND_STOP = "stop"; //NON-NLS
-  private static final String ACTION_COMMAND_START_GAME = "gameStart"; //NON-NLS
-  private static final String ACTION_COMMAND_STOP_GAME = "gameStop"; //NON-NLS
 
   private JToolBar toolbar;
   private JPanel panelSettings;
@@ -72,6 +70,7 @@ public class ServerFrame extends JFrame implements Observer {
   }
 
   /* Methods */
+
   private void initComponents() {
     getContentPane().setLayout(new BorderLayout());
     getContentPane().add(getToolbar(), BorderLayout.PAGE_START);
@@ -93,36 +92,29 @@ public class ServerFrame extends JFrame implements Observer {
     listModel.clear();
     int spectating = 0;
     int playing = 0;
-    for (DTOClient client : newClients) {
-      if(client.spectating)
-        spectating++;
-      else playing++;
-      listModel.add(listModel.size(), client);
+    if(newClients != null) {
+      for (DTOClient client : newClients) {
+        if(client.spectating)
+          spectating++;
+        else playing++;
+        listModel.add(listModel.size(), client);
+      }
     }
     statusBar.setPlayerCount(playing, spectating);
   }
 
   private void handleUpdate(MessageObject object) {
     if (GUIObserverType.CLIENT_LIST.equals(object.getType())) {
-      refreshClientList(GameServer.getServerInstance().getClients());
-    } else if (GUIObserverType.REMOVE_CLIENTS.equals(object.getType())) {
-      listModel.clear();
+      final List<DTOClient> clients = GameServer.getServerInstance().getClients();
+      if(clients.size() == 0)
+        refreshClientList(null);
+      else refreshClientList(clients);
     } else if(GUIObserverType.GAME_FINISHED.equals(object.getType())) {
       buttonGame.setAction(new GameStartStop(true));
     }
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  private void removeClient(DTOClient client) {
-    for (int i = 0; i < listModel.size(); i++) {
-      if(listModel.get(i).equals(client)) {
-        listModel.remove(i);
-        i = listModel.size();
-      }
-    }
-  }
-
-  public void setStatusBarText(String status) {
+  public void setStatus(String status) {
     statusBar.setText(status);
   }
 
@@ -151,6 +143,7 @@ public class ServerFrame extends JFrame implements Observer {
     toolbar = new JToolBar();
     JButton buttonServer = new JButton(new ServerStartStop(true));
     buttonGame = new JButton(new GameStartStop(true));
+    buttonGame.setEnabled(false);
 
     toolbar.setMargin(new Insets(5, 5, 5, 5));
     toolbar.setRollover(true);
@@ -187,9 +180,17 @@ public class ServerFrame extends JFrame implements Observer {
     fieldPort = new JFormattedTextField(format);
     fieldPort.setText(GameConfigurationConstants.DEFAULT_PORT.toString());
 
-    fieldPassword = new JPasswordField();                                     //TODO SERVER_GUI und CLIENT_GUI zu GUI zusammenführen
+    fieldPassword = new JPasswordField();
     fieldPassword.setToolTipText(I18nSupport.getValue(GUI_COMPONENT, "tooltip.password"));
-
+    fieldPassword.getDocument().addDocumentListener(new DocumentListener() {
+      public void insertUpdate(DocumentEvent e) {
+        GameServer.getServerInstance().setPassword(String.copyValueOf(fieldPassword.getPassword()));
+      }
+      public void removeUpdate(DocumentEvent e) {
+        GameServer.getServerInstance().setPassword(String.copyValueOf(fieldPassword.getPassword()));
+      }
+      public void changedUpdate(DocumentEvent e) {}
+    });
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createTitledBorder(
         I18nSupport.getValue(GUI_TITLE, "server")));
@@ -219,7 +220,7 @@ public class ServerFrame extends JFrame implements Observer {
     panelClientList = new JScrollPane();
     listModel = new DefaultListModel<DTOClient>();
     JList<DTOClient> clientList = new JList<DTOClient>(listModel);
-    clientList.setCellRenderer(new DefaultListCellRenderer());
+    clientList.setCellRenderer(new ClientCellRenderer());
     clientList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     panelClientList.setPreferredSize(new Dimension(LIST_WIDTH, panelClientList.getPreferredSize().height));
     panelClientList.setViewportView(clientList);
@@ -247,72 +248,102 @@ public class ServerFrame extends JFrame implements Observer {
   /* Inner Classes */
 
   private class ServerStartStop extends AbstractAction {
+    private boolean start;
     private ServerStartStop(boolean start) {
-      setAction(start);
+      this.start = start;
+      setAction();
     }
 
-    private void setAction(boolean start) {
+    private void setAction() {
       if(start) {
-        WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_S, ACTION_COMMAND_START,
-            "", I18nSupport.getValue(GUI_COMPONENT, "tooltip.start.server"),
+        WidgetCreator.initialiseAction(this, null, "", KeyEvent.VK_S, "", "",
+            I18nSupport.getValue(GUI_COMPONENT, "tooltip.start.server"),
             ResourceGetter.getToolbarIcon("toolbar.play"));
       } else {
-        WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_S, ACTION_COMMAND_STOP,
-            "", I18nSupport.getValue(GUI_COMPONENT, "tooltip.stop.server"),
+        WidgetCreator.initialiseAction(this, null, "", KeyEvent.VK_S, "", "",
+            I18nSupport.getValue(GUI_COMPONENT, "tooltip.stop.server"),
             ResourceGetter.getToolbarIcon("toolbar.stop.player"));
       }
     }
 
     public void actionPerformed(ActionEvent e) {
-      if (ACTION_COMMAND_START.equals(e.getActionCommand())) {
-        startGameServer();
-        setAction(false);
-      } else if (ACTION_COMMAND_STOP.equals(e.getActionCommand())) {
+      if(start) {
+        start = !startGameServer();
+      } else {
         GameServer.getServerInstance().shutdownServer();
-        setStatusBarText(I18nSupport.getValue(USER_MESSAGES, "status.server.inactive"));
+        setStatus(I18nSupport.getValue(USER_MESSAGES, "status.server.inactive"));
         buttonGame.setAction(new GameStartStop(true));
-        setAction(true);
+        start = true;
       }
+      buttonGame.setEnabled(!start);
+      setAction();
     }
 
-    private void startGameServer() {
-      final GameServer gameServer = GameServer.getServerInstance(getPortValue());
-
+    private boolean startGameServer() {
+      boolean started = false;
       try {
+        final GameServer gameServer = GameServer.getServerInstance(getPortValue());
         gameServer.startServer(String.copyValueOf(fieldPassword.getPassword()));
-        setStatusBarText(I18nSupport.getValue(USER_MESSAGES, "status.server.running"));
+        setStatus(I18nSupport.getValue(USER_MESSAGES, "status.server.running"));
+        started = true;
       } catch (GameServerException e) {
-        setStatusBarText(e.getMessage());
+        setStatus(e.getMessage());
       }
+      return started;
     }
   }
 
   private class GameStartStop extends AbstractAction {
+    private boolean start;
     private GameStartStop(boolean start) {
-      setAction(start);
+      this.start = start;
+      setAction();
     }
 
     public void actionPerformed(ActionEvent e) {
-      if (ACTION_COMMAND_START_GAME.equals(e.getActionCommand())) {
-        if(GameServer.getServerInstance().startGame(getStackSize()))
-          setAction(false);
-      } else if(ACTION_COMMAND_STOP_GAME.equals(e.getActionCommand())) {
+      if (start) {
+        if(GameServer.getServerInstance().startGame(getStackSize())) {
+          start = false;
+          setAction();
+        }
+      } else {
         GameServer.getServerInstance().stopGame(true,
             I18nSupport.getValue(USER_MESSAGES, "game.abort.server"));
-        setAction(true);
+        start = true;
+        setAction();
       }
     }
 
-    private void setAction(boolean start) {
+    private void setAction() {
       if(start) {
-        WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_G, ACTION_COMMAND_START_GAME,
-            "", I18nSupport.getValue(GUI_ACTION, "tooltip.start.game"),
+        WidgetCreator.initialiseAction(this, null, "", KeyEvent.VK_G, "", "",
+            I18nSupport.getValue(GUI_ACTION, "tooltip.start.game"),
             ResourceGetter.getToolbarIcon("toolbar.game.start"));
       } else {
-        WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_G, ACTION_COMMAND_STOP_GAME,
-            "", I18nSupport.getValue(GUI_ACTION, "tooltip.stop.game"),
+        WidgetCreator.initialiseAction(this, null, "", KeyEvent.VK_G, "", "",
+            I18nSupport.getValue(GUI_ACTION, "tooltip.stop.game"),
             ResourceGetter.getToolbarIcon("toolbar.game.stop"));
       }
     }
+  }
+}
+
+class ClientCellRenderer extends DefaultListCellRenderer {
+  private static final Icon OPEN_EYE = ResourceGetter.getGeneralIcon("open.eye");
+  private static final Icon DICE = ResourceGetter.getGeneralIcon("dice");
+
+  public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+    super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+    final DTOClient client = (DTOClient) value;
+
+    final Icon icon;
+    if(client.spectating)
+      icon = OPEN_EYE;
+    else icon = DICE;
+    if(!icon.equals(this.getIcon()))
+      this.setIcon(icon);
+    this.setText(client.name);
+
+    return this;
   }
 }

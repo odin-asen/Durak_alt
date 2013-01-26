@@ -12,7 +12,5 @@ public enum GUIObserverType {
   /** Notifies the server's gui that the client list has changed */
   CLIENT_LIST,
   /** Notifies the server's gui that the game has finished */
-  GAME_FINISHED,
-  /** Notifies the server's gui that all clients are deleted */
-  REMOVE_CLIENTS
+  GAME_FINISHED
 }

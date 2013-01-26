@@ -89,31 +89,6 @@ public class ClientFrame extends JFrame implements Observer {
 
   /* Methods */
 
-  /**
-   * If logEntry is false the message will not be formatted to a log entry and unchanged
-   * delegated to the chat frame. If the chat frame is invisible a popup window with the message
-   * and a button that opens the chat frame appears.
-   */
-  public void addChatMessage(String message, boolean logEntry) {
-    final ChatFrame frame = ChatFrame.getFrame();
-    if(logEntry) {
-      message = LoggingUtility.SHORT_STARS+" "+message+" "+LoggingUtility.SHORT_STARS;
-    } else {
-      final PopupSettings popupSettings = GlobalSettings.getInstance().popup;
-      if(!frame.isVisible() && popupSettings.isEnabled() && popupSettings.getChat().isEnabled()) {
-        /* Make a popup that shows a message and has a button to open the chat */
-        final Action openChatAction =
-            WidgetCreator.createActionCopy(ActionCollection.OPEN_CHAT_DIALOG);
-        openChatAction.putValue(Action.NAME,
-            I18nSupport.getValue(GUI_ACTION, "name.open.chat"));
-        WidgetCreator.createPopup(USER_MESSAGE_INFO_COLOUR, message, openChatAction,
-            true, getBounds(), DurakPopup.LOCATION_DOWN_LEFT,
-            popupSettings.getChat().getDuration()).setVisible(true);
-      }
-    }
-    frame.addMessage(message);
-  }
-
   public void showGameOverMessage() {
     final PlayerType type = Client.getOwnInstance().getPlayerType();
     new Thread(new Runnable() {
@@ -148,8 +123,16 @@ public class ClientFrame extends JFrame implements Observer {
         Compute.getFramelessBounds(this), DEFAULT_POPUP_TIME);
   }
 
+  public void update(Observable o, Object arg) {
+    final MessageObject object = (MessageObject) arg;
+    handler.handleUpdate(object);
+  }
+
+  /************************/
+  /* frame update methods */
+  /************************/
   /**
-   * Initialises the frame. Should be called at least after the first cration of the frame
+   * Initialises the frame. Should be called at least after the first creation of the frame
    * object.
    */
   public void init() {
@@ -159,12 +142,7 @@ public class ClientFrame extends JFrame implements Observer {
     getContentPane().setLayout(new BorderLayout());
     getContentPane().add(toolBar, BorderLayout.PAGE_START);
     getContentPane().add(centrePanel, BorderLayout.CENTER);
-    setStatus("", false, "");
-  }
-
-  public void update(Observable o, Object arg) {
-    final MessageObject object = (MessageObject) arg;
-    handler.handleUpdate(object);
+    updateGUIStatus("", false, "");
   }
 
   /**
@@ -192,9 +170,31 @@ public class ClientFrame extends JFrame implements Observer {
       centrePanel.updateClients(null);
   }
 
-  /***********************/
-  /* status bar methods  */
-  /***********************/
+  /**
+   * If {@code logEntry} is false the message will not be formatted to a log entry and unchanged
+   * delegated to the chat frame. If the chat frame is invisible a popup window with the message
+   * and a button that opens the chat frame appears.
+   */
+  public void addChatMessage(String message, boolean logEntry) {
+    final ChatFrame frame = ChatFrame.getFrame();
+    if(logEntry) {
+      message = LoggingUtility.SHORT_STARS+" "+message+" "+LoggingUtility.SHORT_STARS;
+    } else {
+      final PopupSettings popupSettings = GlobalSettings.getInstance().popup;
+      if(!frame.isVisible() && popupSettings.isEnabled() && popupSettings.getChat().isEnabled()) {
+        /* Make a popup that shows a message and has a button to open the chat */
+        final Action openChatAction =
+            WidgetCreator.createActionCopy(ActionCollection.OPEN_CHAT_DIALOG);
+        openChatAction.putValue(Action.NAME,
+            I18nSupport.getValue(GUI_ACTION, "name.open.chat"));
+        WidgetCreator.createPopup(USER_MESSAGE_INFO_COLOUR, message, openChatAction,
+            true, getBounds(), DurakPopup.LOCATION_DOWN_LEFT,
+            popupSettings.getChat().getDuration()).setVisible(true);
+      }
+    }
+    frame.addMessage(message);
+  }
+
   /**
    * Sets the status bar's main text, server address field and indicates if a connection
    * consists to the server. The boolean parameter also indicates the representation of the
@@ -205,7 +205,7 @@ public class ClientFrame extends JFrame implements Observer {
    *                  false, {@link #resetAll(boolean)} with true will be called.
    * @param serverAddress Shows the server address as tooltip.
    */
-  public void setStatus(String mainText, boolean connected, String serverAddress) {
+  public void updateGUIStatus(String mainText, boolean connected, String serverAddress) {
     centrePanel.setStatus(mainText);
     centrePanel.setStatus(connected, serverAddress);
     toolBar.setConnection(connected);
@@ -253,7 +253,7 @@ public class ClientFrame extends JFrame implements Observer {
       } else if(MessageType.LOST_CONNECTION.equals(object.getType())) {
         final String message = I18nSupport.getValue(USER_MESSAGES, "client.lost.connection");
         showErrorPopup(message);
-        setStatus(message, false, "");
+        updateGUIStatus(message, false, "");
         addChatMessage(message, true);
         resetAll(true);
       }
@@ -266,7 +266,10 @@ public class ClientFrame extends JFrame implements Observer {
         centrePanel.updateClients((List<DTOClient>) object.getSendingObject());
       } else if(BroadcastType.SERVER_SHUTDOWN.equals(object.getType())) {
         GameClient.getClient().disconnect(true);
-        resetAll(I18nSupport.getValue(USER_MESSAGES, "status.closed.server"), true);
+        final String message = I18nSupport.getValue(USER_MESSAGES, "status.closed.server");
+        addChatMessage(message, true);
+        showWarningPopup(message);
+        updateGUIStatus(message, false, "");
       }
     }
 

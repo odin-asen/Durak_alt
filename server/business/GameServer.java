@@ -5,7 +5,7 @@ import common.dto.message.*;
 import common.game.GameProcess;
 import common.game.rules.RuleException;
 import common.i18n.I18nSupport;
-import common.simon.Callbackable;
+import common.simon.Callable;
 import common.simon.ServerInterface;
 import common.simon.action.GameAction;
 import common.utilities.Converter;
@@ -74,7 +74,7 @@ public class GameServer extends Observable implements ClosedListener {
   /**
    * Starts the server and sets a password.
    * @param password Server password.
-   * @throws GameServerException Will be thrown and delivers the apropriate user message if
+   * @throws GameServerException Will be thrown and delivers the appropriate user message if
    * the server can not be started for a reason.
    */
   public void startServer(String password) throws GameServerException {
@@ -87,13 +87,13 @@ public class GameServer extends Observable implements ClosedListener {
         registry.bind(name, durakServices);
       } catch (NameBindingException e) {
         LOGGER.warning("Name \"" + name + "\"already bound: " + e.getMessage());
-        throw new GameServerException(I18nSupport.getValue(USER_MESSAGES, ""));
+        throw new GameServerException(I18nSupport.getValue(USER_MESSAGES, "service.already.running"));
       } catch (UnknownHostException e) {
         LOGGER.warning("Could not find ip address: "+e.getMessage());
         throw new GameServerException(I18nSupport.getValue(USER_MESSAGES, "network.error"));
       } catch (IOException e) {
         LOGGER.severe("I/O exception: " + e.getMessage());
-        throw new GameServerException(I18nSupport.getValue(USER_MESSAGES, "network.error"));
+        throw new GameServerException(I18nSupport.getValue(USER_MESSAGES, "address.might.be.used"));
       }
       LOGGER.info(LoggingUtility.STARS+" Server started "+LoggingUtility.STARS);
     }
@@ -105,8 +105,7 @@ public class GameServer extends Observable implements ClosedListener {
   public void shutdownServer() {
     if(isServerRunning()) {
       broadcastMessage(BroadcastType.SERVER_SHUTDOWN);
-      setChangedAndNotify(GUIObserverType.REMOVE_CLIENTS);
-      gameUpdate.stopSession();
+      removeAllClients();
       registry.unbind(GameConfigurationConstants.REGISTRY_NAME_SERVER);
       registry.stop();
       LOGGER.info(LoggingUtility.STARS+" Server shut down "+LoggingUtility.STARS);
@@ -127,10 +126,11 @@ public class GameServer extends Observable implements ClosedListener {
    * @param aborted If true, every client will be notified that it was aborted, else just finished.
    */
   public void stopGame(boolean aborted, String reason) {
-    gameUpdate.stopGame(false);
-    if(aborted)
-      broadcastMessage(GameUpdateType.GAME_ABORTED, reason);
-    else broadcastMessage(GameUpdateType.GAME_FINISHED);
+    if(gameUpdate.stopGame(false)) {
+      if(aborted)
+        broadcastMessage(GameUpdateType.GAME_ABORTED, reason);
+      else broadcastMessage(GameUpdateType.GAME_FINISHED);
+    }
     setChangedAndNotify(GUIObserverType.GAME_FINISHED);
     LOGGER.info(LoggingUtility.STARS+" Game stopped "+LoggingUtility.STARS);
   }
@@ -161,8 +161,8 @@ public class GameServer extends Observable implements ClosedListener {
    * @param sendingObject Sending object to send.
    */
   public void broadcastMessage(Enum<?> type, Object sendingObject) {
-    List<Callbackable> callbackables = gameUpdate.getRemoteReferrences();
-    broadcastMessage(type, callbackables, sendingObject);
+    List<Callable> callableList = gameUpdate.getRemoteReferrences();
+    broadcastMessage(type, callableList, sendingObject);
   }
 
   /**
@@ -176,13 +176,13 @@ public class GameServer extends Observable implements ClosedListener {
   /**
    * Sends the same message to every client remote reference in the list.
    * @param type Type that indicates the message type.
-   * @param callbackables Remote references to send the message to.
+   * @param callables Remote references to send the message to.
    * @param sendingObject Sending object to send.
    */
-  public void broadcastMessage(Enum<?> type, Collection<Callbackable> callbackables,
+  public void broadcastMessage(Enum<?> type, Collection<Callable> callables,
                                Object sendingObject) {
-    for (Callbackable callbackable : callbackables) {
-      sendMessage(callbackable, new MessageObject(type, sendingObject));
+    for (Callable callable : callables) {
+      sendMessage(callable, new MessageObject(type, sendingObject));
     }
   }
 
@@ -191,28 +191,28 @@ public class GameServer extends Observable implements ClosedListener {
     broadcastOtherClients(type, gameUpdate.getRemoteReferrences());
   }
 
-  void broadcastOtherClients(Enum<?> type, Collection<Callbackable> callbackables) {
+  void broadcastOtherClients(Enum<?> type, Collection<Callable> callables) {
     final List<DTOClient> clients = new ArrayList<DTOClient>();
-    final List<Callbackable> callbackableList = new ArrayList<Callbackable>();
+    final List<Callable> callableList = new ArrayList<Callable>();
     DTOClient currentClient;
 
     /* iterate the clients so that the original sequence is not changed */
-    Miscellaneous.addAllToCollection(clients, gameUpdate.getClients(callbackables));
-    Miscellaneous.addAllToCollection(callbackableList, callbackables);
-    for (Callbackable callbackable : callbackableList) {
-      currentClient = gameUpdate.getClient(callbackable);
+    Miscellaneous.addAllToCollection(clients, gameUpdate.getClients(callables));
+    Miscellaneous.addAllToCollection(callableList, callables);
+    for (Callable callable : callableList) {
+      currentClient = gameUpdate.getClient(callable);
       final int index = Miscellaneous.findIndex(clients,currentClient,
           Miscellaneous.CLIENT_COMPARATOR);
       /* remove the client, send the rest of the list to all clients and add the current
        * client back to the list */
       clients.remove(index);
-      sendMessage(callbackable, new MessageObject(type, clients));
+      sendMessage(callable, new MessageObject(type, clients));
       clients.add(index,currentClient);
     }
   }
 
-  public void sendMessage(Callbackable callbackable, MessageObject messageObject) {
-    callbackable.callback(messageObject);
+  public void sendMessage(Callable callable, MessageObject messageObject) {
+    callable.callback(messageObject);
   }
 
   /**
@@ -220,61 +220,74 @@ public class GameServer extends Observable implements ClosedListener {
    * object contains as sendingObject the corresponding object of the list
    * {@code sendingObjects}.
    * @param type Type of the message.
-   * @param client Clients to send the messages to.
+   * @param clients Clients to send the messages to.
    * @param sendingObjects Sending objects for the clients.
    * @throws GameServerException {@code clients} and {@code sendingObjects} have different sizes.
    */
-  public void broadcastArray(Enum<?> type, Collection<Callbackable> clients,
+  @SuppressWarnings("UnusedDeclaration")
+  public void broadcastArray(Enum<?> type, Collection<Callable> clients,
                              Collection<?> sendingObjects)
       throws GameServerException {
     if(sendingObjects.size() != clients.size())
       throw new GameServerException("The number of clients and sending objects is not equal!");
 
-    final Iterator<Callbackable> callbackableIterator = clients.iterator();
+    final Iterator<Callable> callableIterator = clients.iterator();
     final Iterator<?> objects = sendingObjects.iterator();
-    while (callbackableIterator.hasNext()) {
-      sendMessage(callbackableIterator.next(), new MessageObject(type, objects.next()));
+    while (callableIterator.hasNext()) {
+      sendMessage(callableIterator.next(), new MessageObject(type, objects.next()));
     }
   }
 
   /**
    * Adds the client to the server list and notifies the gui and all clients.
-   * @param callbackable Client remote reference.
+   * @param callable Client remote reference.
    * @param client The client.
    * @return Returns true if client was added, else false.
    */
-  boolean addClient(Callbackable callbackable, DTOClient client) {
-    if(gameUpdate.addClient(callbackable, client)) {
-      notifyClientLists(callbackable);
+  boolean addClient(Callable callable, DTOClient client) {
+    if(gameUpdate.addClient(callable, client)) {
+      notifyClientLists(callable);
     } else return false;
 
-    registerCloseListener(callbackable);
+    getClientLookup(callable).addClosedListener(callable, this);
     LOGGER.info("Added client: "+client);
 
     return true;
   }
 
-  private void registerCloseListener(Callbackable callbackable) {
-    final InetSocketAddress address = Simon.getRemoteInetSocketAddress(callbackable);
-    final Lookup lookup = Simon.createNameLookup(address.getAddress(), address.getPort());
-    lookup.addClosedListener(callbackable, this);
+  private Lookup getClientLookup(Callable callable) {
+    final InetSocketAddress address = Simon.getRemoteInetSocketAddress(callable);
+    return Simon.createNameLookup(address.getAddress(), address.getPort());
   }
 
   /**
+   * Stops the game session and with it all remote references and registered listeners will be
+   * removed.
+   */
+  private void removeAllClients() {
+    final List<Callable> callables = gameUpdate.getRemoteReferrences();
+    for (Callable callable : callables)
+      getClientLookup(callable).removeClosedListener(callable, this);
+    gameUpdate.stopSession();
+    setChangedAndNotify(GUIObserverType.CLIENT_LIST);
+  }
+  
+  /**
    * Removes a client from the server and notifies the gui and all clients.
-   * @param callbackable Client remote reference.
+   * @param callable Client remote reference.
    * @return Returns true if the client was removed, else false.
    */
-  boolean removeClient(Callbackable callbackable) {
-    final DTOClient client = getClient(callbackable);
-    if(gameUpdate.removeClient(callbackable)) {
+  boolean removeClient(Callable callable) {
+    final DTOClient client = getClient(callable);
+    if(gameUpdate.removeClient(callable)) {
       if(!client.spectating) {
-        stopGame(true, I18nSupport.getValue(USER_MESSAGES, "game.abort.player.0.logged.off",
-            client.name));
+        stopGame(true,
+            I18nSupport.getValue(USER_MESSAGES, "game.abort.player.0.logged.off", client.name));
       }
       notifyClientLists(null);
     } else return false;
 
+    getClientLookup(callable).removeClosedListener(callable, this);
     LOGGER.info("Removed client: "+client);
     return true;
   }
@@ -285,34 +298,34 @@ public class GameServer extends Observable implements ClosedListener {
    * If this parameter is null, all clients and the server gui will
    * be notified. The second parameter will then be ignored.
    */
-  private void notifyClientLists(Callbackable callbackable) {
+  private void notifyClientLists(Callable addedCallable) {
     setChangedAndNotify(GUIObserverType.CLIENT_LIST);
-    if(callbackable != null) {
-      DTOClient client = gameUpdate.getClient(callbackable);
-      sendMessage(callbackable, new MessageObject(MessageType.OWN_CLIENT_INFO, client));
+    if(addedCallable != null) {
+      DTOClient client = gameUpdate.getClient(addedCallable);
+      sendMessage(addedCallable, new MessageObject(MessageType.OWN_CLIENT_INFO, client));
     }
     broadcastOtherClients(BroadcastType.LOGIN_LIST);
   }
 
   /**
    * Validates an action by calling the game updater.
-   * @param callbackable Client remote reference.
+   * @param callable Client remote reference.
    * @param action Attached GameAction object.
    * @throws RuleException Will be thrown if the client broke a game rule.
    */
-  void validateAction(Callbackable callbackable, GameAction action) throws RuleException {
+  void validateAction(Callable callable, GameAction action) throws RuleException {
     boolean nextRound = gameUpdate.getProcess().validateAction(
-        action, gameUpdate.getPlayerID(callbackable));
+        action, gameUpdate.getPlayerID(callable));
     gameUpdate.updateMove(nextRound);
   }
 
   /**
    * Updates the client and and all the lists if necessary.
-   * @param callbackable Client remote reference
+   * @param callable Client remote reference
    * @param client Client information object.
    */
-  public void updateClient(Callbackable callbackable, DTOClient client) {
-    final DTOClient oldClient = gameUpdate.updateClientInformation(callbackable, client);
+  public void updateClient(Callable callable, DTOClient client) {
+    final DTOClient oldClient = gameUpdate.updateClientInformation(callable, client);
     notifyClientLists(null);
     LOGGER.info("Updated client from "+oldClient+" to "+client);
   }
@@ -334,6 +347,10 @@ public class GameServer extends Observable implements ClosedListener {
     setChangedAndNotify(GUIObserverType.CLIENT_LIST);
   }
 
+  public void setPassword(String password) {
+    durakServices.setPassword(password);
+  }
+
   /* Getter and Setter */
 
   public void setPort(int port) {
@@ -341,6 +358,7 @@ public class GameServer extends Observable implements ClosedListener {
       this.port = port;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public Integer getPort() {
     return port;
   }
@@ -353,8 +371,8 @@ public class GameServer extends Observable implements ClosedListener {
     return gameUpdate.getClients();
   }
 
-  public DTOClient getClient(Callbackable callbackable) {
-    return gameUpdate.getClient(callbackable);
+  public DTOClient getClient(Callable callable) {
+    return gameUpdate.getClient(callable);
   }
 }
 
@@ -371,54 +389,53 @@ class DurakServices implements ServerInterface {
     this.password = password;
   }
 
-  public boolean login(Callbackable callbackable, DTOClient client, String password) {
+  public boolean login(Callable callable, DTOClient client, String password) {
     boolean result = false;
     final GameServer server = GameServer.getServerInstance();
 
     if(this.password.equals(password)) {
       if(!server.clientNameExists(client.name))
-        result = server.addClient(callbackable, client);
-      else server.sendMessage(callbackable, new MessageObject(MessageType.STATUS_MESSAGE,
+        result = server.addClient(callable, client);
+      else server.sendMessage(callable, new MessageObject(MessageType.STATUS_MESSAGE,
           I18nSupport.getValue(USER_MESSAGES, "status.name.0.already.exists", client.name)));
     } else {
-      server.sendMessage(callbackable, new MessageObject(MessageType.STATUS_MESSAGE,
+      server.sendMessage(callable, new MessageObject(MessageType.STATUS_MESSAGE,
           I18nSupport.getValue(USER_MESSAGES,"status.permission.denied")));
     }
 
     return result;
   }
 
-  public void logoff(Callbackable callbackable) {
-    GameServer.getServerInstance().removeClient(callbackable);
+  public void logoff(Callable callable) {
+    GameServer.getServerInstance().removeClient(callable);
   }
 
-  public void sendChatMessage(Callbackable callbackable, String message) {
-    final DTOClient client = GameServer.getServerInstance().getClient(callbackable);
+  public void sendChatMessage(Callable callable, String message) {
+    final DTOClient client = GameServer.getServerInstance().getClient(callable);
     if(client != null) {
-      ChatMessage chatMessage = new ChatMessage(new Long(System.currentTimeMillis()),
-          client, message);
+      ChatMessage chatMessage = new ChatMessage(System.currentTimeMillis(), client, message);
       GameServer.getServerInstance().broadcastMessage(BroadcastType.CHAT_MESSAGE, chatMessage);
     }
   }
 
-  public boolean doAction(Callbackable callbackable, GameAction action) {
+  public boolean doAction(Callable callable, GameAction action) {
     boolean actionDone = false;
     final GameServer server = GameServer.getServerInstance();
     try {
-      server.validateAction(callbackable, action);
+      server.validateAction(callable, action);
       actionDone = true;
     } catch (RuleException e) {
       LOGGER.info("User \'" + action.getExecutor().name
           + "\' breaks the rules with action " + action);
-      server.sendMessage(callbackable,
+      server.sendMessage(callable,
           new MessageObject(MessageType.RULE_MESSAGE, e.getMessage()));
     }
 
     return actionDone;
   }
 
-  public void updateClient(Callbackable callbackable, DTOClient client) {
-    GameServer.getServerInstance().updateClient(callbackable, client);
+  public void updateClient(Callable callable, DTOClient client) {
+    GameServer.getServerInstance().updateClient(callable, client);
   }
 
   /* Getter and Setter */
@@ -427,19 +444,21 @@ class DurakServices implements ServerInterface {
     this.password = password;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public String getPassword() {
     return password;
   }
 }
 
+@SuppressWarnings("unchecked")
 class GameUpdate {
   private Logger LOGGER = LoggingUtility.getLogger(GameUpdate.class.getName());
   private GameProcess<Integer> process;
   private GameServer server = null;
-  private IngameSpectatorHolder<Callbackable,DTOClient> clientHolder;
+  private IngameSpectatorHolder<Callable,DTOClient> clientHolder;
 
   public GameUpdate() {
-    this.clientHolder = new IngameSpectatorHolder<Callbackable, DTOClient>();
+    this.clientHolder = new IngameSpectatorHolder<Callable, DTOClient>();
     this.process = new GameProcess<Integer>();
   }
 
@@ -456,11 +475,11 @@ class GameUpdate {
   /**
    * Gets the player's ID for the surpassed callbackable calling
    * {@link #getPlayerID(common.dto.DTOClient)}.
-   * @param callbackable Surpassed client remote reference.
+   * @param callable Surpassed client remote reference.
    * @return Should return a unique integer for this object.
    */
-  public Integer getPlayerID(Callbackable callbackable) {
-    return getPlayerID(getClient(callbackable));
+  public Integer getPlayerID(Callable callable) {
+    return getPlayerID(getClient(callable));
   }
 
   /**
@@ -490,11 +509,14 @@ class GameUpdate {
 
   /**
    * Stops the game process. All settings will be reset. Depending on the parameter all
-   * already registered players will be either delted from the list or not. (This means the
-   * process will be totally reset to the initial state.
+   * already registered players will be either deleted from the list or not. (This means the
+   * process will be totally reset to the initial state.)
    * @param deletePlayers If true, players will be deleted.
+   * @return True, game was running, else false.
    */
-  public void stopGame(boolean deletePlayers) {
+  public boolean stopGame(boolean deletePlayers) {
+    boolean stopped = process.isGameInProcess();
+
     /* stop the game with deleting the players */
     process.reInitialise();
     if(!deletePlayers) {
@@ -503,16 +525,17 @@ class GameUpdate {
         process.setPlayer(getPlayerID(client));
       }
     }
+    return stopped;
   }
 
   /**
    * Adds the client to the list if it dow not already exists.
-   * @param callbackable Client remote reference.
+   * @param callable Client remote reference.
    * @param client The client.
    * @return True if the client was added, else false.
    */
-  boolean addClient(Callbackable callbackable, DTOClient client) {
-    if(clientHolder.containsKey(callbackable))
+  boolean addClient(Callable callable, DTOClient client) {
+    if(clientHolder.containsKey(callable))
       return false;
 
     /* Create a local reference of the DTOClient object on the server */
@@ -521,9 +544,9 @@ class GameUpdate {
 
     if(process.isGameInProcess() || localClient.spectating) {
       localClient.spectating = true;
-      clientHolder.addSpectator(callbackable, localClient);
+      clientHolder.addSpectator(callable, localClient);
     } else {
-      clientHolder.addInGameValue(callbackable,localClient);
+      clientHolder.addInGameValue(callable,localClient);
       process.setPlayer(getPlayerID(localClient));
     }
 
@@ -532,30 +555,27 @@ class GameUpdate {
 
   /**
    * Removes a client from the list if it exists and aborts the game if necessary.
-   * @param callbackable Remote reference of the client.
+   * @param callable Remote reference of the client.
    * @return True if the client was removed, else false.
    */
-  boolean removeClient(Callbackable callbackable) {
-    boolean removed = false;
+  boolean removeClient(Callable callable) {
     /* Client's player reference has also to be removed and if it was a player */
     /* In every case delete afterwards the client remote reference */
-    process.removePlayer(getPlayerID(callbackable));
-    removed = clientHolder.removeKey(callbackable);
-
-    return removed;
+    process.removePlayer(getPlayerID(callable));
+    return clientHolder.removeKey(callable);
   }
 
   /**
    * Changes the client information depending on the remote reference and returns the old
    * information. The lists will also be updated if necessary.
-   * @param callbackable Remote reference of the client.
+   * @param callable Remote reference of the client.
    * @param client The new client information.
    * @return Returns the old information.
    */
-  public DTOClient updateClientInformation(Callbackable callbackable, DTOClient client) {
-    DTOClient oldClient = getClient(callbackable);
-    removeClient(callbackable);
-    addClient(callbackable, client);
+  public DTOClient updateClientInformation(Callable callable, DTOClient client) {
+    DTOClient oldClient = getClient(callable);
+    removeClient(callable);
+    addClient(callable, client);
     return oldClient;
   }
 
@@ -631,11 +651,11 @@ class GameUpdate {
    * (number of cards, name, etc...)
    */
   private void informInGamePlayers() {
-    for (Callbackable callbackable : clientHolder.getInGameKeys()) {
-      final DTOClient client = clientHolder.getInGameValue(callbackable);
-      server.sendMessage(callbackable, new MessageObject(GameUpdateType.CLIENT_CARDS,
+    for (Callable callable : clientHolder.getInGameKeys()) {
+      final DTOClient client = clientHolder.getInGameValue(callable);
+      server.sendMessage(callable, new MessageObject(GameUpdateType.CLIENT_CARDS,
           process.getPlayerCards(getPlayerID(client))));
-      server.sendMessage(callbackable, new MessageObject(MessageType.OWN_CLIENT_INFO, client));
+      server.sendMessage(callable, new MessageObject(MessageType.OWN_CLIENT_INFO, client));
     }
     /* inform ingame clients about opponents */
     server.broadcastOtherClients(GameUpdateType.INITIALISE_PLAYERS, clientHolder.getInGameKeys());
@@ -665,15 +685,15 @@ class GameUpdate {
     }
   }
 
-  public DTOClient getClient(Callbackable callbackable) {
-    return clientHolder.getValue(callbackable);
+  public DTOClient getClient(Callable callable) {
+    return clientHolder.getValue(callable);
   }
 
   public List<DTOClient> getClients() {
     return clientHolder.getAllValues();
   }
 
-  public List<Callbackable> getRemoteReferrences() {
+  public List<Callable> getRemoteReferrences() {
     return clientHolder.getAllKeys();
   }
 
@@ -681,10 +701,10 @@ class GameUpdate {
     return process;
   }
 
-  public List<DTOClient> getClients(Collection<Callbackable> callbackables) {
-    final List<DTOClient> clients = new ArrayList<DTOClient>(callbackables.size());
-    for (Callbackable callbackable : callbackables) {
-      clients.add(clientHolder.getValue(callbackable));
+  public List<DTOClient> getClients(Collection<Callable> callables) {
+    final List<DTOClient> clients = new ArrayList<DTOClient>(callables.size());
+    for (Callable callable : callables) {
+      clients.add(clientHolder.getValue(callable));
     }
     return clients;
   }
@@ -740,6 +760,7 @@ class IngameSpectatorHolder<K,V> {
     return ingameMap.get(key);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public V getSpectatorValue(K key) {
     return spectatorMap.get(key);
   }
@@ -764,6 +785,7 @@ class IngameSpectatorHolder<K,V> {
     return ingameMap.values();
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public Collection<V> getSpectatorValues() {
     return spectatorMap.values();
   }

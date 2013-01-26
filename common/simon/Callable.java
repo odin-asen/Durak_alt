@@ -8,7 +8,7 @@ package common.simon;
  * This interface indicates that the implementing class can be called back.
  * The interface might be implemented by a client programme.
  */
-public interface Callbackable {
+public interface Callable {
   /**
    * This method might be used by a server to notify a client.
    * @param parameter Notification for the client.

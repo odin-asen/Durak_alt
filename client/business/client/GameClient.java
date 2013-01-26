@@ -5,7 +5,7 @@ import common.dto.DTOClient;
 import common.dto.message.MessageObject;
 import common.dto.message.MessageType;
 import common.i18n.I18nSupport;
-import common.simon.Callbackable;
+import common.simon.Callable;
 import common.simon.ServerInterface;
 import common.simon.action.CardAction;
 import common.simon.action.FinishAction;
@@ -72,37 +72,38 @@ public class GameClient extends Observable implements ClosedListener {
   }
 
   /**
-   * Connects the GameClient to the server depending on the connection settings that are made
-   * either through the default settings at the initialisation or through the
-   * {@link #setConnection} method.
-   * @param dtoClient Specifies the client representation that will be logged in at the server.
+   * Connects the GameClient to the server.
+   * @param serverAddress Address of the server to connect to.
+   * @param serverPort Port of the server to connect to.
    * @param password Specifies the password that a server might need.
+   * @param dtoClient Specifies the client representation that will be logged in at the server.
    * @throws GameClientException Thrown when a connection could not be established. A user
    * message will be delivered with the Exception.
    */
   public boolean connect(String serverAddress, int serverPort, String password,
                          DTOClient dtoClient) throws GameClientException {
-    if (!connected) {
-      try {
-        nameLookup = Simon.createNameLookup(serverAddress, serverPort);
-        server = (ServerInterface) nameLookup.lookup(
-            GameConfigurationConstants.REGISTRY_NAME_SERVER);
-        nameLookup.addClosedListener(server, this);
-        connected = server.login(messageReceiver, dtoClient, password);
-        LOGGER.info(LoggingUtility.STARS+" Connected to "+getSocketAddress()
-            +" "+LoggingUtility.STARS);
-      } catch (UnknownHostException e) {
-        LOGGER.warning("Failed connection try to " + getSocketAddress());
-        throw new GameClientException(I18nSupport.getValue(USER_MESSAGES, "server.0.not.found",
-            getSocketAddress()));
-      } catch (LookupFailedException e) {
-        LOGGER.warning("LookupFailedException occured while connection: "+e.getMessage());
-        throw new GameClientException(I18nSupport.getValue(USER_MESSAGES, "could.not.find.service"));
-      } catch (EstablishConnectionFailed e) {
-        LOGGER.warning("EstablishConnectionFailed occured while connecting: " + e.getMessage());
-        throw new GameClientException(I18nSupport.getValue(USER_MESSAGES, "server.0.not.found",
-            getSocketAddress()));
-      }
+    if (connected)
+      return connected;
+
+    try {
+      nameLookup = Simon.createNameLookup(serverAddress, serverPort);
+      server = (ServerInterface) nameLookup.lookup(
+          GameConfigurationConstants.REGISTRY_NAME_SERVER);
+      nameLookup.addClosedListener(server, this);
+      connected = server.login(messageReceiver, dtoClient, password);
+      LOGGER.info(LoggingUtility.STARS+" Connected to "+getSocketAddress()
+          +" "+LoggingUtility.STARS);
+    } catch (UnknownHostException e) {
+      LOGGER.warning("Failed connection try to " + getSocketAddress());
+      throw new GameClientException(I18nSupport.getValue(USER_MESSAGES, "server.0.not.found",
+          getSocketAddress()));
+    } catch (LookupFailedException e) {
+      LOGGER.warning("LookupFailedException occurred while connection: "+e.getMessage());
+      throw new GameClientException(I18nSupport.getValue(USER_MESSAGES, "could.not.find.service"));
+    } catch (EstablishConnectionFailed e) {
+      LOGGER.warning("EstablishConnectionFailed occurred while connecting: " + e.getMessage());
+      throw new GameClientException(I18nSupport.getValue(USER_MESSAGES, "server.0.not.found",
+          getSocketAddress()));
     }
     return connected;
   }
@@ -145,10 +146,10 @@ public class GameClient extends Observable implements ClosedListener {
   }
 
   /**
-   * For attacks the card sequence is not important. If a defense request
-   * is send, the card sequence is first the defense card, second the attacker card.
-   * @param dtoClient Client information that will be send to the server.
-   * @param cards Used cards for this action.
+   * Sends an action request to the server.
+   * @param dtoClient Client information that will be send to the server. The player is decides the action type.
+   * @param attackCards Used attack cards for this action.
+   * @param defenseCards Used defense cards for this action.
    * @return True or false, if the server accepts this action or not.
    */
   public boolean sendAction(DTOClient dtoClient, List<DTOCard> attackCards,
@@ -215,10 +216,8 @@ public class GameClient extends Observable implements ClosedListener {
   }
 }
 
-@SimonRemote(value = {Callbackable.class})
-class ServerMessageReceiver implements Callbackable {
-  private static final Logger LOGGER =
-      LoggingUtility.getLogger(ServerMessageReceiver.class.getName());
+@SimonRemote(value = {Callable.class})
+class ServerMessageReceiver implements Callable {
   public void callback(Object parameter) {
     if(parameter instanceof MessageObject) {
       GameClient.getClient().receiveServerMessage((MessageObject) parameter);
