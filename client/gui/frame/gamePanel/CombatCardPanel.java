@@ -7,7 +7,7 @@ import common.i18n.I18nSupport;
 import javax.swing.*;
 import java.awt.*;
 
-import static common.i18n.BundleStrings.CLIENT_GUI;
+import static common.i18n.BundleStrings.GUI_COMPONENT;
 
 /**
  * User: Timm Herrmann
@@ -105,9 +105,9 @@ public class CombatCardPanel extends JPanel implements CurtainWidget {
   private String createToolTipText() {
     if(attackerCard != null) {
       if(defenderCard == null)
-        return I18nSupport.getValue(CLIENT_GUI,
-            "panel.tooltip.card.0.has.to.be.beaten", attackerCard.getToolTipText());
-      else return I18nSupport.getValue(CLIENT_GUI, "panel.tooltip.card.0.beats.1",
+        return I18nSupport.getValue(GUI_COMPONENT, "tooltip.card.0.has.to.be.beaten",
+            attackerCard.getToolTipText());
+      else return I18nSupport.getValue(GUI_COMPONENT, "tooltip.card.0.beats.1",
           defenderCard.getToolTipText(), attackerCard.getToolTipText());
     } else return null;
   }

@@ -14,7 +14,7 @@ import java.awt.event.ActionListener;
 
 import static client.gui.frame.ClientGUIConstants.CARD_STACK_PANEL_WIDTH;
 import static client.gui.frame.ClientGUIConstants.OPPONENT_PANEL_HEIGHT;
-import static common.i18n.BundleStrings.CLIENT_GUI;
+import static common.i18n.BundleStrings.GUI_COMPONENT;
 import static common.utilities.constants.PlayerConstants.PlayerType;
 
 /**
@@ -56,8 +56,8 @@ public class AttackerPanel extends AbstractDurakGamePanel {
     /* Game Button Panel */
     JPanel panel = getGameButtonsContainer();
     roundDoneButton = WidgetCreator.makeButton(null,
-        I18nSupport.getValue(CLIENT_GUI, "button.text.finish.round"),
-        I18nSupport.getValue(CLIENT_GUI, "button.tooltip.finish.round"), null,
+        I18nSupport.getValue(GUI_COMPONENT, "text.finish.round"),
+        I18nSupport.getValue(GUI_COMPONENT, "tooltip.finish.round"), null,
         new ActionListener() {
           public void actionPerformed(ActionEvent e) {
             if (GameClient.getClient().finishRound(Client.getOwnInstance().toDTO(),

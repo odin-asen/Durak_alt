@@ -15,7 +15,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import static common.i18n.BundleStrings.CLIENT_GUI;
+import static common.i18n.BundleStrings.GUI_ACTION;
+import static common.i18n.BundleStrings.GUI_TITLE;
 
 /**
  * User: Timm Herrmann
@@ -73,7 +74,7 @@ public abstract class AbstractDefaultDialog extends JDialog implements Changeabl
   public void change() {
     final boolean changed = valuesHaveChanged();
     if(changed)
-      setTitle(I18nSupport.getValue(CLIENT_GUI, "title.0.changed", unchangedTitle));
+      setTitle(I18nSupport.getValue(GUI_TITLE, "0.changed", unchangedTitle));
     else setTitle(unchangedTitle);
     applyButton.setEnabled(changed);
   }
@@ -82,6 +83,7 @@ public abstract class AbstractDefaultDialog extends JDialog implements Changeabl
     applyButton.setVisible(with);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   protected void withCancelButton(boolean with) {
     cancelButton.setVisible(with);
   }
@@ -144,16 +146,16 @@ public abstract class AbstractDefaultDialog extends JDialog implements Changeabl
       String text = null, tooltip = null;
       Icon icon = null;
       if(actionType == ACTION_OKAY) {
-        text = I18nSupport.getValue(CLIENT_GUI, "action.name.default.okay");
-        tooltip = I18nSupport.getValue(CLIENT_GUI, "action.tooltip.default.okay");
+        text = I18nSupport.getValue(GUI_ACTION, "name.default.okay");
+        tooltip = I18nSupport.getValue(GUI_ACTION, "tooltip.default.okay");
         icon = ResourceGetter.getGeneralIcon("action.default.okay");
       } else if(actionType == ACTION_CANCEL) {
-        text = I18nSupport.getValue(CLIENT_GUI, "action.name.default.cancel");
-        tooltip = I18nSupport.getValue(CLIENT_GUI, "action.tooltip.default.cancel");
+        text = I18nSupport.getValue(GUI_ACTION, "name.default.cancel");
+        tooltip = I18nSupport.getValue(GUI_ACTION, "tooltip.default.cancel");
         icon = ResourceGetter.getGeneralIcon("action.default.cancel");
       } else if(actionType == ACTION_APPLY) {
-        text = I18nSupport.getValue(CLIENT_GUI, "action.name.default.apply");
-        tooltip = I18nSupport.getValue(CLIENT_GUI, "action.tooltip.default.apply");
+        text = I18nSupport.getValue(GUI_ACTION, "name.default.apply");
+        tooltip = I18nSupport.getValue(GUI_ACTION, "tooltip.default.apply");
         icon = ResourceGetter.getGeneralIcon("action.default.apply");
       }
       WidgetCreator.initialiseAction(this, null, null, null, actionType.toString(), text,

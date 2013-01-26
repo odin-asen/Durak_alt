@@ -14,6 +14,7 @@ import common.utilities.constants.PlayerConstants;
  * client object. The Client class represents the information of the user that is accessable to
  * all other clients that are connected to the same server.
  */
+@SuppressWarnings("UnusedDeclaration")
 public class Client {
   private static Client ownClient;
 
@@ -26,7 +27,7 @@ public class Client {
 
   private Client() {
     String name = System.getProperty("user.name", //NON-NLS
-        I18nSupport.getValue(BundleStrings.CLIENT_GUI, "default.player.name"));
+        I18nSupport.getValue(BundleStrings.GUI_MISC, "default.player.name"));
     setName(name);
     setCardCount(0);
     setPlayerType(PlayerConstants.PlayerType.DEFAULT);
@@ -56,7 +57,7 @@ public class Client {
   }
 
   public void setCardCount(Integer cardCount) {
-    if(cardCount < 0 || cardCount == null)
+    if(cardCount < 0)
       cardCount = 0;
     this.cardCount = cardCount;
   }

@@ -19,7 +19,8 @@ import java.net.UnknownHostException;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import static common.i18n.BundleStrings.CLIENT_GUI;
+import static common.i18n.BundleStrings.GUI_COMPONENT;
+import static common.i18n.BundleStrings.GUI_TITLE;
 
 /**
  * User: Timm Herrmann
@@ -28,11 +29,10 @@ import static common.i18n.BundleStrings.CLIENT_GUI;
  *
  * This dialog shows the information of the {@link client.business.Client} and
  * {@link client.business.ConnectionInfo} objects. It can either be a dialog that makes the
- * objects of the Client and ConnectionInfo classes modifyable or it just shows their attributes.
+ * objects of the Client and ConnectionInfo classes modifiable or it just shows their attributes.
  */
 public class ConnectionDialog extends AbstractDefaultDialog {
-  private static final Logger LOGGER =
-      LoggingUtility.getLogger(ConnectionDialog.class.getName());
+  private static final Logger LOGGER = LoggingUtility.getLogger(ConnectionDialog.class.getName());
 
   private static final int STRUT_HEIGHT = 5;
   private static final int STRUT_WIDTH = 5;
@@ -44,7 +44,6 @@ public class ConnectionDialog extends AbstractDefaultDialog {
   private TwoStateComponent<JCheckBox,JLabel,Boolean> spectatorField;
 
   private boolean editable;
-  private DialogChangeListener dialogChangeListener;
 
   /* Constructors */
 
@@ -55,9 +54,9 @@ public class ConnectionDialog extends AbstractDefaultDialog {
     final JPanel dialogContent = getDialogContent();
 
     dialogContent.setLayout(new BoxLayout(dialogContent, BoxLayout.PAGE_AXIS));
-    dialogContent.add(createMainPanel(I18nSupport.getValue(CLIENT_GUI, "border.settings.server"),
+    dialogContent.add(createMainPanel(I18nSupport.getValue(GUI_TITLE, "server"),
         getServerAddressPanel(), getServerPortPanel(), getPasswordPanel()));
-    dialogContent.add(createMainPanel(I18nSupport.getValue(CLIENT_GUI, "border.settings.client"),
+    dialogContent.add(createMainPanel(I18nSupport.getValue(GUI_TITLE, "client.settings"),
         getClientNamePanel(), getSpectatorPanel()));
 
     if(editable) setConnectionButton();
@@ -73,7 +72,7 @@ public class ConnectionDialog extends AbstractDefaultDialog {
 
     setBounds(position.getRectangle());
     setResizable(false);
-    setUnchangedTitle(I18nSupport.getValue(CLIENT_GUI, "dialog.title.connection"));
+    setUnchangedTitle(I18nSupport.getValue(GUI_TITLE, "connection.settings"));
     setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     pack();
 
@@ -88,13 +87,13 @@ public class ConnectionDialog extends AbstractDefaultDialog {
   /* Methods */
 
   private void initChangeListener() {
-    dialogChangeListener = new DialogChangeListener(this);
-    nameField.getFirstComponent().addCaretListener(dialogChangeListener);
-    serverAddressField.getFirstComponent().addActionListener(dialogChangeListener);
-    serverPortField.getFirstComponent().addCaretListener(dialogChangeListener);
-    spectatorField.getFirstComponent().addActionListener(dialogChangeListener);
+    final DialogChangeListener dcListener = new DialogChangeListener(this);
+    nameField.getFirstComponent().addCaretListener(dcListener);
+    serverAddressField.getFirstComponent().addActionListener(dcListener);
+    serverPortField.getFirstComponent().addCaretListener(dcListener);
+    spectatorField.getFirstComponent().addActionListener(dcListener);
     if(editable)
-      passwordField.addCaretListener(dialogChangeListener);
+      passwordField.addCaretListener(dcListener);
     change();
   }
 
@@ -150,7 +149,7 @@ public class ConnectionDialog extends AbstractDefaultDialog {
     dispose();
   }
 
-  private ValueAccessor createTextLabelAccessor(final JTextComponent field, final JLabel label) {
+  private ValueAccessor<String> createTextLabelAccessor(final JTextComponent field, final JLabel label) {
     return new ValueAccessor<String>() {
       public String getValue() {
         return field.getText();
@@ -208,7 +207,7 @@ public class ConnectionDialog extends AbstractDefaultDialog {
     try {
       passwordField = WidgetCreator.makeTextField(JPasswordField.class,
           ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-          I18nSupport.getValue(CLIENT_GUI, "checkbox.tooltip.password"));
+          I18nSupport.getValue(GUI_COMPONENT, "tooltip.password"));
     } catch (Exception e) {
       LOGGER.severe("Error creating password panel.\nMessage: "+e.getMessage());
     }
@@ -216,19 +215,19 @@ public class ConnectionDialog extends AbstractDefaultDialog {
     if(!editable)
       return new JPanel();
 
-    return createHorizontalPanel(I18nSupport.getValue(CLIENT_GUI, "label.text.password"),
+    return createHorizontalPanel(I18nSupport.getValue(GUI_COMPONENT, "text.password"),
         passwordField);
   }
 
   private JPanel getServerPortPanel() {
     final JTextField field = WidgetCreator.makeIntegerTextField("",
         ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-        I18nSupport.getValue(CLIENT_GUI, "field.tooltip.server.port"));
+        I18nSupport.getValue(GUI_COMPONENT, "tooltip.server.port"));
     final JLabel valueLabel = new JLabel("");
     final ValueAccessor<String> accessor = createTextLabelAccessor(field, valueLabel);
     serverPortField = new TwoStateComponent<JTextField,JLabel,String>(field, valueLabel, accessor);
 
-    return createHorizontalPanel(I18nSupport.getValue(CLIENT_GUI, "label.text.port"),
+    return createHorizontalPanel(I18nSupport.getValue(GUI_COMPONENT, "text.port"),
         serverPortField.getComponent(editable));
   }
 
@@ -236,7 +235,7 @@ public class ConnectionDialog extends AbstractDefaultDialog {
     final Vector<String> comboBoxContent = new Vector<String>();
     final JComboBox<String> combobox = WidgetCreator.makeComboBox(
         comboBoxContent, 3, ClientGUIConstants.PREFERRED_FIELD_WIDTH,
-        I18nSupport.getValue(CLIENT_GUI, "combobox.tooltip.server.address"));
+        I18nSupport.getValue(GUI_COMPONENT, "tooltip.server.address"));
     combobox.addActionListener(new IPComboBoxListener(combobox, comboBoxContent));
     final JLabel valueLabel = new JLabel("");
     final ValueAccessor<String> accessor = new ValueAccessor<String>() {
@@ -249,19 +248,19 @@ public class ConnectionDialog extends AbstractDefaultDialog {
     serverAddressField = new TwoStateComponent<JComboBox<String>,JLabel,String>(
         combobox,valueLabel,accessor);
 
-    return createHorizontalPanel(I18nSupport.getValue(CLIENT_GUI, "label.text.address"),
+    return createHorizontalPanel(I18nSupport.getValue(GUI_COMPONENT, "text.address"),
         serverAddressField.getComponent(editable));
   }
 
   private JPanel getSpectatorPanel() {
     final JCheckBox checkbox = new JCheckBox(
-        I18nSupport.getValue(CLIENT_GUI, "checkbox.text.spectator"));
+        I18nSupport.getValue(GUI_COMPONENT, "text.only.watch"));
     final JLabel valueLabel = new JLabel("");
     final ValueAccessor<Boolean> accessor = new ValueAccessor<Boolean>() {
       public Boolean getValue() {return checkbox.isSelected();}
       public void setValue(Boolean value) {
-        String key = "label.text.spectator."+value.toString(); //NON-NLS
-        valueLabel.setText(I18nSupport.getValue(CLIENT_GUI, key));
+        String key = "text.spectator."+value.toString(); //NON-NLS
+        valueLabel.setText(I18nSupport.getValue(GUI_COMPONENT, key));
         checkbox.setSelected(value);
       }
     };
@@ -272,7 +271,7 @@ public class ConnectionDialog extends AbstractDefaultDialog {
     if(editable)
       panel = createHorizontalPanel(null, Box.createHorizontalStrut(STRUT_WIDTH),
           spectatorField.getComponent(editable));
-    else panel = createHorizontalPanel(I18nSupport.getValue(CLIENT_GUI, "label.text.status"),
+    else panel = createHorizontalPanel(I18nSupport.getValue(GUI_COMPONENT, "text.status"),
         spectatorField.getComponent(editable));
 
     return panel;
@@ -284,7 +283,7 @@ public class ConnectionDialog extends AbstractDefaultDialog {
     final ValueAccessor<String> accessor = createTextLabelAccessor(field, valueLabel);
     nameField = new TwoStateComponent<JTextField, JLabel, String>(field, valueLabel, accessor);
 
-    return createHorizontalPanel(I18nSupport.getValue(CLIENT_GUI, "label.text.player.name"),
+    return createHorizontalPanel(I18nSupport.getValue(GUI_COMPONENT, "text.player.name"),
         nameField.getComponent(editable));
   }
 
@@ -334,6 +333,7 @@ class TwoStateComponent<A extends JComponent, B extends JComponent,T> {
     return firstComponent;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public B getSecondComponent() {
     return secondComponent;
   }

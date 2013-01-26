@@ -15,7 +15,7 @@ import java.util.Locale;
 import java.util.logging.Logger;
 
 import static common.i18n.BundleStrings.GENERAL_FORMAT;
-import static common.i18n.BundleStrings.SERVER_GUI;
+import static common.i18n.BundleStrings.GUI_COMPONENT;
 
 /**
  * User: Timm Herrmann
@@ -84,7 +84,7 @@ public class DurakStatusBar extends JPanel implements Runnable {
     if(spectators < 0) spectators = 0;
 
     String text = takers+"/"+spectators;
-    String tooltip = I18nSupport.getValue(SERVER_GUI, "label.tooltip.takers.spectators",
+    String tooltip = I18nSupport.getValue(GUI_COMPONENT, "tooltip.takers.0.spectators.0",
         takers, spectators);
     playerCountLabel.setText(text);
     playerCountLabel.setToolTipText(tooltip);

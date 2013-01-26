@@ -7,7 +7,6 @@ import common.dto.DTOClient;
 import common.game.GameCard;
 import common.i18n.BundleStrings;
 import common.i18n.I18nSupport;
-import common.utilities.LoggingUtility;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,7 +14,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import static client.gui.frame.ClientGUIConstants.*;
 import static common.utilities.constants.PlayerConstants.PlayerType;
@@ -26,8 +24,6 @@ import static common.utilities.constants.PlayerConstants.PlayerType;
  * Time: 00:37
  */
 public class PlayerTypePanel extends JPanel {
-  private static final Logger LOGGER = LoggingUtility.getLogger(PlayerTypePanel.class.getName());
-
   private JPanel listPanel;
   private JList<DTOClient> clientList;
   private DurakStatusBar statusBar;
@@ -138,6 +134,7 @@ public class PlayerTypePanel extends JPanel {
     statusBar.setPlayerType(currentType);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void setStatus(boolean connected) {
     statusBar.setConnected(connected);
   }
@@ -269,7 +266,7 @@ public class PlayerTypePanel extends JPanel {
     final JScrollPane listScrollPane = new JScrollPane(clientList);
 
     listPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(BundleStrings.CLIENT_GUI, "border.opponents")));
+        I18nSupport.getValue(BundleStrings.GUI_TITLE, "opponents")));
     listPanel.setLayout(new BorderLayout());
     listPanel.add(listScrollPane, BorderLayout.CENTER);
     listPanel.setMinimumSize(new Dimension(0,0));
@@ -328,7 +325,7 @@ public class PlayerTypePanel extends JPanel {
       final Color foreground;
       if (client.spectating) {
         foreground = new Color(164, 164, 164);
-        this.setToolTipText(I18nSupport.getValue(BundleStrings.CLIENT_GUI, "list.tooltip.audience"));
+        this.setToolTipText(I18nSupport.getValue(BundleStrings.GUI_COMPONENT, "tooltip.audience"));
       } else {
         foreground = superComponent.getForeground();
         this.setToolTipText(null);
@@ -347,11 +344,9 @@ public class PlayerTypePanel extends JPanel {
  * {@link client.gui.frame.DurakGamePanel}.
  */
 abstract class AbstractDurakGamePanel extends JPanel implements DurakGamePanel {
-  private final Logger LOGGER = LoggingUtility.getLogger(AbstractDurakGamePanel.class.getName());
-
   private OpponentsPanel opponentsPanel;
   private GamePanel gamePanel;
-  private CardStackPanel panel;
+  private CardStackPanel cardStackPanel;
   private JPanel gameButtonsPanel;
 
   /* Methods */
@@ -381,13 +376,13 @@ abstract class AbstractDurakGamePanel extends JPanel implements DurakGamePanel {
    * @return Return a CardStackPanel object.
    */
   public CardStackPanel getCardStackContainer() {
-    if (panel != null)
-      return panel;
+    if (cardStackPanel != null)
+      return cardStackPanel;
 
-    panel = new CardStackPanel();
-    panel.setBackground(GAME_TABLE_COLOUR);
+    cardStackPanel = new CardStackPanel();
+    cardStackPanel.setBackground(GAME_TABLE_COLOUR);
 
-    return panel;
+    return cardStackPanel;
   }
 
   /**

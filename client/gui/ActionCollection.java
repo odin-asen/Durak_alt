@@ -19,7 +19,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import static common.i18n.BundleStrings.CLIENT_GUI;
+import static common.i18n.BundleStrings.GUI_ACTION;
 import static common.i18n.BundleStrings.USER_MESSAGES;
 
 /**
@@ -47,7 +47,7 @@ public class ActionCollection {
         virtualKey = KeyEvent.VK_V;
       }
       WidgetCreator.initialiseAction(this, null, null, virtualKey, null,
-          I18nSupport.getValue(CLIENT_GUI, "action.name.connection.information"),
+          I18nSupport.getValue(GUI_ACTION, "name.connection.information"),
           null, ResourceGetter.getToolbarIcon(iconString));
     }
 
@@ -68,12 +68,12 @@ public class ActionCollection {
 
       if(connect)
         WidgetCreator.initialiseAction(this, null, null, null, null,
-            I18nSupport.getValue(CLIENT_GUI, "action.name.connect"),
-            I18nSupport.getValue(CLIENT_GUI, "action.tooltip.connect"),
+            I18nSupport.getValue(GUI_ACTION, "name.connect"),
+            I18nSupport.getValue(GUI_ACTION, "tooltip.connect"),
             ResourceGetter.getToolbarIcon("toolbar.network"));
       else WidgetCreator.initialiseAction(this, null, null, null, null,
-          I18nSupport.getValue(CLIENT_GUI, "action.name.disconnect"),
-          I18nSupport.getValue(CLIENT_GUI, "action.tooltip.disconnect"),
+          I18nSupport.getValue(GUI_ACTION, "name.disconnect"),
+          I18nSupport.getValue(GUI_ACTION, "tooltip.disconnect"),
           ResourceGetter.getToolbarIcon("toolbar.network.close"));
     }
 
@@ -81,8 +81,9 @@ public class ActionCollection {
       if(connect) {
         connectClient();
       } else {
-        ClientFrame.getInstance().resetAll(
-            I18nSupport.getValue(USER_MESSAGES, "status.has.been.disconnected"), false);
+        GameClient.getClient().disconnect(false);
+        ClientFrame.getInstance().setStatus(
+            I18nSupport.getValue(USER_MESSAGES, "status.has.been.disconnected"), false, "");
       }
     }
 
@@ -110,7 +111,7 @@ public class ActionCollection {
   private static class OpenSetupAction extends AbstractAction {
     private OpenSetupAction() {
       WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_E, null,
-          "", I18nSupport.getValue(CLIENT_GUI, "action.tooltip.open.setup"),
+          "", I18nSupport.getValue(GUI_ACTION, "tooltip.open.setup"),
           ResourceGetter.getToolbarIcon("toolbar.pinion"));
     }
 
@@ -124,7 +125,7 @@ public class ActionCollection {
   private static class OpenChatAction extends AbstractAction {
     private OpenChatAction() {
       WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_C, null,
-          "", I18nSupport.getValue(CLIENT_GUI, "action.tooltip.open.chat.frame"),
+          "", I18nSupport.getValue(GUI_ACTION, "tooltip.open.chat.frame"),
           ResourceGetter.getToolbarIcon("toolbar.chat"));
     }
 

@@ -4,8 +4,6 @@ import common.dto.DTOClient;
 import common.dto.message.MessageObject;
 import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
-import common.utilities.LoggingUtility;
-import common.utilities.Miscellaneous;
 import common.utilities.constants.GameConfigurationConstants;
 import common.utilities.gui.FramePosition;
 import common.utilities.gui.WidgetCreator;
@@ -19,18 +17,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.SocketException;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.logging.Logger;
 
-import static common.i18n.BundleStrings.SERVER_GUI;
-import static common.i18n.BundleStrings.USER_MESSAGES;
+import static common.i18n.BundleStrings.*;
 import static server.gui.ServerGUIConstants.LIST_WIDTH;
 
 /**
@@ -39,8 +32,6 @@ import static server.gui.ServerGUIConstants.LIST_WIDTH;
  * Time: 19:33
  */
 public class ServerFrame extends JFrame implements Observer {
-  private static Logger LOGGER = LoggingUtility.getLogger(ServerFrame.class.getName());
-
   private static final String VERSION_NUMBER = "0.5";
   private static final String ACTION_COMMAND_START = "start"; //NON-NLS
   private static final String ACTION_COMMAND_STOP = "stop"; //NON-NLS
@@ -52,12 +43,10 @@ public class ServerFrame extends JFrame implements Observer {
   private JFormattedTextField fieldPort;
   private JPasswordField fieldPassword;
   private JScrollPane panelClientList;
-  private DurakStatusBar statusbar;
+  private DurakStatusBar statusBar;
 
-  private JList<DTOClient> clientList;
   private DefaultListModel<DTOClient> listModel;
   private JComboBox<Integer> comboStackSize;
-  private JButton buttonServer;
   private JButton buttonGame;
 
   /* Constructors */
@@ -66,8 +55,8 @@ public class ServerFrame extends JFrame implements Observer {
 
     GameServer.getServerInstance().addObserver(this);
     setTitle(MessageFormat.format("{0} - {1} {2}",
-        I18nSupport.getValue(SERVER_GUI,"application.title"),
-        I18nSupport.getValue(SERVER_GUI,"version"), VERSION_NUMBER));
+        I18nSupport.getValue(GUI_TITLE, "application.server"),
+        I18nSupport.getValue(GUI_MISC, "version"), VERSION_NUMBER));
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
@@ -88,7 +77,7 @@ public class ServerFrame extends JFrame implements Observer {
     getContentPane().add(getToolbar(), BorderLayout.PAGE_START);
     getContentPane().add(getPanelClientList(), BorderLayout.LINE_START);
     getContentPane().add(getPanelSettings(), BorderLayout.CENTER);
-    getContentPane().add(getStatusbar(), BorderLayout.PAGE_END);
+    getContentPane().add(getStatusBar(), BorderLayout.PAGE_END);
   }
 
   public Integer getStackSize() {
@@ -110,7 +99,7 @@ public class ServerFrame extends JFrame implements Observer {
       else playing++;
       listModel.add(listModel.size(), client);
     }
-    statusbar.setPlayerCount(playing, spectating);
+    statusBar.setPlayerCount(playing, spectating);
   }
 
   private void handleUpdate(MessageObject object) {
@@ -123,6 +112,7 @@ public class ServerFrame extends JFrame implements Observer {
     }
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   private void removeClient(DTOClient client) {
     for (int i = 0; i < listModel.size(); i++) {
       if(listModel.get(i).equals(client)) {
@@ -133,7 +123,7 @@ public class ServerFrame extends JFrame implements Observer {
   }
 
   public void setStatusBarText(String status) {
-    statusbar.setText(status);
+    statusBar.setText(status);
   }
 
   public Integer getPortValue() {
@@ -142,16 +132,16 @@ public class ServerFrame extends JFrame implements Observer {
 
   /* Getter and Setter */
 
-  private JPanel getStatusbar() {
-    if(statusbar != null)
-      return statusbar;
+  private JPanel getStatusBar() {
+    if(statusBar != null)
+      return statusBar;
 
-    statusbar = new DurakStatusBar();
+    statusBar = new DurakStatusBar();
 
-    statusbar.setText(I18nSupport.getValue(USER_MESSAGES, "status.server.inactive"));
-    statusbar.setPreferredSize(new Dimension(0, 16));
+    statusBar.setText(I18nSupport.getValue(USER_MESSAGES, "status.server.inactive"));
+    statusBar.setPreferredSize(new Dimension(0, 16));
 
-    return statusbar;
+    return statusBar;
   }
 
   private JToolBar getToolbar() {
@@ -159,7 +149,7 @@ public class ServerFrame extends JFrame implements Observer {
       return toolbar;
 
     toolbar = new JToolBar();
-    buttonServer = new JButton(new ServerStartStop(true));
+    JButton buttonServer = new JButton(new ServerStartStop(true));
     buttonGame = new JButton(new GameStartStop(true));
 
     toolbar.setMargin(new Insets(5, 5, 5, 5));
@@ -198,15 +188,15 @@ public class ServerFrame extends JFrame implements Observer {
     fieldPort.setText(GameConfigurationConstants.DEFAULT_PORT.toString());
 
     fieldPassword = new JPasswordField();                                     //TODO SERVER_GUI und CLIENT_GUI zu GUI zusammenführen
-    fieldPassword.setToolTipText(I18nSupport.getValue(SERVER_GUI, "label.tooltip.password"));
+    fieldPassword.setToolTipText(I18nSupport.getValue(GUI_COMPONENT, "tooltip.password"));
 
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(SERVER_GUI, "border.server")));
+        I18nSupport.getValue(GUI_TITLE, "server")));
     panel.add(getGridLinePanel(
-        new JLabel(I18nSupport.getValue(SERVER_GUI, "label.text.port")), fieldPort));
+        new JLabel(I18nSupport.getValue(GUI_COMPONENT, "text.port")), fieldPort));
     panel.add(getGridLinePanel(
-        new JLabel(I18nSupport.getValue(SERVER_GUI, "label.text.password")), fieldPassword));
+        new JLabel(I18nSupport.getValue(GUI_COMPONENT, "text.password")), fieldPassword));
     panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
 
     return panel;
@@ -221,10 +211,6 @@ public class ServerFrame extends JFrame implements Observer {
 
     return panel;
   }
-  private JPanel getPasswordPanel() {
-    final JPanel panel = new JPanel();
-    return panel;
-  }
 
   private JScrollPane getPanelClientList() {
     if(panelClientList != null)
@@ -232,7 +218,7 @@ public class ServerFrame extends JFrame implements Observer {
 
     panelClientList = new JScrollPane();
     listModel = new DefaultListModel<DTOClient>();
-    clientList = new JList<DTOClient>(listModel);
+    JList<DTOClient> clientList = new JList<DTOClient>(listModel);
     clientList.setCellRenderer(new DefaultListCellRenderer());
     clientList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     panelClientList.setPreferredSize(new Dimension(LIST_WIDTH, panelClientList.getPreferredSize().height));
@@ -246,20 +232,16 @@ public class ServerFrame extends JFrame implements Observer {
 
     comboStackSize = new JComboBox<Integer>(new Integer[]{12,36,40,44,48,52});
     comboStackSize.setEditable(false);
-    comboStackSize.setToolTipText(I18nSupport.getValue(SERVER_GUI, "combo.box.tooltip.card.number"));
+    comboStackSize.setToolTipText(I18nSupport.getValue(GUI_COMPONENT, "tooltip.card.number"));
 
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(SERVER_GUI, "border.game")));
+        I18nSupport.getValue(GUI_TITLE, "game")));
     panel.add(getGridLinePanel(
-        new JLabel(I18nSupport.getValue(SERVER_GUI, "label.text.card.number")), comboStackSize));
+        new JLabel(I18nSupport.getValue(GUI_COMPONENT, "text.card.number")), comboStackSize));
     panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, panel.getPreferredSize().height));
 
     return panel;
-  }
-
-  public DefaultListModel<DTOClient> getClientList() {
-    return (DefaultListModel<DTOClient>) clientList.getModel();
   }
 
   /* Inner Classes */
@@ -272,11 +254,11 @@ public class ServerFrame extends JFrame implements Observer {
     private void setAction(boolean start) {
       if(start) {
         WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_S, ACTION_COMMAND_START,
-            "", I18nSupport.getValue(SERVER_GUI, "button.tooltip.start.server"),
+            "", I18nSupport.getValue(GUI_COMPONENT, "tooltip.start.server"),
             ResourceGetter.getToolbarIcon("toolbar.play"));
       } else {
         WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_S, ACTION_COMMAND_STOP,
-            "", I18nSupport.getValue(SERVER_GUI, "button.tooltip.stop.server"),
+            "", I18nSupport.getValue(GUI_COMPONENT, "tooltip.stop.server"),
             ResourceGetter.getToolbarIcon("toolbar.stop.player"));
       }
     }
@@ -297,12 +279,6 @@ public class ServerFrame extends JFrame implements Observer {
       final GameServer gameServer = GameServer.getServerInstance(getPortValue());
 
       try {
-        String ipAddress;
-        try {
-          ipAddress = Miscellaneous.getHostInetAddress(Inet4Address.class).getHostAddress();
-        } catch (SocketException e) {
-          ipAddress = InetAddress.getLoopbackAddress().getHostAddress();
-        }
         gameServer.startServer(String.copyValueOf(fieldPassword.getPassword()));
         setStatusBarText(I18nSupport.getValue(USER_MESSAGES, "status.server.running"));
       } catch (GameServerException e) {
@@ -330,11 +306,11 @@ public class ServerFrame extends JFrame implements Observer {
     private void setAction(boolean start) {
       if(start) {
         WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_G, ACTION_COMMAND_START_GAME,
-            "", I18nSupport.getValue(SERVER_GUI, "action.short.description.start.game"),
+            "", I18nSupport.getValue(GUI_ACTION, "tooltip.start.game"),
             ResourceGetter.getToolbarIcon("toolbar.game.start"));
       } else {
         WidgetCreator.initialiseAction(this, null, null, KeyEvent.VK_G, ACTION_COMMAND_STOP_GAME,
-            "", I18nSupport.getValue(SERVER_GUI, "action.short.description.stop.game"),
+            "", I18nSupport.getValue(GUI_ACTION, "tooltip.stop.game"),
             ResourceGetter.getToolbarIcon("toolbar.game.stop"));
       }
     }

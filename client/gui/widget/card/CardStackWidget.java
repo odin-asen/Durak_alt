@@ -10,17 +10,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
-import static common.i18n.BundleStrings.CLIENT_GUI;
+import static common.i18n.BundleStrings.GUI_COMPONENT;
 
 /**
  * User: Timm Herrmann
  * Date: 06.10.12
  * Time: 03:57
  */
+@SuppressWarnings("UnusedDeclaration")
 public class CardStackWidget extends JComponent {
   public static final int ORIENTATION_HORIZONTAL = 0;
   public static final int ORIENTATION_VERTICAL = 1;
-  public static final float ALIGNMENT_CARD_HEIGHT = 0.9f;
   public static final float TRUMP_VISIBILITY = 0.5f;
   public static final float RATIO_WIDTH_TO_HEIGHT = 0.69f;
   /* Defines the relative distance to the borders */
@@ -38,7 +38,6 @@ public class CardStackWidget extends JComponent {
   /**
    * Constructs a card stack widget.
    * @param orientation The orientation sets the orientation of back cards.
-   * @param heightLimit Limits the height of the back cards in pixel.
    */
   public CardStackWidget(int orientation) {
     cardBack = ClientGUIConstants.CARD_BACK;
@@ -50,12 +49,6 @@ public class CardStackWidget extends JComponent {
 
     cardCount = 0;
     updateTooltip();
-  }
-
-  public CardStackWidget(ImageIcon cardBack, ImageIcon trumpCard, int orientation) {
-    this(orientation);
-    this.cardBack = cardBack;
-    this.trumpCard = trumpCard;
   }
 
   /* Methods */
@@ -143,9 +136,10 @@ public class CardStackWidget extends JComponent {
   }
 
   public void updateTooltip() {
-    setToolTipText(
-        I18nSupport.getValue(CLIENT_GUI, "card.stack.tooltip.card.number.0.trump.colour.1",
+    if(trump != null)
+      setToolTipText(I18nSupport.getValue(GUI_COMPONENT, "tooltip.card.number.0.trump.colour.1",
         cardCount, trump.cardColour.getName()));
+    else setToolTipText(null);
   }
 
   /* Getter and Setter */

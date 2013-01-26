@@ -12,7 +12,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import static client.gui.frame.ClientGUIConstants.*;
-import static common.i18n.BundleStrings.CLIENT_GUI;
+import static common.i18n.BundleStrings.GUI_COMPONENT;
+import static common.i18n.BundleStrings.GUI_TITLE;
 
 /**
  * User: Timm Herrmann
@@ -45,7 +46,7 @@ public class ChatFrame extends JDialog {
     initComponents();
 
     setBounds(position.getRectangle());
-    setTitle(I18nSupport.getValue(CLIENT_GUI, "frame.title.chat"));
+    setTitle(I18nSupport.getValue(GUI_TITLE, "chat"));
     setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
   }
 
@@ -123,7 +124,7 @@ public class ChatFrame extends JDialog {
 
     buttonPanel = new JPanel();
 
-    sendButton = new JButton(I18nSupport.getValue(CLIENT_GUI,"button.text.send"));
+    sendButton = new JButton(I18nSupport.getValue(GUI_COMPONENT, "text.send"));
     sendButton.setActionCommand(ACTION_COMMAND_SEND);
     sendButton.addActionListener(buttonListener);
 
@@ -181,8 +182,8 @@ public class ChatFrame extends JDialog {
           chatWriteArea.setText("");
         } else {
           JOptionPane.showMessageDialog(chatFrame,
-              I18nSupport.getValue(CLIENT_GUI,"dialog.text.error.chat.message.not.send"),
-              I18nSupport.getValue(CLIENT_GUI,"dialog.title.error"), JOptionPane.ERROR_MESSAGE);
+              I18nSupport.getValue(GUI_COMPONENT, "text.error.chat.message.not.send"),
+              I18nSupport.getValue(GUI_TITLE, "error"), JOptionPane.ERROR_MESSAGE);
         }
       }
     }

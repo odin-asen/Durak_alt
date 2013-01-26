@@ -75,7 +75,7 @@ public class DurakStatusBar extends JPanel implements Runnable {
     clockLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     gameStatusLabel.setBorder(border);
     gameStatusLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-    gameStatusLabel.setToolTipText(I18nSupport.getValue(CLIENT_GUI,"label.tooltip.game.status"));
+    gameStatusLabel.setToolTipText(I18nSupport.getValue(GUI_COMPONENT, "tooltip.game.status"));
     connectionLabel.setBorder(border);
     connectionLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 

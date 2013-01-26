@@ -33,8 +33,7 @@ import java.util.Observer;
 import java.util.logging.Logger;
 
 import static client.gui.frame.ClientGUIConstants.*;
-import static common.i18n.BundleStrings.CLIENT_GUI;
-import static common.i18n.BundleStrings.USER_MESSAGES;
+import static common.i18n.BundleStrings.*;
 import static common.utilities.constants.PlayerConstants.PlayerType;
 
 /**
@@ -46,7 +45,7 @@ public class ClientFrame extends JFrame implements Observer {
   private static ClientFrame frameInstance;
   private final Logger LOGGER = LoggingUtility.getLogger(ClientFrame.class.getName());
 
-  private static final String VERSION_NUMBER = "0.2";
+  private static final String VERSION_NUMBER = "0.5";
 
   private MessageHandler handler;
   private UserMessageDistributor messenger;
@@ -65,8 +64,8 @@ public class ClientFrame extends JFrame implements Observer {
 
     setIconImages(ResourceGetter.getApplicationIcons());
     setTitle(MessageFormat.format("{0} - {1} {2}",
-        I18nSupport.getValue(CLIENT_GUI,"application.title"),
-        I18nSupport.getValue(CLIENT_GUI,"version"), VERSION_NUMBER));
+        I18nSupport.getValue(GUI_TITLE, "application.client"),
+        I18nSupport.getValue(GUI_MISC, "version"), VERSION_NUMBER));
     setBounds(position.getRectangle());
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     addWindowListener(new WindowAdapter() {
@@ -106,7 +105,7 @@ public class ClientFrame extends JFrame implements Observer {
         final Action openChatAction =
             WidgetCreator.createActionCopy(ActionCollection.OPEN_CHAT_DIALOG);
         openChatAction.putValue(Action.NAME,
-            I18nSupport.getValue(CLIENT_GUI, "action.name.open.chat"));
+            I18nSupport.getValue(GUI_ACTION, "name.open.chat"));
         WidgetCreator.createPopup(USER_MESSAGE_INFO_COLOUR, message, openChatAction,
             true, getBounds(), DurakPopup.LOCATION_DOWN_LEFT,
             popupSettings.getChat().getDuration()).setVisible(true);
@@ -202,13 +201,16 @@ public class ClientFrame extends JFrame implements Observer {
    * gui, e.g. the picture of the connection toolbar button, the picture in the status bar,
    * etc...
    * @param mainText Text to set to the status bar.
-   * @param connected Indicates whether the client is connected or not.
+   * @param connected Indicates whether the client is connected or not. If {@code connected} is
+   *                  false, {@link #resetAll(boolean)} with true will be called.
    * @param serverAddress Shows the server address as tooltip.
    */
   public void setStatus(String mainText, boolean connected, String serverAddress) {
     centrePanel.setStatus(mainText);
     centrePanel.setStatus(connected, serverAddress);
     toolBar.setConnection(connected);
+    if(!connected)
+      resetAll(true);
   }
 
   /**
@@ -222,6 +224,7 @@ public class ClientFrame extends JFrame implements Observer {
   /* Getter and Setter */
   /* Inner Classes */
 
+  @SuppressWarnings("unchecked")
   private class MessageHandler {
     void handleUpdate(MessageObject object) {
       if(object == null)
@@ -304,6 +307,7 @@ public class ClientFrame extends JFrame implements Observer {
     }
 
     /* Reads the attacker cards and defender cards out of the list and writes them in */
+    @SuppressWarnings("UnusedAssignment")
     private void prepareInGameCards(List<List<DTOCard>> cards, List<DTOCard> attackerCards,
                                     List<DTOCard> defenderCards) {
       if(cards != null) {
@@ -312,8 +316,8 @@ public class ClientFrame extends JFrame implements Observer {
           Miscellaneous.addAllToCollection(defenderCards, cards.get(1));
         } else {
           JOptionPane.showMessageDialog(frameInstance,
-              I18nSupport.getValue(CLIENT_GUI,"dialog.text.error.server.error"),
-              I18nSupport.getValue(CLIENT_GUI,"dialog.title.error"),
+              I18nSupport.getValue(GUI_COMPONENT, "text.server.error.occurred"),
+              I18nSupport.getValue(GUI_TITLE, "error"),
               JOptionPane.ERROR_MESSAGE);
           LOGGER.severe("Server sends the wrong format for the client!");
         }
@@ -325,17 +329,13 @@ public class ClientFrame extends JFrame implements Observer {
 
     private String buildChatAnswer(MessageObject object) {
       final ChatMessage chatMessage = (ChatMessage) object.getSendingObject();
-      String message = Miscellaneous.getChatMessage(chatMessage.getSender().name,
+      return Miscellaneous.getChatMessage(chatMessage.getSender().name,
           chatMessage.getMessage());
-      return message;
     }
   }
 }
 
 class UserMessageDistributor {
-  private static final Logger LOGGER =
-      LoggingUtility.getLogger(UserMessageDistributor.class.getName());
-
   void gameOverMessage(PlayerType type) {
     if(type.equals(PlayerType.NOT_LOSER)) {
       showNotLoserOption();
@@ -348,12 +348,12 @@ class UserMessageDistributor {
 
   private void showNotLoserOption() {
     final String message =
-        I18nSupport.getValue(CLIENT_GUI,"dialog.text.game.finished.not.loser");
+        I18nSupport.getValue(GUI_COMPONENT, "text.game.finished.not.loser");
     final Object[] strings =
-        new Object[]{I18nSupport.getValue(CLIENT_GUI,"dialog.button.play.again"),
-            I18nSupport.getValue(CLIENT_GUI,"dialog.button.option.no")};
+        new Object[]{I18nSupport.getValue(GUI_COMPONENT, "text.play.again"),
+            I18nSupport.getValue(GUI_COMPONENT, "text.no.thanks")};
     int option = JOptionPane.showOptionDialog(ClientFrame.getInstance(), message,
-        I18nSupport.getValue(CLIENT_GUI,"dialog.title.game.finished"),
+        I18nSupport.getValue(GUI_TITLE, "game.finished"),
         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[0]);
     if(option != 0) {
       updateInformation(true);
@@ -362,12 +362,12 @@ class UserMessageDistributor {
 
   private void showLoserOption() {
     final String message =
-        I18nSupport.getValue(CLIENT_GUI,"dialog.text.game.finished.loser");
+        I18nSupport.getValue(GUI_COMPONENT, "text.game.finished.loser");
     final Object[] strings =
-        new Object[]{I18nSupport.getValue(CLIENT_GUI,"dialog.button.play.again.revenge"),
-            I18nSupport.getValue(CLIENT_GUI,"dialog.button.option.no")};
+        new Object[]{I18nSupport.getValue(GUI_COMPONENT, "text.play.again.revenge"),
+            I18nSupport.getValue(GUI_COMPONENT, "text.no.thanks")};
     int option = JOptionPane.showOptionDialog(ClientFrame.getInstance(), message,
-        I18nSupport.getValue(CLIENT_GUI,"dialog.title.game.finished"),
+        I18nSupport.getValue(GUI_TITLE, "game.finished"),
         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[0]);
     if(option != 0) {
       updateInformation(true);
@@ -376,12 +376,12 @@ class UserMessageDistributor {
 
   private void showNoPlayerOption() {
     final String message =
-        I18nSupport.getValue(CLIENT_GUI,"dialog.text.game.finished.no.player");
+        I18nSupport.getValue(GUI_COMPONENT, "text.game.finished.no.player");
     final Object[] strings =
-        new Object[]{I18nSupport.getValue(CLIENT_GUI,"dialog.button.join.game"),
-            I18nSupport.getValue(CLIENT_GUI,"dialog.button.option.no")};
+        new Object[]{I18nSupport.getValue(GUI_COMPONENT, "text.join.game"),
+            I18nSupport.getValue(GUI_COMPONENT, "text.no.thanks")};
     int option = JOptionPane.showOptionDialog(ClientFrame.getInstance(), message,
-        I18nSupport.getValue(CLIENT_GUI,"dialog.title.game.finished"),
+        I18nSupport.getValue(GUI_TITLE, "game.finished"),
         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, strings, strings[1]);
     if(option == 0) {
       updateInformation(false);

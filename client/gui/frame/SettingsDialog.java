@@ -16,7 +16,8 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.logging.Logger;
 
-import static common.i18n.BundleStrings.CLIENT_GUI;
+import static common.i18n.BundleStrings.GUI_COMPONENT;
+import static common.i18n.BundleStrings.GUI_TITLE;
 
 /**
  * User: Timm Herrmann
@@ -37,13 +38,10 @@ public class SettingsDialog extends AbstractDefaultDialog {
   private PopupSettingPanel panelPopupRule;
   private JComboBox<FlagLocale> comboboxLanguage;
   private JCheckBox checkboxSoundRule;
-  private DialogChangeListener dialogChangeListener;
 
   /* Constructors */
 
   public SettingsDialog() {
-    final GlobalSettings settings = GlobalSettings.getInstance();
-
     final JPanel dialogContent = getDialogContent();
 
     dialogContent.setLayout(new BoxLayout(dialogContent, BoxLayout.PAGE_AXIS));
@@ -58,7 +56,7 @@ public class SettingsDialog extends AbstractDefaultDialog {
 
     setBounds(position.getRectangle());
     setResizable(false);
-    setUnchangedTitle(I18nSupport.getValue(CLIENT_GUI, "dialog.title.settings"));
+    setUnchangedTitle(I18nSupport.getValue(GUI_TITLE, "settings"));
     resetContent();
     pack();
     initChangeListener();
@@ -72,13 +70,13 @@ public class SettingsDialog extends AbstractDefaultDialog {
   }
 
   private void initChangeListener() {
-    dialogChangeListener = new DialogChangeListener(this);
-    checkboxPopups.addActionListener(dialogChangeListener);
-    panelPopupChat.addChangeListener(dialogChangeListener);
-    panelPopupGame.addChangeListener(dialogChangeListener);
-    panelPopupRule.addChangeListener(dialogChangeListener);
-    checkboxSoundRule.addActionListener(dialogChangeListener);
-    comboboxLanguage.addActionListener(dialogChangeListener);
+    final DialogChangeListener dcListener = new DialogChangeListener(this);
+    checkboxPopups.addActionListener(dcListener);
+    panelPopupChat.addChangeListener(dcListener);
+    panelPopupGame.addChangeListener(dcListener);
+    panelPopupRule.addChangeListener(dcListener);
+    checkboxSoundRule.addActionListener(dcListener);
+    comboboxLanguage.addActionListener(dcListener);
     change();
   }
 
@@ -160,10 +158,10 @@ public class SettingsDialog extends AbstractDefaultDialog {
     comboboxLanguage.setRenderer(new LocaleRenderer());
 
     generalPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_GUI, "border.settings.general")));
+        I18nSupport.getValue(GUI_TITLE, "general")));
     generalPanel.setLayout(new BoxLayout(generalPanel, BoxLayout.LINE_AXIS));
 
-    generalPanel.add(new JLabel(I18nSupport.getValue(CLIENT_GUI, "label.text.language")));
+    generalPanel.add(new JLabel(I18nSupport.getValue(GUI_COMPONENT, "text.language")));
     generalPanel.add(Box.createGlue());
     generalPanel.add(comboboxLanguage);
 
@@ -174,13 +172,9 @@ public class SettingsDialog extends AbstractDefaultDialog {
     if(popupsPanel != null)
       return popupsPanel;
 
-    final JPanel chatPanel = new JPanel();
-    final JPanel gamePanel = new JPanel();
-    final JPanel rulePanel = new JPanel();
-
     popupsPanel = new JPanel();
 
-    checkboxPopups = new JCheckBox(I18nSupport.getValue(CLIENT_GUI, "checkbox.text.enabled"));
+    checkboxPopups = new JCheckBox(I18nSupport.getValue(GUI_COMPONENT, "text.enabled"));
     checkboxPopups.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         final boolean selected = checkboxPopups.isSelected();
@@ -189,12 +183,12 @@ public class SettingsDialog extends AbstractDefaultDialog {
         panelPopupRule.setEnabled(selected);
       }
     });
-    panelPopupChat = new PopupSettingPanel(I18nSupport.getValue(CLIENT_GUI, "border.chat"));
-    panelPopupGame = new PopupSettingPanel(I18nSupport.getValue(CLIENT_GUI, "border.ingame"));
-    panelPopupRule = new PopupSettingPanel(I18nSupport.getValue(CLIENT_GUI, "border.rule"));
+    panelPopupChat = new PopupSettingPanel(I18nSupport.getValue(GUI_TITLE, "chat"));
+    panelPopupGame = new PopupSettingPanel(I18nSupport.getValue(GUI_TITLE, "ingame"));
+    panelPopupRule = new PopupSettingPanel(I18nSupport.getValue(GUI_TITLE, "rules"));
 
     popupsPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_GUI, "border.settings.popups")));
+        I18nSupport.getValue(GUI_TITLE, "popups")));
     popupsPanel.setLayout(new BoxLayout(popupsPanel, BoxLayout.PAGE_AXIS));
 
     final JPanel panel = new JPanel();
@@ -216,10 +210,10 @@ public class SettingsDialog extends AbstractDefaultDialog {
     soundPanel = new JPanel();
 
     checkboxSoundRule = new JCheckBox(
-        I18nSupport.getValue(CLIENT_GUI, "checkbox.text.rule.exception"));
+        I18nSupport.getValue(GUI_COMPONENT, "text.rule.exception"));
 
     soundPanel.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_GUI, "border.settings.sound")));
+        I18nSupport.getValue(GUI_TITLE, "sound")));
     soundPanel.setLayout(new GridLayout());
     soundPanel.add(checkboxSoundRule);
 
@@ -231,8 +225,7 @@ public class SettingsDialog extends AbstractDefaultDialog {
   private class LocaleRenderer extends DefaultListCellRenderer {
     public Component getListCellRendererComponent(JList<?> list, Object value,
                                         int index, boolean isSelected, boolean cellHasFocus) {
-      final Component superComponent =
-          super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
       if(value == null)
         return this;
@@ -290,7 +283,7 @@ class PopupSettingPanel extends JPanel {
     if(checkboxEnabled != null)
       return checkboxEnabled;
 
-    checkboxEnabled = new JCheckBox(I18nSupport.getValue(CLIENT_GUI, "checkbox.text.enabled"));
+    checkboxEnabled = new JCheckBox(I18nSupport.getValue(GUI_COMPONENT, "text.enabled"));
     checkboxEnabled.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         final boolean enabled = checkboxEnabled.isSelected() && isEnabled();
@@ -311,7 +304,7 @@ class PopupSettingPanel extends JPanel {
 
     panelDuration.setLayout(new FlowLayout(FlowLayout.LEADING));
     panelDuration.setBorder(BorderFactory.createTitledBorder(
-        I18nSupport.getValue(CLIENT_GUI, "border.duration.seconds")));
+        I18nSupport.getValue(GUI_TITLE, "duration.seconds")));
     panelDuration.add(sliderDuration);
     panelDuration.add(spinnerDuration);
     panelDuration.setMaximumSize(panelDuration.getPreferredSize());

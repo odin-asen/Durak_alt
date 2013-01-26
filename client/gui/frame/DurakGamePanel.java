@@ -12,10 +12,10 @@ import javax.swing.*;
  */
 public interface DurakGamePanel {
   /**
-   * Enables the game buttons depending on wheter the round was finished or not.
+   * Enables the game buttons depending on whether the round was finished or not.
    *
-   * @param roundFinished Indicates wheter the round was finished or not.
-   * @param attackerFinished
+   * @param roundFinished Indicates whether the round was finished or not.
+   * @param attackerFinished Indicates whether all attackers finished or not.
    */
   void enableGameButtons(boolean roundFinished, boolean attackerFinished);
 
@@ -28,33 +28,29 @@ public interface DurakGamePanel {
    * Returns a widget that contains all buttons that are necessary for a game, e.g.
    * take cards or finish round.
    *
-   * @param <T> A class that extends JPanel or a JPanel itself.
    * @return The panel for the game buttons.
    */
-  <T extends JComponent> T getGameButtonsContainer();
+  JComponent getGameButtonsContainer();
 
   /**
    * Returns a widget where the opponents will be displayed.
    *
-   * @param <T> A class that extends JPanel or a JPanel itself.
    * @return The panel for the opponent widgets.
    */
-  <T extends JComponent> T getOpponentsContainer();
+  JComponent getOpponentsContainer();
 
   /**
    * Returns the panel where the game cards will be displayed. This includes
    * the cards on the hand as well as the cards on the table.
    *
-   * @param <T> A class that extends JPanel or a JPanel itself.
    * @return The panel for the game process display.
    */
-  <T extends JComponent> T getGameProcessContainer();
+  JComponent getGameProcessContainer();
 
   /**
    * Returns the panel that shows the card stack of the game.
    *
-   * @param <T> A class that extends JPanel or a JPanel itself.
    * @return The panel that shows the card stack of the game.
    */
-  <T extends JComponent> T getCardStackContainer();
+  JComponent getCardStackContainer();
 }
