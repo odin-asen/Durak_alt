@@ -27,9 +27,12 @@ public class CombatCardPanel extends JPanel implements CurtainWidget {
   private boolean paintCurtain;
 
   /* Constructors */
+
   public CombatCardPanel() {
     paintCurtain = false;
     cardDimension = new Dimension();
+    setAttackerCard(null);
+    setDefenderCard(null);
     this.setLayout(null);
     this.setBackground(ClientGUIConstants.GAME_TABLE_COLOUR);
   }
@@ -93,11 +96,11 @@ public class CombatCardPanel extends JPanel implements CurtainWidget {
   private GameCardWidget addCard(GameCardWidget oldWidget, GameCardWidget newWidget) {
     if (oldWidget != null)
       remove(oldWidget);
-    if(newWidget != null) {
-      newWidget.setCardMoveListener(null);
-      newWidget.setMovable(false);
-      add(newWidget);
-    } else newWidget = new GameCardWidget();
+    if(newWidget == null)
+      newWidget = new GameCardWidget();
+    newWidget.setCardMoveListener(null);
+    newWidget.setMovable(false);
+    add(newWidget);
 
     return newWidget;
   }
@@ -126,6 +129,20 @@ public class CombatCardPanel extends JPanel implements CurtainWidget {
 
   public boolean hasAttackerCard() {
     return (attackerCard.getCardInfo() != null);
+  }
+
+  public String toString() {
+    String attackerString = null, defenderString = null;
+    if(attackerCard != null && attackerCard.getCardInfo() != null)
+      attackerString = attackerCard.getCardInfo().toString();
+    if(defenderCard != null && defenderCard.getCardInfo() != null)
+      defenderString = defenderCard.getCardInfo().toString();
+    return "CombatCardPanel{" +
+        "attackerCard=" + attackerString +
+        ", defenderCard=" + defenderString +
+        ", cardDimension=" + cardDimension +
+        ", paintCurtain=" + paintCurtain +
+        '}';
   }
 
   /* Getter and Setter */

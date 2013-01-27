@@ -151,21 +151,24 @@ public class ClientFrame extends JFrame implements Observer {
    * @param statusText Text to be shown in the status bar. If null, nothing will be shown.
    * @param clientList True, empty the client list. False, don't empty the client list.
    */
-  public void resetAll(String statusText, boolean clientList) {
+  public void resetAll(String statusText, boolean clientList, boolean gameFinishedProperly) {
     if(statusText != null) {
       addChatMessage(statusText, true);
       showWarningPopup(statusText);
     }
-    resetAll(clientList);
+    resetAll(clientList, gameFinishedProperly);
   }
 
   /**
    * Resets all game widgets. Depending on the parameter it also empties the client list.
    * @param clientList True, empty the client list. False, don't empty the client list.
+   * @param gameFinishedProperly True, deletes all except the opponent panels.
+   *                             False, deletes all widgets.
    */
-  public void resetAll(boolean clientList) {
-    centrePanel.resetGameWidgets();
-    centrePanel.setPlayerType(PlayerType.DEFAULT);
+  public void resetAll(boolean clientList, boolean gameFinishedProperly) {
+    centrePanel.resetGameWidgets(true, !gameFinishedProperly, true);
+    if(!gameFinishedProperly)
+      centrePanel.setPlayerType(PlayerType.DEFAULT);
     if(clientList)
       centrePanel.updateClients(null);
   }
@@ -202,7 +205,8 @@ public class ClientFrame extends JFrame implements Observer {
    * etc...
    * @param mainText Text to set to the status bar.
    * @param connected Indicates whether the client is connected or not. If {@code connected} is
-   *                  false, {@link #resetAll(boolean)} with true will be called.
+   *                  false, {@link #resetAll(boolean,boolean)} with true for both parameters
+   *                  will be called.
    * @param serverAddress Shows the server address as tooltip.
    */
   public void updateGUIStatus(String mainText, boolean connected, String serverAddress) {
@@ -210,7 +214,7 @@ public class ClientFrame extends JFrame implements Observer {
     centrePanel.setStatus(connected, serverAddress);
     toolBar.setConnection(connected);
     if(!connected)
-      resetAll(true);
+      resetAll(true,true);
   }
 
   /**
@@ -255,7 +259,7 @@ public class ClientFrame extends JFrame implements Observer {
         showErrorPopup(message);
         updateGUIStatus(message, false, "");
         addChatMessage(message, true);
-        resetAll(true);
+        resetAll(true, false);
       }
     }
 
@@ -275,10 +279,12 @@ public class ClientFrame extends JFrame implements Observer {
 
     private void handleGameUpdateType(MessageObject object) {
       if(GameUpdateType.INITIALISE_PLAYERS.equals(object.getType())) {
-        centrePanel.initOpponents((List<DTOClient>) object.getSendingObject());
+        centrePanel.updateOpponents(filterOpponents((List<DTOClient>) object.getSendingObject()),
+            false);
         setStatus("");
       } else if(GameUpdateType.PLAYERS_UPDATE.equals(object.getType())) {
-        centrePanel.updateOpponents((List<DTOClient>) object.getSendingObject(), false);
+        centrePanel.updateOpponents(filterOpponents((List<DTOClient>) object.getSendingObject()),
+            false);
         setStatus("");
       } else if(GameUpdateType.STACK_UPDATE.equals(object.getType())) {
         centrePanel.updateStack((DTOCardStack) object.getSendingObject());
@@ -297,16 +303,29 @@ public class ClientFrame extends JFrame implements Observer {
         final String message =
             I18nSupport.getValue(USER_MESSAGES, "game.canceled.0", object.getSendingObject());
         setStatus(message);
-        resetAll(message, false);
+        resetAll(message, false, false);
         LOGGER.info(LoggingUtility.STARS+" Game canceled "+LoggingUtility.STARS);
       } else if(GameUpdateType.GAME_FINISHED.equals(object.getType())) {
         showGameOverMessage();
         final String message = I18nSupport.getValue(USER_MESSAGES, "game.finished");
         setStatus(message);
         addChatMessage(message, true);
-        resetAll(false);
+        resetAll(false, true);
         LOGGER.info(LoggingUtility.STARS+" Game finished "+LoggingUtility.STARS);
       }
+    }
+
+    private List<DTOClient> filterOpponents(List<DTOClient> clientList) {
+      if(clientList == null)
+        return null;
+
+      final List<DTOClient> opponents = new ArrayList<DTOClient>(clientList.size());
+      final DTOClient self = Client.getOwnInstance().toDTO();
+      for (DTOClient client : clientList) {
+        if(Miscellaneous.CLIENT_COMPARATOR.compare(client, self) != 0)
+          opponents.add(client);
+      }
+      return opponents;
     }
 
     /* Reads the attacker cards and defender cards out of the list and writes them in */

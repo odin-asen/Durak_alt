@@ -3,6 +3,8 @@ package client.gui.widget.card;
 import common.dto.DTOClient;
 import common.i18n.BundleStrings;
 import common.i18n.I18nSupport;
+import common.resources.ResourceGetter;
+import common.utilities.constants.PlayerConstants;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,10 +29,8 @@ public class OpponentHandWidget extends JComponent {
   public OpponentHandWidget(Font nameFont, ImageIcon cardBack, DTOClient opponent) {
     this.nameFont = nameFont;
     this.cardBack = cardBack;
-    this.opponent = opponent;
-    setPreferredSize(new Dimension(CARD_WIDTH * 6, CARD_HEIGHT + 40));
+    setOpponent(opponent);
     setBackground(Color.BLACK);
-    setStatusIcon(null, null);
   }
 
   public void paint(Graphics g) {
@@ -67,16 +67,29 @@ public class OpponentHandWidget extends JComponent {
   }
 
   /* Getter and Setter */
+
+  @SuppressWarnings("UnusedDeclaration")
   public DTOClient getOpponent() {
     return opponent;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
   public void setOpponent(DTOClient opponent) {
-    this.opponent = opponent;
+    final ImageIcon icon;
+    final String string;
+    if(opponent != null) {
+      final int height = opponent.playerType.equals(PlayerConstants.PlayerType.LOSER)
+          ? getSize().height : 0;
+      icon = ResourceGetter.getPlayerTypeIcon(opponent.playerType, height);
+      string = opponent.playerType.getDescription();
+      this.opponent = opponent;
+    } else {
+      icon = null;
+      string = null;
+    }
+    setStatusIcon(icon, string);
   }
 
-  public void setStatusIcon(ImageIcon statusIcon, String statusDescription) {
+  private void setStatusIcon(ImageIcon statusIcon, String statusDescription) {
     this.statusIcon = statusIcon;
     final String tooltipText;
     if(opponent != null)

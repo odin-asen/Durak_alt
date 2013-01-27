@@ -28,7 +28,7 @@ public class DefaultPanel extends AbstractDurakGamePanel {
 
   /**
    * Resets the layout and displays to a default state for a client with the
-   * PlayerType PlayerType.DEFAULT. The reset concernes the resets for the game, so that
+   * PlayerType PlayerType.DEFAULT. The reset concerns the resets for the game, so that
    * the client list and the opponent widgets, etc... will be untouched.
    */
   public void setNewRound() {

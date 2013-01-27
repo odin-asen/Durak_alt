@@ -2,13 +2,13 @@ package client.gui.frame;
 
 import client.gui.widget.card.OpponentHandWidget;
 import common.dto.DTOClient;
-import common.resources.ResourceGetter;
-import common.utilities.Miscellaneous;
-import common.utilities.constants.PlayerConstants;
 
 import javax.swing.*;
-import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
+
+import static client.gui.frame.ClientGUIConstants.CARD_BACK;
+import static client.gui.frame.ClientGUIConstants.OPPONENT_FONT;
 
 /**
  * User: Timm Herrmann
@@ -16,56 +16,61 @@ import java.util.List;
  * Time: 16:12
  */
 public class OpponentsPanel extends JPanel {
+  private List<DTOClient> opponents;
+  private List<OpponentHandWidget> widgets;
+
   /* Constructors */
+
+  public OpponentsPanel() {
+    opponents = new ArrayList<DTOClient>(6);
+    widgets = new ArrayList<OpponentHandWidget>(6);
+    setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+  }
+
   /* Methods */
 
-  public void addOpponent(DTOClient opponent) {
-    OpponentHandWidget oHWidget = new OpponentHandWidget(
-        ClientGUIConstants.OPPONENT_FONT, ClientGUIConstants.CARD_BACK, opponent);
-    this.add(oHWidget);
+  private void addWidget(DTOClient opponent) {
+    final OpponentHandWidget hw = new OpponentHandWidget(OPPONENT_FONT, CARD_BACK, opponent);
+    widgets.add(hw);
+    add(hw);
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  public void removeOpponent(DTOClient opponent) {
-    final OpponentHandWidget widget = findOpponentHandWidget(opponent);
-    if(widget != null)
-      this.remove(widget);
-  }
-
-  private OpponentHandWidget findOpponentHandWidget(DTOClient info) {
-    for (Component component : getComponents()) {
-      final OpponentHandWidget widget = (OpponentHandWidget) component;
-      final DTOClient opponent = widget.getOpponent();
-      if(Miscellaneous.CLIENT_COMPARATOR.compare(opponent,info) == 0)
-        return widget;
+  public void updateOpponents() {
+    for (int index = 0; index < opponents.size(); index++) {
+      final DTOClient opponent = opponents.get(index);
+      if(widgets.size() > index)
+        widgets.get(index).setOpponent(opponent);
+      else addWidget(opponent);
     }
-
-    return null;
-  }
-
-  public void updateOpponents(List<DTOClient> opponents) {
-    for (DTOClient opponent : opponents) {
-      final OpponentHandWidget widget = findOpponentHandWidget(opponent);
-      if(widget != null) {
-        widget.getOpponent().cardCount = opponent.cardCount;
-        setOpponentStatusIcon(widget, opponent.playerType);
-      }
-    }
+    if(cleanUpWidgets())
+      validate();
+    else revalidate();
     repaint();
   }
 
-  public void setOpponentStatusIcon(OpponentHandWidget widget, PlayerConstants.PlayerType type) {
-    final Integer height;
-    if(PlayerConstants.PlayerType.LOSER.equals(type))
-      height = getPreferredSize().height;
-    else height = null;
-    final ImageIcon statusIcon = ResourceGetter.getPlayerTypeIcon(type, height);
-    widget.setStatusIcon(statusIcon, type.getDescription());
+  private boolean cleanUpWidgets() {
+    boolean invalid = false;
+    for (int index = opponents.size(); index < widgets.size(); index++) {
+      remove(widgets.get(index));
+      widgets.remove(index);
+      invalid = true;
+    }
+    return invalid;
   }
 
   public void removeAllOpponents() {
-    this.removeAll();
-    this.validate();
-    this.repaint();
+    opponents.clear();
+    widgets.clear();
+    removeAll();
+    validate();
+  }
+
+  /* Getter and Setter */
+
+  public void setOpponents(List<DTOClient> opponents) {
+    if(opponents != null) {
+      this.opponents = opponents;
+      updateOpponents();
+    }
   }
 }

@@ -32,6 +32,16 @@ public class ResourceGetter {
   private static final String CARDS_ROOT = PICTURES_ROOT + "cards/"; //NON-NLS
   private static final String GENERAL_ROOT = PICTURES_ROOT + "general/"; //NON-NLS
 
+  private static final String PNG = "png"; //NON-NLS
+  private static final ImageIcon STRIPE_CLUBS =
+      getImage(CARDS_ROOT + I18nSupport.getValue(RESOURCES_IMAGES, "card.colour.clubs"), PNG);
+  private static final ImageIcon STRIPE_DIAMONDS =
+      getImage(CARDS_ROOT + I18nSupport.getValue(RESOURCES_IMAGES, "card.colour.diamonds"), PNG);
+  private static final ImageIcon STRIPE_HEARTS =
+      getImage(CARDS_ROOT + I18nSupport.getValue(RESOURCES_IMAGES, "card.colour.hearts"), PNG);
+  private static final ImageIcon STRIPE_SPADES =
+      getImage(CARDS_ROOT + I18nSupport.getValue(RESOURCES_IMAGES, "card.colour.spades"), PNG);
+
   private static final Logger LOGGER = LoggingUtility.getLogger(ResourceGetter.class.getName());
 
   private static final int CARD_STRIPE_X_AXIS_GAP = 1;
@@ -72,7 +82,7 @@ public class ResourceGetter {
   /********************************/
 
   public static ImageIcon getBackCard() {
-    return getImage(CARDS_ROOT+I18nSupport.getValue(RESOURCES_IMAGES,"card.back"), "png"); //NON-NLS
+    return getImage(CARDS_ROOT+I18nSupport.getValue(RESOURCES_IMAGES,"card.back"), PNG);
   }
 
   public static ImageIcon getPlayerTypeIcon(PlayerConstants.PlayerType type, Integer height) {
@@ -91,19 +101,17 @@ public class ResourceGetter {
 
     if(iconName != null) {
       return Compute.getScaledImage(
-          getImage(STATUS_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, iconName), "png"), //NON-NLS
-          null, height);
+          getImage(STATUS_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, iconName), PNG), 0, height);
     } else return null;
   }
 
   public static List<? extends Image> getApplicationIcons() {
     final String[] imageSizes = {"16","32","64","128","256"};
-    final String suffix = "png"; //NON-NLS
     final String basePath = PICTURES_ROOT + "application/DurakIcon"; //NON-NLS
 
     final List<Image> images = new ArrayList<Image>(imageSizes.length);
     for (String size : imageSizes) {
-      images.add(getImage(basePath + size, suffix).getImage());
+      images.add(getImage(basePath + size, PNG).getImage());
     }
 
     return images;
@@ -112,25 +120,18 @@ public class ResourceGetter {
   public static ImageIcon getCardImage(GameCardConstants.CardColour colour,
                                        GameCardConstants.CardValue cardValue) {
 
-    return getCardFromStripe(
-        getImage(CARDS_ROOT + getStringCardColour(colour), "png"),
-        cardValue.getValue());
+    return getCardFromStripe(getStripe(colour), cardValue.getValue());
   }
 
-  private static String getStringCardColour(GameCardConstants.CardColour colour) {
-    final String string;
-
-    if(GameCardConstants.CardColour.CLUBS.equals(colour)) {
-      string = "card.colour.clubs";
-    } else if(GameCardConstants.CardColour.DIAMONDS.equals(colour)) {
-      string = "card.colour.diamonds";
-    } else if(GameCardConstants.CardColour.HEARTS.equals(colour)) {
-      string = "card.colour.hearts";
-    } else {
-      string = "card.colour.spades";
-    }
-
-    return I18nSupport.getValue(RESOURCES_IMAGES, string);
+  private static ImageIcon getStripe(GameCardConstants.CardColour colour) {
+    if(GameCardConstants.CardColour.CLUBS.equals(colour))
+      return STRIPE_CLUBS;
+    else if(GameCardConstants.CardColour.DIAMONDS.equals(colour))
+      return STRIPE_DIAMONDS;
+    else if(GameCardConstants.CardColour.HEARTS.equals(colour))
+      return STRIPE_HEARTS;
+    else
+      return STRIPE_SPADES;
   }
 
   private static ImageIcon getCardFromStripe(ImageIcon imageIcon, Integer cardNumber) {
@@ -147,17 +148,16 @@ public class ResourceGetter {
 
   public static ImageIcon getToolbarIcon(String toolbarBundleKey, Object... params) {
     return getImage(TOOLBAR_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, toolbarBundleKey, params),
-        "png"); //NON-NLS
+        PNG);
   }
 
   public static ImageIcon getStatusIcon(String statusBundleKey, Object... params) {
     return getImage(STATUS_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, statusBundleKey, params),
-        "png"); //NON-NLS
+        PNG);
   }
 
   public static ImageIcon getGeneralIcon(String bundleKey, Object... params) {
-    return getImage(GENERAL_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, bundleKey, params),
-        "png"); //NON-NLS
+    return getImage(GENERAL_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, bundleKey, params), PNG);
   }
 
   /**********************/

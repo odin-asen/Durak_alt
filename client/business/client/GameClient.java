@@ -109,7 +109,7 @@ public class GameClient extends Observable implements ClosedListener {
   }
 
   /**
-   * Disconnects the client if necessary and connetcs it to a given connection.
+   * Disconnects the client if necessary and connects it to a given connection.
    * The connection parameter will also be set in the client.
    * @param serverAddress Server's address to connect to.
    * @param serverPort Server's port to connect to.
@@ -147,7 +147,8 @@ public class GameClient extends Observable implements ClosedListener {
 
   /**
    * Sends an action request to the server.
-   * @param dtoClient Client information that will be send to the server. The player is decides the action type.
+   * @param dtoClient Client information that will be send to the server.
+   *                  The player is decides the action type.
    * @param attackCards Used attack cards for this action.
    * @param defenseCards Used defense cards for this action.
    * @return True or false, if the server accepts this action or not.
@@ -192,7 +193,7 @@ public class GameClient extends Observable implements ClosedListener {
   }
 
   /**
-   * Called when the server closed unproperly.
+   * Called when the server closed improperly.
    */
   public void closed() {
     if(connected) {

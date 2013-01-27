@@ -64,13 +64,13 @@ public class Compute {
         ((parentBounds.y) <= componentLocation.y);
   }
 
-  public static ImageIcon getScaledImage(ImageIcon srcImg, Integer width, Integer height){
+  public static ImageIcon getScaledImage(ImageIcon srcImg, int width, int height){
     if(srcImg == null) return null;
-    if(width == null && height == null) return srcImg;
+    if(width <= 0 && height <= 0) return srcImg;
 
-    if(width == null)
+    if(width <= 0)
       width = (int) (height*(float)srcImg.getIconWidth()/srcImg.getIconHeight());
-    else if(height == null)
+    else if(height <= 0)
       height = (int) (width*(float)srcImg.getIconHeight()/srcImg.getIconWidth());
 
     BufferedImage resizedImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);

@@ -107,11 +107,11 @@ public class DefenderPanel extends AbstractDurakGamePanel {
 
     final JPanel buttonPanel = getGameButtonsContainer();
     buttonPanel.setPreferredSize(new Dimension(CARD_STACK_PANEL_WIDTH, OPPONENT_PANEL_HEIGHT));
-    buttonPanel.setMaximumSize(new Dimension(CARD_STACK_PANEL_WIDTH, Integer.MAX_VALUE));
+    buttonPanel.setMaximumSize(buttonPanel.getPreferredSize());
 
-    opponentsButtonsPanel.setLayout(new BoxLayout(opponentsButtonsPanel, BoxLayout.LINE_AXIS));
-    opponentsButtonsPanel.add(buttonPanel);
-    opponentsButtonsPanel.add(getOpponentsContainer());
+    opponentsButtonsPanel.setLayout(new BorderLayout());
+    opponentsButtonsPanel.add(buttonPanel, BorderLayout.LINE_START);
+    opponentsButtonsPanel.add(getOpponentsContainer(), BorderLayout.CENTER);
 
     return opponentsButtonsPanel;
   }

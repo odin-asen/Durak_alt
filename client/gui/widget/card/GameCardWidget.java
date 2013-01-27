@@ -19,7 +19,6 @@ import java.awt.*;
  */
 public class GameCardWidget extends JComponent implements CurtainWidget {
   public static final float WIDTH_TO_HEIGHT = 0.69f;
-  public static final float ALIGNMENT_CARD_HEIGHT = 0.3f;
 
   private Image cardImage;
   private GameCard cardInfo;
@@ -37,17 +36,12 @@ public class GameCardWidget extends JComponent implements CurtainWidget {
   }
 
   public GameCardWidget(GameCard cardInfo) {
-    this.cardInfo = cardInfo;
     paintCurtain = false;
     movable = false;
-
-    if(this.cardInfo != null) {
-      setToolTipText(cardInfo.getColourAndValue());
-      cardImage = ResourceGetter.getCardImage(cardInfo.getCardColour(),
-        cardInfo.getCardValue()).getImage();
-    } else cardImage = null;
+    setCard(cardInfo);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public GameCardWidget(DTOCard dtoCard) {
     this(Converter.fromDTO(dtoCard));
   }
@@ -87,40 +81,6 @@ public class GameCardWidget extends JComponent implements CurtainWidget {
     addComponentListener(listener);
   }
 
-  /**
-   * Changes the widgets bounds, so that it is inside the specified
-   * area.
-   * @param area Specified area.
-   */
-  public void moveInArea(Rectangle area, Float distanceX, Float distanceY) {
-    final Rectangle card = new Rectangle(this.getBounds());
-    final int borderDistanceX = (int) (area.width*distanceX);
-    final int borderDistanceY = (int) (area.height*distanceY);
-
-    boolean insideLeft = false;
-    boolean insideRight = false;
-    boolean insideBottom = false;
-    boolean insideTop = false;
-
-    if(card.x >= (area.x + borderDistanceX))
-      insideLeft = true;
-    if((card.x + card.width) <= ((area.x + area.width) - borderDistanceX))
-      insideRight = true;
-    if((card.y + card.height) <= ((area.y + area.height) - borderDistanceY))
-      insideBottom = true;
-    if(card.y >= (area.y + borderDistanceY))
-      insideTop = true;
-
-    if(!insideLeft)
-      this.setLocation(area.x+borderDistanceX,card.y);
-    if(!insideRight)
-      this.setLocation(area.x+area.width-card.width-borderDistanceX,card.y);
-    if(!insideBottom)
-      this.setLocation(area.x+card.x,area.y+area.height-card.height-borderDistanceY);
-    if(!insideTop)
-      this.setLocation(card.x,area.y+borderDistanceY);
-  }
-
   /* Getter and Setter */
 
   public void paintCurtain(boolean paint) {
@@ -132,7 +92,15 @@ public class GameCardWidget extends JComponent implements CurtainWidget {
 
   public void setCard(GameCard card) {
     this.cardInfo = card;
-    repaint();
+    if(card != null) {
+      setToolTipText(cardInfo.getColourAndValue());
+      cardImage = ResourceGetter.getCardImage(cardInfo.getCardColour(),
+          cardInfo.getCardValue()).getImage();
+      repaint();
+    } else {
+      setToolTipText(null);
+      cardImage = null;
+    }
   }
 
   public GameCard getCardInfo() {
@@ -151,6 +119,18 @@ public class GameCardWidget extends JComponent implements CurtainWidget {
         this.removeComponentListener(cardMoveListener);
       }
     }
+  }
+
+  public String toString() {
+    return "GameCardWidget{" +
+        "cardImage=" + cardImage +
+        ", cardInfo=" + cardInfo +
+        ", paintCurtain=" + paintCurtain +
+        ", cardMoveListener=" + cardMoveListener +
+        ", movable=" + movable +
+        ", lastLocation=" + lastLocation +
+        ", lastZOrderIndex=" + lastZOrderIndex +
+        '}';
   }
 
   public boolean isMovable() {

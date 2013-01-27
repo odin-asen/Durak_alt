@@ -36,19 +36,22 @@ public class InGamePanel extends JPanel implements CurtainWidget {
    * Places the attacker and defender cards depending on the surpassed lists and fits them
    * to the given area.
    */
-  public void setCards() {
+  public void updateCards() {
     for (int index = 0; index < attackCards.size(); index++) {
-      final CombatCardPanel panel;
-      if(cardPanels.size() > index) {
-        panel = cardPanels.get(index);
-      } else {
-        panel = new CombatCardPanel();
-        addIngameCards(panel);
-      }
-      setAttackCard(panel, attackCards, index);
-      setDefenseCard(panel, defenseCards, index);
+      if(cardPanels.size() <= index)
+        addIngameCards();
+      setAttackCard(cardPanels.get(index), attackCards, index);
+      setDefenseCard(cardPanels.get(index), defenseCards, index);
     }
     refreshGrids();
+    repaint();
+    assert cardPanels.size() != attackCards.size();
+  }
+
+  private void addIngameCards() {
+    final CombatCardPanel panel = new CombatCardPanel();
+    cardPanels.add(panel);
+    add(panel);
   }
 
   private void setAttackCard(CombatCardPanel panel, List<GameCard> cardList, int index) {
@@ -72,15 +75,8 @@ public class InGamePanel extends JPanel implements CurtainWidget {
     cardPanels.clear();
     attackCards.clear();
     defenseCards.clear();
-    revalidate();
-  }
-
-  private void addIngameCards(CombatCardPanel panel) {
-    if (panel != null) {
-      cardPanels.add(panel);
-      add(panel);
-      repaint();
-    }
+    validate();
+    repaint();
   }
 
   public void refreshGrids() {
@@ -90,6 +86,7 @@ public class InGamePanel extends JPanel implements CurtainWidget {
        gridValues[1].compareTo(grids[1]) != 0) {
       grids = gridValues;
       setLayout(new GridLayout(gridValues[0], gridValues[1]));
+      revalidate();
     }
   }
 
@@ -156,27 +153,19 @@ public class InGamePanel extends JPanel implements CurtainWidget {
   }
 
   /**
-   * Asserts if cards is null. The cards will only be set if the list is not equal. Depending on
-   * that true or false will be returned.
+   * The cards will only be set if the list is not null.
    */
-  public boolean setAttackCards(List<GameCard> cards) {
-    assert (cards != null);
-    if(!attackCards.equals(cards)) {
+  public void setAttackCards(List<GameCard> cards) {
+    if (cards != null)
       attackCards = cards;
-      return true;
-    } else return false;
   }
 
   /**
-   * Asserts if cards is null. The cards will only be set if the list is not equal. Depending on
-   * that true or false will be returned.
+   * The cards will only be set if the list is not null.
    */
-  public boolean setDefenseCards(List<GameCard> cards) {
-    assert (cards != null);
-    if(!defenseCards.equals(cards)) {
+  public void setDefenseCards(List<GameCard> cards) {
+    if (cards != null)
       defenseCards = cards;
-      return true;
-    } else return false;
   }
 
   public List<CombatCardPanel> getCardPanels() {

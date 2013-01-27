@@ -26,8 +26,8 @@ public class Miscellaneous {
   public static final Comparator<DTOClient> CLIENT_COMPARATOR = new Comparator<DTOClient>() {
     public int compare(DTOClient o1, DTOClient o2) {
       if(o1 == null && o2 == null) return 0;
-      if(o1 == null && o2 != null) return -1;
-      if(o1 != null && o2 == null) return 1;
+      if(o1 == null) return -1;
+      if(o2 == null) return 1;
 
       if(o1.name != null && o2.name != null) {
         return o1.name.compareTo(o2.name);
@@ -59,6 +59,7 @@ public class Miscellaneous {
     }
   }
 
+  /** Returns -1 if the element doesn't exist in the list */
   public static <T> int findIndex(List<T> list, T element) {
     for (int index = 0; index < list.size(); index++) {
       if(list.get(index).equals(element))

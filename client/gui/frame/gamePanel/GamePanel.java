@@ -42,7 +42,6 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
   }
 
   /* Methods */
-
   /**
    * Depending on the parameter the hand cards panel will be visible or not.
    * @param visible Indicates the hand cards visibility.
@@ -66,14 +65,14 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
    * @param defenderCards Cards of the defender.
    */
   public void setIngameCards(List<GameCard> attackerCards, List<GameCard> defenderCards) {
-    inGamePanel.clearField();
-    if(attackerCards != null) {
+    if(attackerCards == null)
+      inGamePanel.clearField();
+    else {
       inGamePanel.setAttackCards(attackerCards);
       inGamePanel.setDefenseCards(defenderCards);
-      inGamePanel.setCards();
+      inGamePanel.updateCards();
     }
     validate();
-    repaint();
   }
 
   /**
@@ -81,18 +80,12 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
    * @param cards Client cards to place.
    */
   public void setHandCards(List<GameCard> cards) {
-    clientWidgets.clear();
-    if(cards != null) {
-      if(clientWidgets.setClientCards(cards))
-        clientWidgets.updateCards(computeClientCardArea());
-
-      /* To ensure the accurate drawing of the cards */
-      /* Changing the size calls the CardReplacers componentResized method */
-      setSize(getWidth() - 1, getHeight() - 1);
-      setSize(getWidth() + 1, getHeight() + 1);
-    }
-    validate();
-    repaint();
+    clientWidgets.setClientCards(cards);
+    /* To ensure the accurate drawing of the cards */
+    /* Changing the size calls the CardReplacers componentResized method */
+    /* which updates the hand cards */
+    setSize(getWidth() - 1, getHeight() - 1);
+    setSize(getWidth() + 1, getHeight() + 1);
   }
 
   public Rectangle computeClientCardArea() {
@@ -105,7 +98,7 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
   public void deleteCards() {
     clientWidgets.clear();
     inGamePanel.clearField();
-    revalidate();
+    validate();
   }
 
   public boolean hasInGameCards() {
@@ -131,19 +124,24 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
     clientWidgets.setCardManager(cardManager);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void updateCards() {
     clientWidgets.updateCards(computeClientCardArea());
-    inGamePanel.refreshGrids();
-    revalidate();
-    repaint();
+    inGamePanel.updateCards();
   }
 
   public boolean removeCard(GameCardWidget card) {
-    return clientWidgets.remove(card);
+    if(clientWidgets.remove(card)) {
+      clientWidgets.updateCards(computeClientCardArea());
+      return true;
+    } else return false;
   }
 
   public boolean addCard(GameCardWidget card) {
-    return clientWidgets.add(card);
+    if(clientWidgets.add(card)) {
+      clientWidgets.updateCards(computeClientCardArea());
+      return true;
+    } else return false;
   }
 
   public boolean cardExists(GameCardWidget card) {
@@ -159,10 +157,8 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
       final Rectangle area = computeClientCardArea();
       ingameArea.setSize(new Dimension(getWidth(), getHeight() - area.height));
       inGamePanel.setSize(ingameArea.getSize());
-      if(handCardsVisible) {
-        clientWidgets.replaceCards(area);
-        clientWidgets.resizeCards(area);
-      }
+      if(handCardsVisible)
+        clientWidgets.updateCards(area);
     }
 
     public void componentMoved(ComponentEvent e) {}
@@ -195,29 +191,26 @@ class ClientWidgetHolder {
 
   void updateCards(Rectangle area) {
     if(area != null && !area.isEmpty()) {
-      setWidgets(area);
-      replaceCards(area);
-      resizeCards(area);
+      final Rectangle rect = getFirstCardBounds(area, GameCardWidget.WIDTH_TO_HEIGHT);
+      final double distance = computeRelativeCardToCardDistanceX(area, rect);
+      updateWidgets(rect, distance);
     }
+    cleanUpWidgetList();
+    assert widgets.size() != clientCards.size();
   }
 
-  void replaceCards(Rectangle area) {
-    final Rectangle rect = getFirstCardBounds(area, GameCardWidget.WIDTH_TO_HEIGHT);
-    final double distance = computeRelativeCardToCardDistanceX(area, rect);
-
-    for (int index = 0; index < widgets.size(); index++) {
-      final GameCardWidget widget = widgets.get(index);
-      if(index > 0)
-        rect.x = (int) (rect.x + rect.width*distance);
-      widget.setLocation(rect.getLocation());
-      parent.setComponentZOrder(widget, 0);
-    }
-  }
-
-  void resizeCards(Rectangle area) {
-    final Rectangle rect = getFirstCardBounds(area, GameCardWidget.WIDTH_TO_HEIGHT);
-    for (GameCardWidget gameCardWidget : widgets) {
-      gameCardWidget.setSize(rect.getSize());
+  private void updateWidgets(Rectangle rect, double distance) {
+    for (int index = 0; index < clientCards.size(); index++) {
+      if(widgets.size() > index) {
+        widgets.get(index).setCard(clientCards.get(index));
+        if(index > 0)
+          rect.x = (int) (rect.x + rect.width*distance);
+        widgets.get(index).setBounds(rect);
+        parent.setComponentZOrder(widgets.get(index), 0);
+      } else {
+        rect.x = (int) (rect.x + rect.width * distance);
+        addWidget(rect, clientCards.get(index));
+      }
     }
   }
 
@@ -245,29 +238,27 @@ class ClientWidgetHolder {
 
   public boolean add(GameCardWidget widget) {
     parent.add(widget);
-    clientCards.add(widget.getCardInfo());
-    return widgets.add(widget);
+    widgets.add(widget);
+    return clientCards.add(widget.getCardInfo());
   }
 
   public boolean remove(GameCardWidget widget) {
     parent.remove(widget);
-    clientCards.remove(widget.getCardInfo());
-    return widgets.remove(widget);
+    widgets.remove(widget);
+    return clientCards.remove(widget.getCardInfo());
   }
 
   public void clear() {
-    for (GameCardWidget widget : widgets) {
+    for (GameCardWidget widget : widgets)
       parent.remove(widget);
-    }
     clientCards.clear();
     widgets.clear();
   }
 
   private void cleanUpWidgetList() {
-    if(widgets.size() > clientCards.size()) {
-      for (int index = clientCards.size(); index < widgets.size(); index++) {
-        remove(widgets.get(index));
-      }
+    for (int index = clientCards.size(); index < widgets.size(); index++) {
+      parent.remove(widgets.get(index));
+      widgets.remove(index);
     }
   }
 
@@ -287,27 +278,9 @@ class ClientWidgetHolder {
 
   /* Getter and Setter */
 
-  public boolean setClientCards(List<GameCard> cards) {
-    if(!this.clientCards.equals(cards) && cards != null) {
+  public void setClientCards(List<GameCard> cards) {
+    if(cards != null)
       this.clientCards = cards;
-      return true;
-    } else return false;
-  }
-
-  private void setWidgets(Rectangle region) {
-    final Rectangle rect = getFirstCardBounds(region, GameCardWidget.WIDTH_TO_HEIGHT);
-    final double distance = computeRelativeCardToCardDistanceX(region, rect);
-
-    for (int index = 0; index < clientCards.size(); index++) {
-      if(widgets.size() > index)
-        widgets.get(index).setCard(clientCards.get(index));
-      else {
-        if(index > 0)
-          rect.x = (int) (rect.x + rect.width * distance);
-        addWidget(rect, clientCards.get(index));
-      }
-    }
-    cleanUpWidgetList();
   }
 
   public void setCardManager(CardMoveListener cardManager) {
@@ -317,6 +290,7 @@ class ClientWidgetHolder {
     }
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public CardMoveListener getCardManager() {
     return cardManager;
   }

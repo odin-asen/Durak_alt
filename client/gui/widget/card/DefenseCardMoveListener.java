@@ -74,7 +74,7 @@ public class DefenseCardMoveListener extends CardMoveListener {
     } else {
       setWidgetToLastPlace(widget);
     }
-
+    setCurrentCurtain(null);
     super.mouseReleased(e);
   }
 
@@ -88,7 +88,6 @@ public class DefenseCardMoveListener extends CardMoveListener {
    * Compares the move with the current curtain panel. If the curtain panel is null, the method
    * returns false.
    * @param defenseCard Widget of this defense move.
-   * @param currentPanel Current panel the defenseCard stands over.
    * @return Returns true, if the move is valid or the current panel is null, else false.
    */
   private boolean moveIsValid(GameCardWidget defenseCard) {

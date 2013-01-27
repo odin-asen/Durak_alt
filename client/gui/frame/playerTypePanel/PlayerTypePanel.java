@@ -88,7 +88,6 @@ public class PlayerTypePanel extends JPanel {
     addPanel(PlayerType.DEFENDER, new DefenderPanel());
     addPanel(PlayerType.NOT_LOSER, new DefaultPanel());
     addPanel(PlayerType.LOSER, new DefaultPanel());
-    cardLayout.show(cardLayoutPanel, currentType.getDescription());
   }
 
   private void addPanel(PlayerType type, AbstractDurakGamePanel panel) {
@@ -107,12 +106,10 @@ public class PlayerTypePanel extends JPanel {
    * @param type Specification for the layout and handling type.
    */
   public void setPlayerType(PlayerType type) {
-    if (!currentType.equals(type)) {
-      currentType = type;
-      cardLayout.show(cardLayoutPanel, type.getDescription());
-      updateCurrentGamePanel();
-      statusBar.setPlayerType(currentType);
-    }
+    currentType = type;
+    cardLayout.show(cardLayoutPanel, type.getDescription());
+    statusBar.setPlayerType(currentType);
+    updateCurrentGamePanel();
   }
 
   private void updateCurrentGamePanel() {
@@ -121,7 +118,6 @@ public class PlayerTypePanel extends JPanel {
     updateStack(cardStack);
     setCards(attackCards, defenseCards, handCards);
     updateOpponents(opponents, false);
-
     panel.getGameProcessContainer().setListenerType(currentType);
   }
 
@@ -151,28 +147,23 @@ public class PlayerTypePanel extends JPanel {
    */
   public void setCards(List<GameCard> attackerCards, List<GameCard> defenderCards,
                        List<GameCard> handCards) {
-    final GamePanel gamePanel = panelMap.get(currentType).getGameProcessContainer();
-
-    if (handCards != null) {
+    if(handCards != null)
       this.handCards = handCards;
-      gamePanel.setHandCards(handCards);
-    }
 
     if (attackerCards != null) {
       this.attackCards = attackerCards;
       this.defenseCards = defenderCards;
-      gamePanel.setIngameCards(attackerCards, defenderCards);
     }
 
-    if (handCards != null || attackerCards != null)
-      gamePanel.updateCards();
+    panelMap.get(currentType).getGameProcessContainer().setHandCards(this.handCards);
+    panelMap.get(currentType).getGameProcessContainer().setIngameCards(attackCards, defenseCards);
   }
 
   /**
    * Updates the hand cards of the client with the surpassed cards.
    */
   public void setCards(List<GameCard> handCards) {
-    setCards(null,null,handCards);
+    setCards(null, null, handCards);
   }
 
   /**
@@ -186,44 +177,47 @@ public class PlayerTypePanel extends JPanel {
     if (cardStack == null || cardStack.trumpCard == null || cardStack.cardStack == null)
       statusBar.setStackStatus(null, 0);
     else statusBar.setStackStatus(cardStack.trumpCard.cardColour, cardStack.cardStack.size());
+    if (cardStack != null && !this.cardStack.equals(cardStack))
+      this.cardStack = cardStack;
+    panelMap.get(currentType).getCardStackContainer().updateStack(this.cardStack);
+   }
 
-    setStackValue(cardStack);
-    panelMap.get(currentType).getCardStackContainer().updateStack(cardStack);
+  public void updateOpponents(List<DTOClient> opponents, boolean remove) {
+    if (opponents != null)
+      this.opponents = opponents;
+
+    if(remove) panelMap.get(currentType).getOpponentsContainer().removeAllOpponents();
+    else panelMap.get(currentType).getOpponentsContainer().setOpponents(this.opponents);
   }
 
-  public void updateOpponents(List<DTOClient> clients, boolean remove) {
-    setOpponentsValue(clients);
-    final OpponentsPanel panel = panelMap.get(currentType).getOpponentsContainer();
-    if (remove) panel.removeAllOpponents();
-    else panel.updateOpponents(clients);
-  }
+  public void resetGameWidgets(boolean ingameCards, boolean opponents, boolean cardStack) {
+    final AbstractDurakGamePanel panel = panelMap.get(currentType);
 
-  public void initOpponents(List<DTOClient> clients) {
-    final OpponentsPanel panel = panelMap.get(currentType).getOpponentsContainer();
-    panel.removeAllOpponents();
-    for (DTOClient client : clients)
-      panel.addOpponent(client);
-    panel.updateOpponents(clients);
-  }
-
-  public void resetGameWidgets() {
-    for (AbstractDurakGamePanel panel : panelMap.values()) {
-      panel.enableGameButtons(false, false);
+    panel.enableGameButtons(false, false);
+    if(ingameCards)
       panel.getGameProcessContainer().deleteCards();
+    if(opponents)
       panel.getOpponentsContainer().removeAllOpponents();
+    if(cardStack)
       panel.getCardStackContainer().deleteCards();
-    }
-    statusBar.setStackStatus(null,0);
-    clearIngameAttributes();
+    statusBar.setStackStatus(null, 0);
+    clearIngameAttributes(ingameCards, opponents, cardStack);
   }
 
-  private void clearIngameAttributes() {
-    handCards.clear();
-    attackCards.clear();
-    defenseCards.clear();
-    cardStack.trumpCard = null;
-    cardStack.cardStack.clear();
-    opponents.clear();
+  private void clearIngameAttributes(boolean clearIngame, boolean clearOpponents,
+                                     boolean clearStack) {
+    if(clearIngame) {
+      handCards.clear();
+      attackCards.clear();
+      if(defenseCards != null)
+        defenseCards.clear();
+    }
+    if(clearOpponents)
+      opponents.clear();
+    if(clearStack) {
+      cardStack.trumpCard = null;
+      cardStack.cardStack.clear();
+    }
   }
 
   /**
@@ -236,15 +230,16 @@ public class PlayerTypePanel extends JPanel {
    */
   public void updateRoundInfo(boolean roundFinished, boolean defenderTookCards,
                               boolean attackerFinished) {
-    panelMap.get(currentType).enableGameButtons(roundFinished, attackerFinished);
-    if (roundFinished) {
-      for (AbstractDurakGamePanel panel : panelMap.values())
+    for (AbstractDurakGamePanel panel : panelMap.values()) {
+      panel.enableGameButtons(roundFinished, attackerFinished);
+      if (roundFinished)
         panel.setNewRound();
+    }
 
-      if(defenderTookCards && !currentType.equals(PlayerType.DEFENDER)) {
-        final String key = "defender.took.cards." + defenderTookCards; //NON-NLS
-        ClientFrame.getInstance().showGamePopup(I18nSupport.getValue(BundleStrings.USER_MESSAGES, key));
-      }
+    if (roundFinished && defenderTookCards && !currentType.equals(PlayerType.DEFENDER)) {
+      final String key = "defender.took.cards." + defenderTookCards; //NON-NLS
+      ClientFrame.getInstance().showGamePopup(
+          I18nSupport.getValue(BundleStrings.USER_MESSAGES, key));
     }
   }
 
@@ -307,22 +302,6 @@ public class PlayerTypePanel extends JPanel {
     statusBar.setPreferredSize(new Dimension(0, STATUS_BAR_HEIGHT));
 
     return statusBar;
-  }
-
-  private void setStackValue(DTOCardStack stack) {
-    if(stack != null) {
-      if(!cardStack.equals(stack)) {
-        cardStack = stack;
-      }
-    } else cardStack = new DTOCardStack();
-  }
-
-  private void setOpponentsValue(List<DTOClient> opponents) {
-    if(opponents != null) {
-      if(!this.opponents.equals(opponents)) {
-        this.opponents= opponents;
-      }
-    } else this.opponents = new ArrayList<DTOClient>();
   }
 
   /* Inner Classes */

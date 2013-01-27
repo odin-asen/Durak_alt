@@ -1,8 +1,5 @@
 package common.utilities.gui;
 
-import common.resources.ResourceGetter;
-import common.utilities.LoggingUtility;
-
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
@@ -11,7 +8,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 /**
  * User: Timm Herrmann
@@ -19,8 +15,6 @@ import java.util.logging.Logger;
  * Time: 01:06
  */
 public class WidgetCreator {
-  private static final Logger LOGGER = LoggingUtility.getLogger(WidgetCreator.class.getName());
-
   public static <T> JComboBox<T> makeComboBox(Vector<T> comboBoxContent, int maxRowCount,
                                                int preferredWidth, String toolTipText) {
     final JComboBox<T> comboBox = new JComboBox<T>(comboBoxContent);
@@ -75,20 +69,8 @@ public class WidgetCreator {
     return button;
   }
 
-  public static void changeButton(AbstractButton button, Icon icon, String text,
-                                  String actionCommand, String toolTipText) {
-    if(button == null)
-      return;
-
-    button.setText(text);
-    button.setActionCommand(actionCommand);
-    button.setIcon(icon);
-    button.setToolTipText(toolTipText);
-  }
-
   public static Border createStatusBorder() {
-    final Border lowered = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
-    return lowered;
+    return BorderFactory.createBevelBorder(BevelBorder.LOWERED);
   }
 
   public static Border createPopupBorder() {
@@ -108,7 +90,7 @@ public class WidgetCreator {
    * @param topFrameBounds Frame that indicates the popup area.
    * @param popupLocation Location within the frame bounds to pop up. One of the DurakPopup constants.
    * @param openSeconds Time the popup will be opaque until it disappears.
-   * @return
+   * @return Returns a DurakPopup instance.
    */
   public static DurakPopup createPopup(Color backgroundColour, String text,
                                        Rectangle topFrameBounds, int popupLocation,
