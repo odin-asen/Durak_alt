@@ -26,8 +26,7 @@ public class CardStackPanel extends JPanel {
 
   /**
    * This method is equivalent to {@code setStack(card,null)}.
-   * @param cards Number of cards that will be shown on the stack. One of the stack is
-   *              the trump card.
+   * @param stack Parameter values for the shown stack.
    */
   @SuppressWarnings("UnusedDeclaration")
   private void setStack(DTOCardStack stack) {
@@ -36,10 +35,9 @@ public class CardStackPanel extends JPanel {
 
   /**
    * Adds a stack on the panel.
-   * @param cards Number of cards that will be shown on the stack. One of the stack is
-   *              the trump card.
-   * @param constraints Constraints that can be passed, if the currently set
-   *                    LayoutManager provides one.
+   * @param stack Parameter values for the shown stack.
+   * @param constraints Constraints that can be passed, if the currently set LayoutManager
+   *                    provides one.
    */
   private void setStack(DTOCardStack stack, Object constraints) {
     remove(cardStack);

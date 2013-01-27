@@ -86,6 +86,8 @@ public class GamePanel extends JPanel implements CardContainer<GameCardWidget>{
     /* which updates the hand cards */
     setSize(getWidth() - 1, getHeight() - 1);
     setSize(getWidth() + 1, getHeight() + 1);
+    validate();
+    repaint();
   }
 
   public Rectangle computeClientCardArea() {

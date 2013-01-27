@@ -62,7 +62,7 @@ public class GameClient extends Observable implements ClosedListener {
 
   /* Methods */
 
-  public void receiveServerMessage(MessageObject object) {
+  public synchronized void receiveServerMessage(MessageObject object) {
     setChangedAndNotify(object);
   }
 
@@ -219,9 +219,13 @@ public class GameClient extends Observable implements ClosedListener {
 
 @SimonRemote(value = {Callable.class})
 class ServerMessageReceiver implements Callable {
-  public void callback(Object parameter) {
+  public void callback(final Object parameter) {
     if(parameter instanceof MessageObject) {
-      GameClient.getClient().receiveServerMessage((MessageObject) parameter);
+      new Thread(new Runnable() {
+        public void run() {
+          GameClient.getClient().receiveServerMessage((MessageObject) parameter);
+        }
+      }).start();
     }
   }
 }
