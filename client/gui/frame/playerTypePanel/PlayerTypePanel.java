@@ -183,6 +183,10 @@ public class PlayerTypePanel extends JPanel {
   }
 
   public void updateStack(DTOCardStack cardStack) {
+    if (cardStack == null || cardStack.trumpCard == null || cardStack.cardStack == null)
+      statusBar.setStackStatus(null, 0);
+    else statusBar.setStackStatus(cardStack.trumpCard.cardColour, cardStack.cardStack.size());
+
     setStackValue(cardStack);
     panelMap.get(currentType).getCardStackContainer().updateStack(cardStack);
   }
@@ -209,6 +213,17 @@ public class PlayerTypePanel extends JPanel {
       panel.getOpponentsContainer().removeAllOpponents();
       panel.getCardStackContainer().deleteCards();
     }
+    statusBar.setStackStatus(null,0);
+    clearIngameAttributes();
+  }
+
+  private void clearIngameAttributes() {
+    handCards.clear();
+    attackCards.clear();
+    defenseCards.clear();
+    cardStack.trumpCard = null;
+    cardStack.cardStack.clear();
+    opponents.clear();
   }
 
   /**

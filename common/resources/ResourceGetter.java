@@ -27,6 +27,7 @@ import static common.i18n.BundleStrings.RESOURCES_SOUNDS;
  */
 public class ResourceGetter {
   private static final String PICTURES_ROOT = "icons/"; //NON-NLS
+  private static final String TOOLBAR_ROOT = PICTURES_ROOT + "toolbar/"; //NON-NLS
   private static final String STATUS_ROOT = PICTURES_ROOT + "status/"; //NON-NLS
   private static final String CARDS_ROOT = PICTURES_ROOT + "cards/"; //NON-NLS
   private static final String GENERAL_ROOT = PICTURES_ROOT + "general/"; //NON-NLS
@@ -110,12 +111,10 @@ public class ResourceGetter {
 
   public static ImageIcon getCardImage(GameCardConstants.CardColour colour,
                                        GameCardConstants.CardValue cardValue) {
-    ImageIcon image = null;
 
-    final String path = CARDS_ROOT + getStringCardColour(colour);
-    image = getCardFromStripe(getImage(path, "png"), cardValue.getValue()); //NON-NLS
-
-    return image;
+    return getCardFromStripe(
+        getImage(CARDS_ROOT + getStringCardColour(colour), "png"),
+        cardValue.getValue());
   }
 
   private static String getStringCardColour(GameCardConstants.CardColour colour) {
@@ -146,27 +145,27 @@ public class ResourceGetter {
     return new ImageIcon(imagePart);
   }
 
-  public static ImageIcon getToolbarIcon(String toolbarBundleKey) {
-    return getImage(
-        PICTURES_ROOT+"toolbar/"+I18nSupport.getValue(RESOURCES_IMAGES, toolbarBundleKey), //NON-NLS
+  public static ImageIcon getToolbarIcon(String toolbarBundleKey, Object... params) {
+    return getImage(TOOLBAR_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, toolbarBundleKey, params),
         "png"); //NON-NLS
   }
 
-  public static ImageIcon getStatusIcon(String statusBundleKey) {
-    return getImage(STATUS_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, statusBundleKey),
+  public static ImageIcon getStatusIcon(String statusBundleKey, Object... params) {
+    return getImage(STATUS_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, statusBundleKey, params),
         "png"); //NON-NLS
   }
 
-  public static ImageIcon getGeneralIcon(String bundleKey) {
-    return getImage(GENERAL_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, bundleKey),"png"); //NON-NLS
+  public static ImageIcon getGeneralIcon(String bundleKey, Object... params) {
+    return getImage(GENERAL_ROOT+I18nSupport.getValue(RESOURCES_IMAGES, bundleKey, params),
+        "png"); //NON-NLS
   }
 
   /**********************/
   /* Sound Load Methods */
   /**********************/
 
-  public static void playSound(String soundBundleKey) {
-    final String path = "sounds/"+I18nSupport.getValue(RESOURCES_SOUNDS, soundBundleKey); //NON-NLS
+  public static void playSound(String soundBundleKey, Object... params) {
+    final String path = "sounds/"+I18nSupport.getValue(RESOURCES_SOUNDS, soundBundleKey, params); //NON-NLS
     try {
       new Thread(new Runnable() {
         public void run() {

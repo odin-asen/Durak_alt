@@ -12,10 +12,10 @@ import static common.i18n.BundleStrings.GENERAL_CARDS;
 public interface GameCardConstants {
   /* Card Color */
   public static enum CardColour {
-    SPADES(0, I18nSupport.getValue(GENERAL_CARDS,"colour.spades")),
-    CLUBS(1, I18nSupport.getValue(GENERAL_CARDS,"colour.clubs")),
-    HEARTS(2, I18nSupport.getValue(GENERAL_CARDS,"colour.hearts")),
-    DIAMONDS(3, I18nSupport.getValue(GENERAL_CARDS,"colour.diamonds"));
+    SPADES(0, I18nSupport.getValue(GENERAL_CARDS, "suit.spades")),
+    CLUBS(1, I18nSupport.getValue(GENERAL_CARDS, "suit.clubs")),
+    HEARTS(2, I18nSupport.getValue(GENERAL_CARDS, "suit.hearts")),
+    DIAMONDS(3, I18nSupport.getValue(GENERAL_CARDS, "suit.diamonds"));
 
     private final Integer value;
     private final String name;

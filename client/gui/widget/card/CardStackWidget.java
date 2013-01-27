@@ -3,14 +3,11 @@ package client.gui.widget.card;
 import client.gui.frame.ClientGUIConstants;
 import common.dto.DTOCard;
 import common.dto.DTOCardStack;
-import common.i18n.I18nSupport;
 import common.resources.ResourceGetter;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-
-import static common.i18n.BundleStrings.GUI_COMPONENT;
 
 /**
  * User: Timm Herrmann
@@ -26,7 +23,6 @@ public class CardStackWidget extends JComponent {
   /* Defines the relative distance to the borders */
   public static final float BORDER_MARGIN = 0.05f;
 
-  private DTOCard trump;
   private ImageIcon cardBack;
   private ImageIcon trumpCard;
   private int cardCount;
@@ -41,14 +37,12 @@ public class CardStackWidget extends JComponent {
    */
   public CardStackWidget(int orientation) {
     cardBack = ClientGUIConstants.CARD_BACK;
-    trumpCard = new ImageIcon();
-    trump = new DTOCard();
+    setTrumpCard(null);
     this.orientation = orientation;
     cardBackTransform = new AffineTransform();
     trumpCardTransform = new AffineTransform();
 
     cardCount = 0;
-    updateTooltip();
   }
 
   /* Methods */
@@ -72,8 +66,10 @@ public class CardStackWidget extends JComponent {
     cardBackTransform = new AffineTransform(matrix);
   }
 
-  private void calculateTrumpCardTransform(Point backPoint, int width, int height,
+  private void calculateTrumpCardTransform(Icon trumpCard, Point backPoint, int width, int height,
                                            int cardWidth, int cardHeight) {
+    assert trumpCard != null;
+
     double theta = -Math.PI/2;
     double scale[] = computeScaling(trumpCard.getIconWidth(), trumpCard.getIconHeight(),
         cardWidth, cardHeight);
@@ -106,7 +102,7 @@ public class CardStackWidget extends JComponent {
     final int cardWidth = (int) (cardHeight*RATIO_WIDTH_TO_HEIGHT);
     final Point backPoint = getBackPoint(width, height, cardWidth, cardHeight);
 
-    calculateTrumpCardTransform(backPoint, width, height, cardWidth, cardHeight);
+    calculateTrumpCardTransform(trumpCard, backPoint, width, height, cardWidth, cardHeight);
     if(cardCount > 0) {
       g2D.drawImage(trumpCard.getImage(), trumpCardTransform, this);
       for(int i = 0; i < cardCount-1; i++) {
@@ -135,13 +131,6 @@ public class CardStackWidget extends JComponent {
     return (int) (cardHeight*RATIO_WIDTH_TO_HEIGHT);
   }
 
-  public void updateTooltip() {
-    if(trump != null)
-      setToolTipText(I18nSupport.getValue(GUI_COMPONENT, "tooltip.card.number.0.trump.colour.1",
-        cardCount, trump.cardColour.getName()));
-    else setToolTipText(null);
-  }
-
   /* Getter and Setter */
 
   /**
@@ -155,7 +144,6 @@ public class CardStackWidget extends JComponent {
 
   public void setCardCount(int cardCount) {
     this.cardCount = cardCount;
-    updateTooltip();
   }
 
   public int getCardCount() {
@@ -163,10 +151,10 @@ public class CardStackWidget extends JComponent {
   }
 
   public void setTrumpCard(DTOCard trump) {
-    final String text = trump.cardColour + " "+trump.cardValue;
-    this.trumpCard = ResourceGetter.getCardImage(trump.cardColour,trump.cardValue);
-    this.trump = trump;
-    updateTooltip();
+    if(trump != null)
+      trumpCard = ResourceGetter.getCardImage(trump.cardColour, trump.cardValue);
+    else
+      trumpCard = new ImageIcon();
   }
 
   public void setCardBack(ImageIcon cardBack) {

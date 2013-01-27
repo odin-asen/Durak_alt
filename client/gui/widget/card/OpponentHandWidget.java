@@ -1,6 +1,8 @@
 package client.gui.widget.card;
 
 import common.dto.DTOClient;
+import common.i18n.BundleStrings;
+import common.i18n.I18nSupport;
 
 import javax.swing.*;
 import java.awt.*;
@@ -69,12 +71,19 @@ public class OpponentHandWidget extends JComponent {
     return opponent;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void setOpponent(DTOClient opponent) {
     this.opponent = opponent;
   }
 
   public void setStatusIcon(ImageIcon statusIcon, String statusDescription) {
     this.statusIcon = statusIcon;
-    this.setToolTipText(statusDescription);
+    final String tooltipText;
+    if(opponent != null)
+      tooltipText = I18nSupport.getValue(BundleStrings.GUI_COMPONENT,
+        "tooltip.player.type.0.name.0.cards.0", statusDescription, opponent.name,
+        opponent.cardCount);
+    else tooltipText = null;
+    this.setToolTipText(tooltipText);
   }
 }

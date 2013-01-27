@@ -20,6 +20,7 @@ public class DurakPopup extends JWindow {
   public static final int LOCATION_UP_RIGHT = 1;
   public static final int LOCATION_DOWN_LEFT = 2;
   public static final int LOCATION_DOWN_RIGHT = 3;
+  public static final int LOCATION_CENTRE = 4;
 
   private JPanel panel;
   private PopupWindowListener listener;
@@ -42,7 +43,7 @@ public class DurakPopup extends JWindow {
 
     addWindowListener(listener);
     addMouseListener(listener);
-    setSize(getPrefferedSize());
+    setSize(getPreferredSize());
     setLocation(computeLocation());
     setAlwaysOnTop(true);
   }
@@ -50,9 +51,9 @@ public class DurakPopup extends JWindow {
   /* Methods */
 
   private Point computeLocation() {
-    final Dimension size = getSize();
     final int offset = 10;
-    final Point upperLeft = new Point(parentBounds.x + offset, parentBounds.y + offset);
+    final Point centre = new Point(parentBounds.x + (parentBounds.width-getWidth())/2,
+        parentBounds.y + (parentBounds.height-getHeight())/2);
     switch (popupLocation) {
       case LOCATION_DOWN_LEFT:
         return new Point(parentBounds.x + offset,
@@ -61,17 +62,19 @@ public class DurakPopup extends JWindow {
         return new Point(parentBounds.x + parentBounds.width - getWidth() - offset,
             parentBounds.y + parentBounds.height - getHeight() - offset);
       case LOCATION_UP_LEFT:
-        return upperLeft;
+        return new Point(parentBounds.x + offset, parentBounds.y + offset);
       case LOCATION_UP_RIGHT:
         return new Point(parentBounds.x + parentBounds.width - getWidth() - offset,
             parentBounds.y + offset);
-      default: return upperLeft;
+      case LOCATION_CENTRE:
+        return centre;
+      default: return centre;
     }
   }
 
   /* Getter and Setter */
 
-  public Dimension getPrefferedSize() {
+  public Dimension getPreferredSize() {
     return panel.getPreferredSize();
   }
 
@@ -84,7 +87,7 @@ public class DurakPopup extends JWindow {
     listener.setOpenSeconds(seconds);
   }
 
-  @SuppressWarnings("HardCodedStringLiteral")
+  @SuppressWarnings("ALL")
   public static void main(String[] args) {
     JFrame frame = new JFrame();
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

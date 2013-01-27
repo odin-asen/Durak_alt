@@ -25,6 +25,7 @@ public class OpponentsPanel extends JPanel {
     this.add(oHWidget);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void removeOpponent(DTOClient opponent) {
     final OpponentHandWidget widget = findOpponentHandWidget(opponent);
     if(widget != null)

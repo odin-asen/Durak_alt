@@ -414,8 +414,8 @@ class UserMessageDistributor {
   public void showGamePopup(String message, Rectangle parentBounds) {
     final PopupSettings popupSettings = GlobalSettings.getInstance().popup;
     if(popupSettings.isEnabled() && popupSettings.getGame().isEnabled())
-      showMessagePopup(ClientGUIConstants.USER_MESSAGE_INFO_COLOUR, message, parentBounds,
-          popupSettings.getGame().getDuration());
+      WidgetCreator.createPopup(ClientGUIConstants.USER_MESSAGE_INFO_COLOUR, message, parentBounds,
+          DurakPopup.LOCATION_CENTRE, popupSettings.getGame().getDuration()).setVisible(true);
   }
 }
 
